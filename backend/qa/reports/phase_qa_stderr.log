@@ -1,0 +1,323 @@
+INFO:     Started server process [27864]
+INFO:     Waiting for application startup.
+2026-02-15 23:01:08,031 | app.main | INFO | [SYSTEM] QA_MODE ENABLED — Deepgram bypass active
+2026-02-15 23:01:08,031 | app.main | INFO | [SYSTEM] CORS allow_origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:9011 (Press CTRL+C to quit)
+INFO:     ('127.0.0.1', 49295) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:01:08,481 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:01:08,481 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:01:08,481 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:01:08,481 | ws_voice | INFO | [QA_MODE] Deepgram disabled
+2026-02-15 23:01:08,481 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+INFO:     ('127.0.0.1', 49296) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:01:08,623 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:01:08,623 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:01:08,623 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:01:08,623 | ws_voice | INFO | [QA_MODE] Deepgram disabled
+2026-02-15 23:01:08,623 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+2026-02-15 23:01:08,739 | ws_voice | INFO | silence watcher | silence=0.26 turn_elapsed=0.26 final_ready=False words=0 turn_closed=False waiting=False
+INFO:     ('127.0.0.1', 49297) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:01:08,852 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:01:08,852 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:01:08,852 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:01:08,852 | ws_voice | INFO | [QA_MODE] Deepgram disabled
+2026-02-15 23:01:08,852 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+2026-02-15 23:01:08,875 | ws_voice | INFO | silence watcher | silence=0.25 turn_elapsed=0.25 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:08,997 | ws_voice | INFO | silence watcher | silence=0.52 turn_elapsed=0.52 final_ready=False words=0 turn_closed=False waiting=False
+INFO:     ('127.0.0.1', 49298) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:01:09,021 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:01:09,021 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:01:09,021 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:01:09,021 | ws_voice | INFO | [QA_MODE] Deepgram disabled
+2026-02-15 23:01:09,021 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+2026-02-15 23:01:09,115 | ws_voice | INFO | silence watcher | silence=0.26 turn_elapsed=0.26 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,115 | ws_voice | INFO | silence watcher | silence=0.49 turn_elapsed=0.49 final_ready=False words=0 turn_closed=False waiting=False
+INFO:     ('127.0.0.1', 49299) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:01:09,230 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:01:09,233 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:01:09,233 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:01:09,233 | ws_voice | INFO | [QA_MODE] Deepgram disabled
+2026-02-15 23:01:09,233 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+2026-02-15 23:01:09,263 | ws_voice | INFO | silence watcher | silence=0.78 turn_elapsed=0.78 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,287 | ws_voice | INFO | silence watcher | silence=0.27 turn_elapsed=0.27 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,373 | ws_voice | INFO | silence watcher | silence=0.75 turn_elapsed=0.75 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,373 | ws_voice | INFO | silence watcher | silence=0.52 turn_elapsed=0.52 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,489 | ws_voice | INFO | silence watcher | silence=0.26 turn_elapsed=0.26 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,490 | ws_voice | INFO | silence watcher | silence=1.01 turn_elapsed=1.01 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,550 | ws_voice | INFO | silence watcher | silence=0.53 turn_elapsed=0.53 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,639 | ws_voice | INFO | silence watcher | silence=1.02 turn_elapsed=1.02 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,639 | ws_voice | INFO | silence watcher | silence=0.79 turn_elapsed=0.79 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,748 | ws_voice | INFO | silence watcher | silence=0.52 turn_elapsed=0.51 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,748 | ws_voice | INFO | silence watcher | silence=1.27 turn_elapsed=1.27 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,797 | ws_voice | INFO | silence watcher | silence=0.78 turn_elapsed=0.78 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,890 | ws_voice | INFO | silence watcher | silence=1.27 turn_elapsed=1.27 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:09,890 | ws_voice | INFO | silence watcher | silence=1.04 turn_elapsed=1.04 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,012 | ws_voice | INFO | silence watcher | silence=0.78 turn_elapsed=0.78 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,014 | ws_voice | INFO | silence watcher | silence=1.53 turn_elapsed=1.53 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,053 | ws_voice | INFO | silence watcher | silence=1.03 turn_elapsed=1.03 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,141 | ws_voice | INFO | silence watcher | silence=1.52 turn_elapsed=1.52 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,141 | ws_voice | INFO | silence watcher | silence=1.29 turn_elapsed=1.29 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,280 | ws_voice | INFO | silence watcher | silence=1.05 turn_elapsed=1.05 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,280 | ws_voice | INFO | silence watcher | silence=1.80 turn_elapsed=1.80 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,326 | ws_voice | INFO | silence watcher | silence=1.30 turn_elapsed=1.30 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,392 | ws_voice | INFO | silence watcher | silence=1.77 turn_elapsed=1.77 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,392 | ws_voice | INFO | silence watcher | silence=1.54 turn_elapsed=1.54 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:10,426 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:10,426 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:10,428 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:10,428 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:10,428 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:10,431 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:01:14,818 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:14,846 | ws_voice | INFO | silence watcher | silence=4.42 turn_elapsed=5.61 final_ready=True words=4 turn_closed=False waiting=False
+2026-02-15 23:01:14,846 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=1bd2b9f9-252a-4e4d-8f3d-666568a253bf
+2026-02-15 23:01:14,846 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=1bd2b9f9-252a-4e4d-8f3d-666568a253bf reason=deepgram_final
+2026-02-15 23:01:14,846 | turn | INFO | [TURN 1bd2b9f9-252a-4e4d-8f3d-666568a253bf] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:14,855 | ws_voice | INFO | TURN completion entered | turn_id=1bd2b9f9-252a-4e4d-8f3d-666568a253bf reason=deepgram_final text=I configured kubernetes workloads.
+2026-02-15 23:01:16,886 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:16,892 | ws_voice | INFO | Sending transcript event | turn_id=1bd2b9f9-252a-4e4d-8f3d-666568a253bf
+2026-02-15 23:01:16,892 | ws_voice | INFO | Sending ai_decision event | turn_id=1bd2b9f9-252a-4e4d-8f3d-666568a253bf
+2026-02-15 23:01:16,892 | ws_voice | INFO | Turn completed count=1/5
+2026-02-15 23:01:16,892 | ws_voice | INFO | Sending next_question event | turn_id=1bd2b9f9-252a-4e4d-8f3d-666568a253bf
+2026-02-15 23:01:16,892 | ws_voice | INFO | silence watcher | silence=6.47 turn_elapsed=8.41 final_ready=True words=10 turn_closed=False waiting=False
+2026-02-15 23:01:16,896 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=ba31a51a-2141-42b2-879b-a50cd15260ac
+2026-02-15 23:01:16,896 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=ba31a51a-2141-42b2-879b-a50cd15260ac reason=deepgram_final
+2026-02-15 23:01:16,896 | turn | INFO | [TURN ba31a51a-2141-42b2-879b-a50cd15260ac] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:16,896 | ws_voice | INFO | TURN completion entered | turn_id=ba31a51a-2141-42b2-879b-a50cd15260ac reason=deepgram_final text=I designed a rollout and reduced failures by 40 percent.
+2026-02-15 23:01:18,832 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:20,061 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:20,063 | ws_voice | INFO | Sending transcript event | turn_id=ba31a51a-2141-42b2-879b-a50cd15260ac
+2026-02-15 23:01:20,063 | ws_voice | INFO | Sending ai_decision event | turn_id=ba31a51a-2141-42b2-879b-a50cd15260ac
+2026-02-15 23:01:20,065 | ws_voice | INFO | Turn completed count=1/5
+2026-02-15 23:01:20,065 | ws_voice | INFO | Sending next_question event | turn_id=ba31a51a-2141-42b2-879b-a50cd15260ac
+2026-02-15 23:01:20,065 | ws_voice | INFO | silence watcher | silence=9.64 turn_elapsed=11.04 final_ready=True words=7 turn_closed=False waiting=False
+2026-02-15 23:01:20,065 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=96950615-319e-4a5a-978c-f0da71444c5b
+2026-02-15 23:01:20,065 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=96950615-319e-4a5a-978c-f0da71444c5b reason=deepgram_final
+2026-02-15 23:01:20,065 | turn | INFO | [TURN 96950615-319e-4a5a-978c-f0da71444c5b] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:20,065 | ws_voice | INFO | TURN completion entered | turn_id=96950615-319e-4a5a-978c-f0da71444c5b reason=deepgram_final text=I improved pipeline visibility and rollback speed.
+2026-02-15 23:01:21,366 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:21,368 | ws_voice | INFO | Sending transcript event | turn_id=96950615-319e-4a5a-978c-f0da71444c5b
+2026-02-15 23:01:21,368 | ws_voice | INFO | Sending ai_decision event | turn_id=96950615-319e-4a5a-978c-f0da71444c5b
+2026-02-15 23:01:21,368 | ws_voice | INFO | Turn completed count=1/5
+2026-02-15 23:01:21,368 | ws_voice | INFO | Sending next_question event | turn_id=96950615-319e-4a5a-978c-f0da71444c5b
+2026-02-15 23:01:21,370 | ws_voice | INFO | silence watcher | silence=10.94 turn_elapsed=12.75 final_ready=True words=4 turn_closed=False waiting=False
+2026-02-15 23:01:21,370 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=2de614de-a099-4ea2-be3c-b2e1b4f50b7a
+2026-02-15 23:01:21,370 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=2de614de-a099-4ea2-be3c-b2e1b4f50b7a reason=deepgram_final
+2026-02-15 23:01:21,370 | turn | INFO | [TURN 2de614de-a099-4ea2-be3c-b2e1b4f50b7a] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:21,370 | ws_voice | INFO | TURN completion entered | turn_id=2de614de-a099-4ea2-be3c-b2e1b4f50b7a reason=deepgram_final text=I worked on tasks.
+2026-02-15 23:01:22,723 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:22,725 | ws_voice | INFO | Sending transcript event | turn_id=2de614de-a099-4ea2-be3c-b2e1b4f50b7a
+2026-02-15 23:01:22,725 | ws_voice | INFO | Sending ai_decision event | turn_id=2de614de-a099-4ea2-be3c-b2e1b4f50b7a
+2026-02-15 23:01:22,726 | ws_voice | INFO | Turn completed count=1/5
+2026-02-15 23:01:22,726 | ws_voice | INFO | Sending next_question event | turn_id=2de614de-a099-4ea2-be3c-b2e1b4f50b7a
+2026-02-15 23:01:22,727 | ws_voice | INFO | silence watcher | silence=5.83 turn_elapsed=5.83 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:22,727 | ws_voice | INFO | silence watcher | silence=2.66 turn_elapsed=2.66 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:22,727 | ws_voice | INFO | silence watcher | silence=1.36 turn_elapsed=1.36 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:22,728 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:22,729 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:22,729 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:22,729 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:22,983 | ws_voice | INFO | silence watcher | silence=0.25 turn_elapsed=0.26 final_ready=True words=4 turn_closed=False waiting=False
+2026-02-15 23:01:22,984 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=878e7c07-59ba-4bb6-af64-78f0ad5d84d4
+2026-02-15 23:01:22,984 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=878e7c07-59ba-4bb6-af64-78f0ad5d84d4 reason=deepgram_final
+2026-02-15 23:01:22,984 | turn | INFO | [TURN 878e7c07-59ba-4bb6-af64-78f0ad5d84d4] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:22,984 | ws_voice | INFO | TURN completion entered | turn_id=878e7c07-59ba-4bb6-af64-78f0ad5d84d4 reason=deepgram_final text=I am not sure.
+2026-02-15 23:01:24,849 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:24,849 | ws_voice | INFO | Sending transcript event | turn_id=878e7c07-59ba-4bb6-af64-78f0ad5d84d4
+2026-02-15 23:01:24,849 | ws_voice | INFO | Sending ai_decision event | turn_id=878e7c07-59ba-4bb6-af64-78f0ad5d84d4
+2026-02-15 23:01:24,849 | ws_voice | INFO | Turn completed count=2/5
+2026-02-15 23:01:24,849 | ws_voice | INFO | Sending next_question event | turn_id=878e7c07-59ba-4bb6-af64-78f0ad5d84d4
+2026-02-15 23:01:24,849 | ws_voice | INFO | silence watcher | silence=2.12 turn_elapsed=7.96 final_ready=True words=4 turn_closed=False waiting=False
+2026-02-15 23:01:24,849 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=2e55321f-0417-4575-aeec-3063438357e4
+2026-02-15 23:01:24,849 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=2e55321f-0417-4575-aeec-3063438357e4 reason=deepgram_final
+2026-02-15 23:01:24,849 | turn | INFO | [TURN 2e55321f-0417-4575-aeec-3063438357e4] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:24,849 | ws_voice | INFO | TURN completion entered | turn_id=2e55321f-0417-4575-aeec-3063438357e4 reason=deepgram_final text=I optimized autoscaling settings.
+2026-02-15 23:01:26,614 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:26,616 | ws_voice | INFO | Sending transcript event | turn_id=2e55321f-0417-4575-aeec-3063438357e4
+2026-02-15 23:01:26,616 | ws_voice | INFO | Sending ai_decision event | turn_id=2e55321f-0417-4575-aeec-3063438357e4
+2026-02-15 23:01:26,618 | ws_voice | INFO | Turn completed count=2/5
+2026-02-15 23:01:26,618 | ws_voice | INFO | Sending next_question event | turn_id=2e55321f-0417-4575-aeec-3063438357e4
+2026-02-15 23:01:26,618 | ws_voice | INFO | silence watcher | silence=3.89 turn_elapsed=5.25 final_ready=True words=6 turn_closed=False waiting=False
+2026-02-15 23:01:26,618 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=861fb2b6-e221-483a-a6bb-7b859ab21b9b
+2026-02-15 23:01:26,618 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=861fb2b6-e221-483a-a6bb-7b859ab21b9b reason=deepgram_final
+2026-02-15 23:01:26,618 | turn | INFO | [TURN 861fb2b6-e221-483a-a6bb-7b859ab21b9b] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:26,618 | ws_voice | INFO | TURN completion entered | turn_id=861fb2b6-e221-483a-a6bb-7b859ab21b9b reason=deepgram_final text=I compared consistency and cost tradeoffs.
+2026-02-15 23:01:28,359 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:28,361 | ws_voice | INFO | Sending transcript event | turn_id=861fb2b6-e221-483a-a6bb-7b859ab21b9b
+2026-02-15 23:01:28,365 | ws_voice | INFO | Sending ai_decision event | turn_id=861fb2b6-e221-483a-a6bb-7b859ab21b9b
+2026-02-15 23:01:28,367 | ws_voice | INFO | Turn completed count=2/5
+2026-02-15 23:01:28,367 | ws_voice | INFO | Sending next_question event | turn_id=861fb2b6-e221-483a-a6bb-7b859ab21b9b
+2026-02-15 23:01:28,367 | ws_voice | INFO | silence watcher | silence=5.64 turn_elapsed=8.30 final_ready=True words=7 turn_closed=False waiting=False
+2026-02-15 23:01:28,367 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=1b44c0a3-caca-49d0-9de2-5171f8242fb7
+2026-02-15 23:01:28,367 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=1b44c0a3-caca-49d0-9de2-5171f8242fb7 reason=deepgram_final
+2026-02-15 23:01:28,367 | turn | INFO | [TURN 1b44c0a3-caca-49d0-9de2-5171f8242fb7] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:28,367 | ws_voice | INFO | TURN completion entered | turn_id=1b44c0a3-caca-49d0-9de2-5171f8242fb7 reason=deepgram_final text=I introduced canary checks and rollback automation.
+2026-02-15 23:01:29,701 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:29,722 | ws_voice | INFO | Sending transcript event | turn_id=1b44c0a3-caca-49d0-9de2-5171f8242fb7
+2026-02-15 23:01:29,722 | ws_voice | INFO | Sending ai_decision event | turn_id=1b44c0a3-caca-49d0-9de2-5171f8242fb7
+2026-02-15 23:01:29,722 | ws_voice | INFO | Turn completed count=2/5
+2026-02-15 23:01:29,722 | ws_voice | INFO | Sending next_question event | turn_id=1b44c0a3-caca-49d0-9de2-5171f8242fb7
+2026-02-15 23:01:29,724 | ws_voice | INFO | silence watcher | silence=4.87 turn_elapsed=4.87 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:29,724 | ws_voice | INFO | silence watcher | silence=3.11 turn_elapsed=3.11 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:29,727 | ws_voice | INFO | silence watcher | silence=1.36 turn_elapsed=1.36 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:29,730 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:29,730 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:29,730 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:29,730 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:29,990 | ws_voice | INFO | silence watcher | silence=0.26 turn_elapsed=5.14 final_ready=True words=4 turn_closed=False waiting=False
+2026-02-15 23:01:29,990 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=5c17a693-85a2-4bd5-8711-c50646c542f6
+2026-02-15 23:01:29,990 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=5c17a693-85a2-4bd5-8711-c50646c542f6 reason=deepgram_final
+2026-02-15 23:01:29,990 | turn | INFO | [TURN 5c17a693-85a2-4bd5-8711-c50646c542f6] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:29,990 | ws_voice | INFO | TURN completion entered | turn_id=5c17a693-85a2-4bd5-8711-c50646c542f6 reason=deepgram_final text=I did small updates.
+2026-02-15 23:01:31,634 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:31,637 | ws_voice | INFO | Sending transcript event | turn_id=5c17a693-85a2-4bd5-8711-c50646c542f6
+2026-02-15 23:01:31,637 | ws_voice | INFO | Sending ai_decision event | turn_id=5c17a693-85a2-4bd5-8711-c50646c542f6
+2026-02-15 23:01:31,639 | ws_voice | INFO | Turn completed count=3/5
+2026-02-15 23:01:31,639 | ws_voice | INFO | Sending next_question event | turn_id=5c17a693-85a2-4bd5-8711-c50646c542f6
+2026-02-15 23:01:31,639 | ws_voice | INFO | silence watcher | silence=1.91 turn_elapsed=3.27 final_ready=True words=6 turn_closed=False waiting=False
+2026-02-15 23:01:31,639 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=b89fc32f-2389-4fc5-97a5-22adcd679e3e
+2026-02-15 23:01:31,639 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=b89fc32f-2389-4fc5-97a5-22adcd679e3e reason=deepgram_final
+2026-02-15 23:01:31,639 | turn | INFO | [TURN b89fc32f-2389-4fc5-97a5-22adcd679e3e] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:31,639 | ws_voice | INFO | TURN completion entered | turn_id=b89fc32f-2389-4fc5-97a5-22adcd679e3e reason=deepgram_final text=I mitigated risk with staged releases.
+2026-02-15 23:01:33,683 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:33,685 | ws_voice | INFO | Sending transcript event | turn_id=b89fc32f-2389-4fc5-97a5-22adcd679e3e
+2026-02-15 23:01:33,688 | ws_voice | INFO | Sending ai_decision event | turn_id=b89fc32f-2389-4fc5-97a5-22adcd679e3e
+2026-02-15 23:01:33,689 | ws_voice | INFO | Turn completed count=3/5
+2026-02-15 23:01:33,689 | ws_voice | INFO | Sending next_question event | turn_id=b89fc32f-2389-4fc5-97a5-22adcd679e3e
+2026-02-15 23:01:33,689 | ws_voice | INFO | silence watcher | silence=3.96 turn_elapsed=3.97 final_ready=True words=8 turn_closed=False waiting=False
+2026-02-15 23:01:33,689 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=5389965f-e2fc-4e52-b733-8acf9b519503
+2026-02-15 23:01:33,689 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=5389965f-e2fc-4e52-b733-8acf9b519503 reason=deepgram_final
+2026-02-15 23:01:33,689 | turn | INFO | [TURN 5389965f-e2fc-4e52-b733-8acf9b519503] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:33,689 | ws_voice | INFO | TURN completion entered | turn_id=5389965f-e2fc-4e52-b733-8acf9b519503 reason=deepgram_final text=I tracked latency and error budgets each release.
+2026-02-15 23:01:35,715 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:35,731 | ws_voice | INFO | Sending transcript event | turn_id=5389965f-e2fc-4e52-b733-8acf9b519503
+2026-02-15 23:01:35,731 | ws_voice | INFO | Sending ai_decision event | turn_id=5389965f-e2fc-4e52-b733-8acf9b519503
+2026-02-15 23:01:35,731 | ws_voice | INFO | Turn completed count=3/5
+2026-02-15 23:01:35,731 | ws_voice | INFO | Sending next_question event | turn_id=5389965f-e2fc-4e52-b733-8acf9b519503
+2026-02-15 23:01:35,731 | ws_voice | INFO | silence watcher | silence=6.00 turn_elapsed=9.11 final_ready=True words=6 turn_closed=False waiting=False
+2026-02-15 23:01:35,731 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=0589cd2c-8f61-4429-aec4-ad6e8c9c4d32
+2026-02-15 23:01:35,731 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=0589cd2c-8f61-4429-aec4-ad6e8c9c4d32 reason=deepgram_final
+2026-02-15 23:01:35,731 | turn | INFO | [TURN 0589cd2c-8f61-4429-aec4-ad6e8c9c4d32] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:35,731 | ws_voice | INFO | TURN completion entered | turn_id=0589cd2c-8f61-4429-aec4-ad6e8c9c4d32 reason=deepgram_final text=I lowered deployment drift via automation.
+2026-02-15 23:01:37,675 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:37,676 | ws_voice | INFO | Sending transcript event | turn_id=0589cd2c-8f61-4429-aec4-ad6e8c9c4d32
+2026-02-15 23:01:37,676 | ws_voice | INFO | Sending ai_decision event | turn_id=0589cd2c-8f61-4429-aec4-ad6e8c9c4d32
+2026-02-15 23:01:37,678 | ws_voice | INFO | Turn completed count=3/5
+2026-02-15 23:01:37,678 | ws_voice | INFO | Sending next_question event | turn_id=0589cd2c-8f61-4429-aec4-ad6e8c9c4d32
+2026-02-15 23:01:37,680 | ws_voice | INFO | silence watcher | silence=6.04 turn_elapsed=6.04 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:37,680 | ws_voice | INFO | silence watcher | silence=3.99 turn_elapsed=3.99 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:37,680 | ws_voice | INFO | silence watcher | silence=1.95 turn_elapsed=1.95 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:37,680 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:37,682 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:37,684 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:37,684 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:37,915 | ws_voice | INFO | silence watcher | silence=0.23 turn_elapsed=4.23 final_ready=True words=5 turn_closed=False waiting=False
+2026-02-15 23:01:37,915 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=760f2e1f-522c-4ff4-aada-6041a6cabc60
+2026-02-15 23:01:37,915 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=760f2e1f-522c-4ff4-aada-6041a6cabc60 reason=deepgram_final
+2026-02-15 23:01:37,915 | turn | INFO | [TURN 760f2e1f-522c-4ff4-aada-6041a6cabc60] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:37,915 | ws_voice | INFO | TURN completion entered | turn_id=760f2e1f-522c-4ff4-aada-6041a6cabc60 reason=deepgram_final text=I documented incident response flows.
+2026-02-15 23:01:39,315 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:39,322 | ws_voice | INFO | Sending transcript event | turn_id=760f2e1f-522c-4ff4-aada-6041a6cabc60
+2026-02-15 23:01:39,324 | ws_voice | INFO | Sending ai_decision event | turn_id=760f2e1f-522c-4ff4-aada-6041a6cabc60
+2026-02-15 23:01:39,324 | ws_voice | INFO | Turn completed count=4/5
+2026-02-15 23:01:39,324 | ws_voice | INFO | Sending next_question event | turn_id=760f2e1f-522c-4ff4-aada-6041a6cabc60
+2026-02-15 23:01:39,324 | ws_voice | INFO | silence watcher | silence=1.64 turn_elapsed=3.59 final_ready=True words=7 turn_closed=False waiting=False
+2026-02-15 23:01:39,324 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=981f389a-1987-494b-9cef-7a2592c1511b
+2026-02-15 23:01:39,324 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=981f389a-1987-494b-9cef-7a2592c1511b reason=deepgram_final
+2026-02-15 23:01:39,324 | turn | INFO | [TURN 981f389a-1987-494b-9cef-7a2592c1511b] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:39,324 | ws_voice | INFO | TURN completion entered | turn_id=981f389a-1987-494b-9cef-7a2592c1511b reason=deepgram_final text=I led incident triage and stakeholder updates.
+2026-02-15 23:01:41,359 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:41,364 | ws_voice | INFO | Sending transcript event | turn_id=981f389a-1987-494b-9cef-7a2592c1511b
+2026-02-15 23:01:41,364 | ws_voice | INFO | Sending ai_decision event | turn_id=981f389a-1987-494b-9cef-7a2592c1511b
+2026-02-15 23:01:41,364 | ws_voice | INFO | Turn completed count=4/5
+2026-02-15 23:01:41,364 | ws_voice | INFO | Sending next_question event | turn_id=981f389a-1987-494b-9cef-7a2592c1511b
+2026-02-15 23:01:41,367 | ws_voice | INFO | silence watcher | silence=3.68 turn_elapsed=3.69 final_ready=True words=5 turn_closed=False waiting=False
+2026-02-15 23:01:41,368 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=26f80029-6999-4b98-aa30-a844a8fb07a9
+2026-02-15 23:01:41,368 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=26f80029-6999-4b98-aa30-a844a8fb07a9 reason=deepgram_final
+2026-02-15 23:01:41,369 | turn | INFO | [TURN 26f80029-6999-4b98-aa30-a844a8fb07a9] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:41,369 | ws_voice | INFO | TURN completion entered | turn_id=26f80029-6999-4b98-aa30-a844a8fb07a9 reason=deepgram_final text=I created runbooks for on-call.
+2026-02-15 23:01:42,804 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:42,806 | ws_voice | INFO | Sending transcript event | turn_id=26f80029-6999-4b98-aa30-a844a8fb07a9
+2026-02-15 23:01:42,806 | ws_voice | INFO | Sending ai_decision event | turn_id=26f80029-6999-4b98-aa30-a844a8fb07a9
+2026-02-15 23:01:42,806 | ws_voice | INFO | Turn completed count=4/5
+2026-02-15 23:01:42,808 | ws_voice | INFO | Sending next_question event | turn_id=26f80029-6999-4b98-aa30-a844a8fb07a9
+2026-02-15 23:01:42,808 | ws_voice | INFO | silence watcher | silence=5.13 turn_elapsed=11.17 final_ready=True words=3 turn_closed=False waiting=False
+2026-02-15 23:01:42,808 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=5503bd9b-1b81-45d1-a87c-07ced9682baf
+2026-02-15 23:01:42,808 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=5503bd9b-1b81-45d1-a87c-07ced9682baf reason=deepgram_final
+2026-02-15 23:01:42,808 | turn | INFO | [TURN 5503bd9b-1b81-45d1-a87c-07ced9682baf] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:42,808 | ws_voice | INFO | TURN completion entered | turn_id=5503bd9b-1b81-45d1-a87c-07ced9682baf reason=deepgram_final text=No measurable impact.
+2026-02-15 23:01:44,222 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:44,228 | ws_voice | INFO | Sending transcript event | turn_id=5503bd9b-1b81-45d1-a87c-07ced9682baf
+2026-02-15 23:01:44,230 | ws_voice | INFO | Sending ai_decision event | turn_id=5503bd9b-1b81-45d1-a87c-07ced9682baf
+2026-02-15 23:01:44,230 | ws_voice | INFO | Turn completed count=4/5
+2026-02-15 23:01:44,230 | ws_voice | INFO | Sending next_question event | turn_id=5503bd9b-1b81-45d1-a87c-07ced9682baf
+2026-02-15 23:01:44,230 | ws_voice | INFO | silence watcher | silence=4.91 turn_elapsed=4.91 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:44,230 | ws_voice | INFO | silence watcher | silence=2.87 turn_elapsed=2.87 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:44,230 | ws_voice | INFO | silence watcher | silence=1.42 turn_elapsed=1.42 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:01:44,232 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:44,234 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:44,234 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:44,234 | transcript_engine | INFO | FINAL_EVENT ingested
+2026-02-15 23:01:44,475 | ws_voice | INFO | silence watcher | silence=0.24 turn_elapsed=3.11 final_ready=True words=6 turn_closed=False waiting=False
+2026-02-15 23:01:44,475 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=49117a3f-c3c9-46d3-a7bf-153f11c25d57
+2026-02-15 23:01:44,475 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=49117a3f-c3c9-46d3-a7bf-153f11c25d57 reason=deepgram_final
+2026-02-15 23:01:44,475 | turn | INFO | [TURN 49117a3f-c3c9-46d3-a7bf-153f11c25d57] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:44,475 | ws_voice | INFO | TURN completion entered | turn_id=49117a3f-c3c9-46d3-a7bf-153f11c25d57 reason=deepgram_final text=I improved reliability while reducing cost.
+2026-02-15 23:01:46,068 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:46,068 | ws_voice | INFO | Sending transcript event | turn_id=49117a3f-c3c9-46d3-a7bf-153f11c25d57
+2026-02-15 23:01:46,068 | ws_voice | INFO | Sending ai_decision event | turn_id=49117a3f-c3c9-46d3-a7bf-153f11c25d57
+2026-02-15 23:01:46,068 | ws_voice | INFO | Turn completed count=5/5
+2026-02-15 23:01:51,917 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:51,927 | ws_voice | WARNING | STOP requested: max turns reached
+2026-02-15 23:01:51,929 | turn | INFO | [TURN 49117a3f-c3c9-46d3-a7bf-153f11c25d57] FINALIZED | latency=10.58s
+2026-02-15 23:01:51,932 | ws_voice | INFO | TURN_FINALIZE_DONE | turn_id=49117a3f-c3c9-46d3-a7bf-153f11c25d57 reason=deepgram_final finalize_latency_ms=7453.00
+2026-02-15 23:01:51,932 | ws_voice | INFO | silence watcher | silence=7.70 turn_elapsed=9.12 final_ready=True words=3 turn_closed=False waiting=False
+2026-02-15 23:01:51,932 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=2ef4ba6b-5440-41fa-b178-a650ef96bb70
+2026-02-15 23:01:51,932 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=2ef4ba6b-5440-41fa-b178-a650ef96bb70 reason=deepgram_final
+2026-02-15 23:01:51,932 | turn | INFO | [TURN 2ef4ba6b-5440-41fa-b178-a650ef96bb70] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:51,932 | ws_voice | INFO | TURN completion entered | turn_id=2ef4ba6b-5440-41fa-b178-a650ef96bb70 reason=deepgram_final text=I cut mean-time-to-recovery.
+2026-02-15 23:01:53,439 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:53,447 | ws_voice | INFO | Sending transcript event | turn_id=2ef4ba6b-5440-41fa-b178-a650ef96bb70
+2026-02-15 23:01:53,447 | ws_voice | INFO | Sending ai_decision event | turn_id=2ef4ba6b-5440-41fa-b178-a650ef96bb70
+2026-02-15 23:01:53,448 | ws_voice | INFO | Turn completed count=5/5
+2026-02-15 23:01:56,515 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:56,521 | ws_voice | WARNING | STOP requested: max turns reached
+2026-02-15 23:01:56,521 | turn | INFO | [TURN 2ef4ba6b-5440-41fa-b178-a650ef96bb70] FINALIZED | latency=13.72s
+2026-02-15 23:01:56,521 | ws_voice | INFO | TURN_FINALIZE_DONE | turn_id=2ef4ba6b-5440-41fa-b178-a650ef96bb70 reason=deepgram_final finalize_latency_ms=4594.00
+2026-02-15 23:01:56,521 | ws_voice | INFO | silence watcher | silence=12.29 turn_elapsed=12.29 final_ready=True words=4 turn_closed=False waiting=False
+2026-02-15 23:01:56,521 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=61d324f6-6d76-4a3e-a3a6-0c36ec65f9e8
+2026-02-15 23:01:56,521 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=61d324f6-6d76-4a3e-a3a6-0c36ec65f9e8 reason=deepgram_final
+2026-02-15 23:01:56,521 | turn | INFO | [TURN 61d324f6-6d76-4a3e-a3a6-0c36ec65f9e8] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:01:56,521 | ws_voice | INFO | TURN completion entered | turn_id=61d324f6-6d76-4a3e-a3a6-0c36ec65f9e8 reason=deepgram_final text=I cannot recall details.
+2026-02-15 23:01:58,048 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:01:58,053 | ws_voice | INFO | Sending transcript event | turn_id=61d324f6-6d76-4a3e-a3a6-0c36ec65f9e8
+2026-02-15 23:01:58,055 | ws_voice | INFO | Sending ai_decision event | turn_id=61d324f6-6d76-4a3e-a3a6-0c36ec65f9e8
+2026-02-15 23:01:58,055 | ws_voice | INFO | Turn completed count=5/5
+2026-02-15 23:02:00,198 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:02:00,198 | ws_voice | WARNING | STOP requested: max turns reached
+2026-02-15 23:02:00,207 | turn | INFO | [TURN 61d324f6-6d76-4a3e-a3a6-0c36ec65f9e8] FINALIZED | latency=15.97s
+2026-02-15 23:02:00,207 | ws_voice | INFO | TURN_FINALIZE_DONE | turn_id=61d324f6-6d76-4a3e-a3a6-0c36ec65f9e8 reason=deepgram_final finalize_latency_ms=3672.00
+2026-02-15 23:02:00,207 | ws_voice | INFO | silence watcher | silence=15.98 turn_elapsed=20.88 final_ready=True words=6 turn_closed=False waiting=False
+2026-02-15 23:02:00,207 | ws_voice | INFO | finalize_triggered reason=deepgram_final | turn_id=000428c3-b4a5-4f39-bdea-02360386b0a8
+2026-02-15 23:02:00,207 | ws_voice | INFO | TURN_FINALIZE_START | turn_id=000428c3-b4a5-4f39-bdea-02360386b0a8 reason=deepgram_final
+2026-02-15 23:02:00,207 | turn | INFO | [TURN 000428c3-b4a5-4f39-bdea-02360386b0a8] Transition ACTIVE \u2192 FINALIZING | reason=deepgram_final
+2026-02-15 23:02:00,207 | ws_voice | INFO | TURN completion entered | turn_id=000428c3-b4a5-4f39-bdea-02360386b0a8 reason=deepgram_final text=I improved delivery reliability across teams.
+2026-02-15 23:02:01,950 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:02:01,951 | ws_voice | INFO | Sending transcript event | turn_id=000428c3-b4a5-4f39-bdea-02360386b0a8
+2026-02-15 23:02:01,951 | ws_voice | INFO | Sending ai_decision event | turn_id=000428c3-b4a5-4f39-bdea-02360386b0a8
+2026-02-15 23:02:01,951 | ws_voice | INFO | Turn completed count=5/5
+2026-02-15 23:02:04,709 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:02:04,715 | ws_voice | WARNING | STOP requested: max turns reached
+2026-02-15 23:02:04,717 | turn | INFO | [TURN 000428c3-b4a5-4f39-bdea-02360386b0a8] FINALIZED | latency=25.39s
+2026-02-15 23:02:04,717 | ws_voice | INFO | TURN_FINALIZE_DONE | turn_id=000428c3-b4a5-4f39-bdea-02360386b0a8 reason=deepgram_final finalize_latency_ms=4516.00
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed

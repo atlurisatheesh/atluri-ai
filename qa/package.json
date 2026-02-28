@@ -1,0 +1,27 @@
+{
+  "name": "atluriin-ai-e2e-qa",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AI-powered end-to-end QA harness for AtluriIn (Playwright + TypeScript)",
+  "scripts": {
+    "e2e": "ts-node e2e/run-full-ai-e2e.ts",
+    "load": "ts-node load/run-load-test.ts",
+    "regression": "ts-node regression/run-regression.ts",
+    "chaos": "ts-node chaos/run-chaos.ts"
+  },
+  "dependencies": {
+    "docx": "^9.5.0",
+    "pngjs": "^7.0.0",
+    "pdf-lib": "^1.17.1",
+    "playwright": "^1.51.0",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "@types/pngjs": "^6.0.5",
+    "@types/ws": "^8.5.14",
+    "@playwright/test": "^1.58.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

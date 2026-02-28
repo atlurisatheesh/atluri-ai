@@ -1,0 +1,64 @@
+{
+  "generatedAtIso": "2026-02-17T17:06:06.441Z",
+  "environment": {
+    "backendUrl": "http://localhost:9010",
+    "frontendUrl": "http://localhost:3001",
+    "nodeVersion": "v24.13.1",
+    "osPlatform": "win32"
+  },
+  "offer": {
+    "offer_probability": 93.61,
+    "delta_vs_last_session": 0,
+    "improvement_velocity_pp_per_session": 0,
+    "confidence_band": "high",
+    "drivers_positive": [
+      "Confidence Stability strong (100.0%)",
+      "Evidence Integrity strong (100.0%)",
+      "Risk Control strong (98.6%)"
+    ],
+    "drivers_negative": [
+      "Impact Strength lagging (88.0%)",
+      "STAR Structure lagging (91.1%)",
+      "Credibility lagging (93.9%)"
+    ],
+    "what_to_fix_next": [
+      "Add one measurable business outcome in your next answer",
+      "Use explicit Context → Action → Result flow before reflection"
+    ],
+    "beta_percentile": 100,
+    "beta_cohort_size": 55,
+    "baseline_range_hint": "Most early users start between 35% and 55%.",
+    "target_ladder": [
+      "60% = competitive",
+      "70% = strong",
+      "80%+ = standout"
+    ],
+    "plateau_note": "Plateau at high performance is normal; gains now come from precision and executive presence.",
+    "how_it_works": "Offer Probability combines credibility, STAR structure, impact evidence, pressure stability, and risk consistency into a deterministic score."
+  },
+  "ui": {
+    "requiredPhrases": [
+      "AtluriIn AI",
+      "Offer Probability",
+      "First Session Launch"
+    ],
+    "extractedText": "Login\nSign Up\nAtluriIn AI\nCopilot\nPressure Lab\nPerformance ▾\nPublic Launch Track\nYour Interview Is Being Scored In Real Time\nSee how the interviewer sees you: credibility up, risk down, pressure controlled before it costs your offer.\nPerformance Intelligence Positioning\nSharper narrative, stronger proof, and interviewer-calibrated credibility language.\nLaunch\nDepth\nStealth\nEnterprise\nCredibility\n78%\nRisk\n10%\nPressure\n38%\nSignal strong. Maintain structured proof.\nBefore: reactive answers\n→\nNow: performance intelligence operating system\nTrajectory: B+ → A-\nOffer Conversion Engine\nLand The Offer With Live Interview Intelligence\nReal-time scoring, drift detection, and pressure control so you answer with credibility when it matters most.\nRun First Pressure Round (1-Click)\nSee Interviewer Perception\nFirst Session Launch\n\nGet measurable signal quality in under 3 minutes.\n\nDismiss\nWe do not generate interview scripts. We calibrate live performance confidence and risk.\n1) Choose Performance Track\nLaunch\nDepth\nStealth\nEnterprise\nBalanced, polished default for individual candidate growth.\n2) Complete Baseline Setup\nA\nLoad your resume profile\nB\nPaste your target job scope\nC\nRun one Pressure Lab round\nUpload Resume\nSet Job Target\nRun First Pressure Round (1-Click)\nSee Interviewer Perception\nWatch 2-Minute Demo\nInterviewer Perception Console\nRefreshing...\nPRIMARY KPI\nOffer Probability\nLOW CONFIDENCE\n0.0%\n0.0 pts vs last session\nVelocity: +0.0 pts/session\nAt-risk trajectory; fix core signals before major interviews\nPush toward 70%+ before final-loop interviews.\nTop Negative Drivers\nNo blockers detected.\nWhat To Fix Next\nNo actions available yet.\nPerformance Score → 0\nMetric Usage →\nOwnership →\nPressure Response →\nSessions\n0\nPerformance Score (Avg)\n0\nConsistency Index\n0\nCredibility Index\n0\nCredibility Heatmap\nNo snapshots yet.\nPerformance Snapshot\nLatest decision: —\nCompany mode: general\nGeneral Mode • balanced weighting\nOverclaim Risk Index: 0\nBlind Spot Risk Index: 0\nRisk Flags: 0\nConsistency Trend\nNo trend yet.\nCross-Session Growth Tracking\nCurrent Streak: 0 days\nBest Streak: 0 days\nComplete 1 more session to unlock your growth graph.\nInterview History\nNo completed sessions yet.\nRisk Index Timeline\nNo credibility snapshots yet.\nLoading dashboard...\nSignal Strengthened",
+    "screenshotHashes": {
+      "landing": {
+        "sha256": "bc040ca10c714e66894427413b7aff7891944adf73f6eb1f7d173fc8d2b6db65",
+        "dhash64": "70c0d0808080a0aa",
+        "bytes": 495016
+      },
+      "app": {
+        "sha256": "39ae8f9c98702ab046d3af435d930bc007d8632e5cb079d4ea0b3c1b2fe2b5ea",
+        "dhash64": "810080ca94414141",
+        "bytes": 248764
+      },
+      "dashboard": {
+        "sha256": "55c4dafb2056f32de175bbbe89dcb1064e16835b0851c2e30dcdaab0c8eefb5e",
+        "dhash64": "01808080aa888888",
+        "bytes": 309751
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+venv/
+node_modules/
+__pycache__/
+.env
+
+# Build outputs
+.next/
+desktop/release/
+dist/
+build/
+out/
+
+# Archives
+*.zip
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

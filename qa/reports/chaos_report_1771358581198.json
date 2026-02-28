@@ -1,0 +1,1431 @@
+{
+  "started_at": "2026-02-17T20:00:23.071Z",
+  "finished_at": "2026-02-17T20:03:01.198Z",
+  "config": {
+    "backendUrl": "http://127.0.0.1:9010",
+    "frontendUrl": "http://127.0.0.1:3001",
+    "users": 20,
+    "durationSec": 90,
+    "httpAbortRate": 0.08,
+    "wsChurnRate": 0.05,
+    "jitterMs": 250,
+    "headless": true,
+    "authToken": null
+  },
+  "summary": {
+    "ok": false,
+    "http_requests": 188,
+    "http_failures": 187,
+    "ws_connects": 28,
+    "ws_disconnects": 27,
+    "ws_errors": 0,
+    "notes": [
+      "FAIL (too many failures under chaos)",
+      "Used unsigned dev JWT (requires ALLOW_UNVERIFIED_JWT_DEV or token bridging)"
+    ]
+  },
+  "events": [
+    {
+      "ts": "2026-02-17T20:00:22.941Z",
+      "user": "system",
+      "kind": "frontend_ok"
+    },
+    {
+      "ts": "2026-02-17T20:00:23.952Z",
+      "user": "chaos-user-1",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:26.561Z",
+      "user": "chaos-user-2",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:26.562Z",
+      "user": "chaos-user-3",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:26.569Z",
+      "user": "chaos-user-4",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:26.799Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:27.400Z",
+      "user": "chaos-user-5",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:28.306Z",
+      "user": "chaos-user-6",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:29.328Z",
+      "user": "chaos-user-7",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:29.734Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:30.040Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:30.179Z",
+      "user": "chaos-user-8",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:30.521Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:31.068Z",
+      "user": "chaos-user-9",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:31.928Z",
+      "user": "chaos-user-10",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:32.059Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:33.123Z",
+      "user": "chaos-user-11",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:34.051Z",
+      "user": "chaos-user-8",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:00:34.051Z",
+      "user": "chaos-user-12",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:34.693Z",
+      "user": "chaos-user-3",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:34.825Z",
+      "user": "chaos-user-4",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:34.906Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:35.170Z",
+      "user": "chaos-user-13",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:35.562Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:36.206Z",
+      "user": "chaos-user-14",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:36.394Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:37.130Z",
+      "user": "chaos-user-15",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:38.068Z",
+      "user": "chaos-user-16",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:38.118Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:39.014Z",
+      "user": "chaos-user-17",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:39.226Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:40.128Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:40.129Z",
+      "user": "chaos-user-10",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:40.186Z",
+      "user": "chaos-user-18",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:41.210Z",
+      "user": "chaos-user-19",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:41.232Z",
+      "user": "chaos-user-11",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:42.093Z",
+      "user": "chaos-user-12",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:42.242Z",
+      "user": "chaos-user-20",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:42.735Z",
+      "user": "chaos-user-3",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:42.947Z",
+      "user": "chaos-user-4",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:43.087Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:43.318Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:43.717Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:43.813Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:43.817Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:44.079Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:44.473Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:44.556Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:45.278Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:46.137Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:46.219Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:46.374Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:47.236Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:47.366Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:47.434Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:48.249Z",
+      "user": "chaos-user-10",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:48.315Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:48.412Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:49.492Z",
+      "user": "chaos-user-19",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:49.659Z",
+      "user": "chaos-user-11",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:49.912Z",
+      "user": "chaos-user-8",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:00:50.399Z",
+      "user": "chaos-user-12",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:50.432Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:50.840Z",
+      "user": "chaos-user-3",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:51.049Z",
+      "user": "chaos-user-4",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:51.272Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:51.740Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:52.056Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:52.332Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:52.414Z",
+      "user": "chaos-user-10",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:00:52.452Z",
+      "user": "chaos-user-19",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:00:52.721Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:52.838Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:53.427Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:54.127Z",
+      "user": "chaos-user-4",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:00:54.393Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:54.603Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:55.542Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:55.645Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:56.601Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:56.601Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:57.916Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:57.917Z",
+      "user": "chaos-user-11",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:58.526Z",
+      "user": "chaos-user-12",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:58.673Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:00:59.122Z",
+      "user": "chaos-user-3",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:00.028Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:00.254Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:02.707Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:02.709Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:02.723Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:02.736Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:02.743Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:02.859Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:03.655Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:03.713Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:04.749Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:04.820Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:06.113Z",
+      "user": "chaos-user-11",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:06.125Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:06.621Z",
+      "user": "chaos-user-12",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:06.925Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:07.187Z",
+      "user": "chaos-user-3",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:07.860Z",
+      "user": "chaos-user-12",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:08.174Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:10.729Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:10.787Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:10.911Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:10.959Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:10.986Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:11.012Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:11.065Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:11.985Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:11.987Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:12.954Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:13.106Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:14.252Z",
+      "user": "chaos-user-11",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:14.330Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:15.044Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:15.305Z",
+      "user": "chaos-user-3",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:16.487Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:18.275Z",
+      "user": "chaos-user-11",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:18.638Z",
+      "user": "chaos-user-3",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:18.835Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:19.075Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:19.105Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:19.123Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:19.202Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:19.224Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:19.257Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:20.172Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:20.279Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:21.259Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:21.299Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:22.524Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:23.330Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:24.654Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:26.907Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:27.264Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:27.287Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:27.352Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:27.356Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:27.380Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:27.424Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:28.340Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:28.530Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:29.465Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:29.531Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:29.566Z",
+      "user": "chaos-user-10",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:01:30.605Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:31.442Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:32.791Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:35.133Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:35.331Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:35.501Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:35.502Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:35.504Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:35.533Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:35.541Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:36.154Z",
+      "user": "chaos-user-19",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:01:36.426Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:36.578Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:37.383Z",
+      "user": "chaos-user-4",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:01:37.532Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:37.601Z",
+      "user": "chaos-user-10",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:37.603Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:37.637Z",
+      "user": "chaos-user-4",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:38.220Z",
+      "user": "chaos-user-4",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:38.713Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:39.484Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:40.883Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:41.069Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:43.146Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:43.459Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:43.582Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:43.690Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:43.734Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:43.735Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:43.759Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:44.227Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:44.308Z",
+      "user": "chaos-user-19",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:44.621Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:44.748Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:45.730Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:45.731Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:45.838Z",
+      "user": "chaos-user-10",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:46.310Z",
+      "user": "chaos-user-10",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:46.935Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:47.296Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:47.563Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:49.120Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:49.954Z",
+      "user": "chaos-user-12",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:01:51.324Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:51.757Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:51.767Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:51.771Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:51.828Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:51.913Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:52.501Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:52.708Z",
+      "user": "chaos-user-19",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:52.997Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:53.014Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:53.977Z",
+      "user": "chaos-user-1",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:54.312Z",
+      "user": "chaos-user-18",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:55.014Z",
+      "user": "chaos-user-10",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:55.512Z",
+      "user": "chaos-user-8",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:55.944Z",
+      "user": "chaos-user-20",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:57.345Z",
+      "user": "chaos-user-1",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:57.346Z",
+      "user": "chaos-user-2",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:57.372Z",
+      "user": "chaos-user-18",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:57.391Z",
+      "user": "chaos-user-20",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:57.391Z",
+      "user": "chaos-user-8",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:57.391Z",
+      "user": "chaos-user-10",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:01:58.048Z",
+      "user": "chaos-user-12",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:59.476Z",
+      "user": "chaos-user-5",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:59.820Z",
+      "user": "chaos-user-6",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:59.913Z",
+      "user": "chaos-user-7",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:59.942Z",
+      "user": "chaos-user-16",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:01:59.992Z",
+      "user": "chaos-user-13",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:02:00.101Z",
+      "user": "chaos-user-14",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:02:00.148Z",
+      "user": "chaos-user-11",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:02:00.685Z",
+      "user": "chaos-user-15",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:02:00.832Z",
+      "user": "chaos-user-19",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:02:01.136Z",
+      "user": "chaos-user-2",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:01.238Z",
+      "user": "chaos-user-17",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:02:01.282Z",
+      "user": "chaos-user-9",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.299Z",
+      "user": "chaos-user-12",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.300Z",
+      "user": "chaos-user-7",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.300Z",
+      "user": "chaos-user-6",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.300Z",
+      "user": "chaos-user-5",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.300Z",
+      "user": "chaos-user-14",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.301Z",
+      "user": "chaos-user-13",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.301Z",
+      "user": "chaos-user-16",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.313Z",
+      "user": "chaos-user-3",
+      "kind": "ws_open"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.316Z",
+      "user": "chaos-user-19",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.316Z",
+      "user": "chaos-user-15",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.317Z",
+      "user": "chaos-user-17",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:04.340Z",
+      "user": "chaos-user-9",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:08.158Z",
+      "user": "chaos-user-11",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:02:12.327Z",
+      "user": "chaos-user-3",
+      "kind": "http_fail",
+      "detail": "This operation was aborted"
+    },
+    {
+      "ts": "2026-02-17T20:02:20.243Z",
+      "user": "chaos-user-11",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:20.243Z",
+      "user": "chaos-user-3",
+      "kind": "ws_close"
+    },
+    {
+      "ts": "2026-02-17T20:02:55.216Z",
+      "user": "chaos-user-4",
+      "kind": "ws_open"
+    }
+  ]
+}

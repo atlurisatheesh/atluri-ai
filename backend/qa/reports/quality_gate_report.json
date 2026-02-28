@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-02-15T17:33:26Z",
+  "objective": "Unified structural + behavioral production quality gate",
+  "runs": {
+    "multi_session_stress": {
+      "script": "D:\\linkedin-ai-main\\backend\\qa\\multi_session_stress.py",
+      "exit_code": 0,
+      "duration_sec": 118.81,
+      "stdout_tail": "{\n  \"passed\": 13,\n  \"total\": 13,\n  \"checks\": {\n    \"qa::session_isolation\": true,\n    \"qa::finalize_safety\": true,\n    \"qa::event_contract_integrity\": true,\n    \"qa::disconnect_safety\": true,\n    \"qa::no_cross_session_deepgram\": true,\n    \"nonqa::deepgram_lifecycle_isolation\": true,\n    \"nonqa::no_keep_alive_thread_error\": true,\n    \"nonqa::no_reconnect_failure_loop\": true,\n    \"nonqa::no_unhandled_asgi_exceptions\": true,\n    \"persona::s1_increases\": true,\n    \"persona::s2_not_global_with_s1\": true,\n    \"persona::s3_stable\": true,\n    \"persona::divergent_states\": true\n  }\n}\nREPORT=D:\\linkedin-ai-main\\backend\\qa\\reports\\multi_session_stress_report.json",
+      "stderr_tail": ""
+    },
+    "skillgraph_behavior": {
+      "script": "D:\\linkedin-ai-main\\backend\\qa\\skillgraph_behavior_validation.py",
+      "exit_code": 0,
+      "duration_sec": 11.44,
+      "stdout_tail": "{\n  \"generated_at\": \"2026-02-15T17:33:07Z\",\n  \"passed\": 3,\n  \"total\": 3,\n  \"all_pass\": true\n}\nREPORT=D:\\linkedin-ai-main\\backend\\qa\\reports\\skillgraph_behavior_validation_report.json",
+      "stderr_tail": "2026-02-15 23:03:00,622 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions \"HTTP/1.1 200 OK\"\n2026-02-15 23:03:02,255 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions \"HTTP/1.1 200 OK\"\n2026-02-15 23:03:03,693 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions \"HTTP/1.1 200 OK\"\n2026-02-15 23:03:04,971 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions \"HTTP/1.1 200 OK\"\n2026-02-15 23:03:06,347 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions \"HTTP/1.1 200 OK\"\n2026-02-15 23:03:07,585 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions \"HTTP/1.1 200 OK\""
+    },
+    "memory_behavior": {
+      "script": "D:\\linkedin-ai-main\\backend\\qa\\memory_behavior_validation.py",
+      "exit_code": 0,
+      "duration_sec": 0.14,
+      "stdout_tail": "{\n  \"total\": 5,\n  \"passed\": 5,\n  \"failed\": 0,\n  \"all_pass\": true,\n  \"qa_mode_bypass_respected\": true\n}\nREPORT=D:\\linkedin-ai-main\\backend\\qa\\memory_behavior_report.json",
+      "stderr_tail": ""
+    },
+    "progress_export_smoke": {
+      "script": "D:\\linkedin-ai-main\\backend\\qa\\run_progress_export_smoke.py",
+      "exit_code": 0,
+      "duration_sec": 18.28,
+      "stdout_tail": "      \"detail\": \"status=200, points=4\"\n    },\n    {\n      \"name\": \"session_export_csv\",\n      \"ok\": true,\n      \"detail\": \"status=200, bytes=260\"\n    },\n    {\n      \"name\": \"session_share\",\n      \"ok\": true,\n      \"detail\": \"status=200, has_token=True\"\n    },\n    {\n      \"name\": \"public_snapshot\",\n      \"ok\": true,\n      \"detail\": \"status=200, integrity=82.0\"\n    }\n  ]\n}\nREPORT=D:\\linkedin-ai-main\\backend\\qa\\reports\\progress_export_smoke_report.json",
+      "stderr_tail": "2026-02-15 23:03:19,879 | app.auth | WARNING | SUPABASE_JWT_SECRET missing and Supabase validation unavailable; using unverified token claims in non-production mode\n2026-02-15 23:03:19,887 | httpx | INFO | HTTP Request: GET http://testserver/api/user/progress?limit=20 \"HTTP/1.1 200 OK\"\n2026-02-15 23:03:24,792 | app.auth | WARNING | SUPABASE_JWT_SECRET missing and Supabase validation unavailable; using unverified token claims in non-production mode\n2026-02-15 23:03:24,796 | httpx | INFO | HTTP Request: GET http://testserver/api/session/18f9af9f-39bf-4192-a36b-598e70fe0035/export?format=csv \"HTTP/1.1 200 OK\"\n2026-02-15 23:03:25,916 | app.auth | WARNING | SUPABASE_JWT_SECRET missing and Supabase validation unavailable; using unverified token claims in non-production mode\n2026-02-15 23:03:25,916 | httpx | INFO | HTTP Request: POST http://testserver/api/session/18f9af9f-39bf-4192-a36b-598e70fe0035/share \"HTTP/1.1 200 OK\"\n2026-02-15 23:03:25,925 | httpx | INFO | HTTP Request: GET http://testserver/api/public/session/18f9af9f-39bf-4192-a36b-598e70fe0035/snapshot?token=-zIKl9ZmE7P-tgRdqg4TAG_kCcjW8BP_ \"HTTP/1.1 200 OK\""
+    }
+  },
+  "results": {
+    "stress_all_pass": true,
+    "behavior_all_pass": true,
+    "memory_behavior_all_pass": true,
+    "progress_export_all_pass": true,
+    "gate_pass": true,
+    "stress_total_checks": 13,
+    "stress_passed_checks": 13,
+    "behavior_passed": 3,
+    "behavior_total": 3,
+    "memory_behavior_passed": 5,
+    "memory_behavior_total": 5,
+    "progress_export_steps": 4,
+    "progress_export_passed": 4
+  },
+  "artifacts": {
+    "stress_report": "D:\\linkedin-ai-main\\backend\\qa\\reports\\multi_session_stress_report.json",
+    "behavior_report": "D:\\linkedin-ai-main\\backend\\qa\\reports\\skillgraph_behavior_validation_report.json",
+    "memory_behavior_report": "D:\\linkedin-ai-main\\backend\\qa\\memory_behavior_report.json",
+    "progress_export_report": "D:\\linkedin-ai-main\\backend\\qa\\reports\\progress_export_smoke_report.json"
+  }
+}

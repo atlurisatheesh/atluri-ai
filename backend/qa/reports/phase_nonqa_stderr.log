@@ -1,0 +1,524 @@
+INFO:     Started server process [33640]
+INFO:     Waiting for application startup.
+2026-02-15 23:02:15,880 | app.main | INFO | [SYSTEM] CORS allow_origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:9011 (Press CTRL+C to quit)
+INFO:     ('127.0.0.1', 63613) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:16,145 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:16,148 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:16,148 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:16,998 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:16,998 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:16,998 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:16,998 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+INFO:     ('127.0.0.1', 63615) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:17,007 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:17,009 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:17,009 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:17,890 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:17,890 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:17,890 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:17,890 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+INFO:     ('127.0.0.1', 63616) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:17,900 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:17,900 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:17,900 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:19,031 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:19,035 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:19,035 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:19,035 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+INFO:     ('127.0.0.1', 63617) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:19,049 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:19,049 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:19,049 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:20,400 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:20,400 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:20,400 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:20,400 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:20,400 | ws_voice | INFO | silence watcher | silence=4.25 turn_elapsed=3.40 final_ready=False words=0 turn_closed=False waiting=False
+INFO:     connection open
+INFO:     ('127.0.0.1', 63618) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:20,441 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:20,441 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:20,441 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:21,605 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:21,605 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:21,605 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:21,605 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+2026-02-15 23:02:21,609 | ws_voice | INFO | silence watcher | silence=5.46 turn_elapsed=4.61 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:21,609 | ws_voice | INFO | silence watcher | silence=4.60 turn_elapsed=3.72 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:21,613 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:02:21,614 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:02:21,614 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:02:21,614 | deepgram_stream | INFO | [DG] Watchdog terminated
+2026-02-15 23:02:21,845 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "f171c878-36df-474b-84e7-7a2a9bfdbbd1",
+    "sha256": "155e437b946ac82ae591ff382b8d19efda9397b2282672dbabd91ec31ce8a651",
+    "created": "2026-02-15T17:32:16.445Z",
+    "duration": 0.06,
+    "channels": 1,
+    "models": [
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa"
+    ],
+    "model_info": {
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa": {
+            "name": "2-general-nova",
+            "version": "2024-01-11.36317",
+            "arch": "nova-2"
+        }
+    }
+}
+2026-02-15 23:02:22,116 | deepgram_service | INFO | Deepgram closed
+2026-02-15 23:02:22,116 | deepgram_service | INFO | [DG] Service stopped
+2026-02-15 23:02:25,353 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:02:25,377 | deepgram_stream | INFO | [DG] Watchdog terminated
+2026-02-15 23:02:25,704 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "c0836e36-99ec-4b96-94d6-e1d43212da98",
+    "sha256": "9e132485d5107211de325a45e7917cbe3e4b5b9cde3e4ee91d7d2102317759ee",
+    "created": "2026-02-15T17:32:18.343Z",
+    "duration": 0.02,
+    "channels": 1,
+    "models": [
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa"
+    ],
+    "model_info": {
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa": {
+            "name": "2-general-nova",
+            "version": "2024-01-11.36317",
+            "arch": "nova-2"
+        }
+    }
+}
+2026-02-15 23:02:25,882 | deepgram_service | INFO | Deepgram closed
+2026-02-15 23:02:25,882 | deepgram_service | INFO | [DG] Service stopped
+2026-02-15 23:02:29,384 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:02:29,390 | deepgram_stream | INFO | [DG] Watchdog terminated
+2026-02-15 23:02:29,392 | ws_voice | INFO | silence watcher | silence=8.95 turn_elapsed=7.79 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:29,392 | ws_voice | INFO | silence watcher | silence=10.34 turn_elapsed=8.99 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:29,664 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "f1ba259a-2d81-48d0-8791-bee99044ded0",
+    "sha256": "bfe492baf731a0dbf6e1e050f5bc3fe8c1b049383194dcdf82f023bfa409f462",
+    "created": "2026-02-15T17:32:17.326Z",
+    "duration": 0.04,
+    "channels": 1,
+    "models": [
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa"
+    ],
+    "model_info": {
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa": {
+            "name": "2-general-nova",
+            "version": "2024-01-11.36317",
+            "arch": "nova-2"
+        }
+    }
+}
+2026-02-15 23:02:29,898 | deepgram_service | INFO | Deepgram closed
+2026-02-15 23:02:29,898 | deepgram_service | INFO | [DG] Service stopped
+2026-02-15 23:02:32,423 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:02:32,434 | ws_voice | INFO | silence watcher | silence=11.99 turn_elapsed=10.83 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:32,434 | ws_voice | INFO | silence watcher | silence=13.39 turn_elapsed=12.03 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:32,438 | ws_voice | WARNING | Deepgram stalled — waiting for next transcript
+2026-02-15 23:02:32,438 | ws_voice | WARNING | Deepgram stalled — waiting for next transcript
+INFO:     ('127.0.0.1', 63624) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:32,439 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:32,441 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:32,441 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:33,485 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:33,485 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:33,485 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:33,485 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:33,485 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:02:33,488 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+INFO:     connection open
+INFO:     ('127.0.0.1', 63625) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:33,499 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:33,499 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:33,499 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:34,518 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:34,518 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:34,518 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:34,518 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+INFO:     ('127.0.0.1', 63627) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:34,522 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:34,522 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:34,522 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:35,430 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:35,430 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:35,430 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:35,432 | ws_voice | INFO | Interview role context: devops
+INFO:     connection open
+INFO:     ('127.0.0.1', 63628) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:35,437 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:35,437 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:35,437 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:36,384 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:36,384 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:36,384 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:36,384 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:36,390 | ws_voice | INFO | silence watcher | silence=3.95 turn_elapsed=2.91 final_ready=False words=0 turn_closed=False waiting=False
+INFO:     connection open
+INFO:     ('127.0.0.1', 63629) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:36,390 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:36,390 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:36,390 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:37,365 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:37,365 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:37,365 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:37,365 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:37,365 | deepgram_stream | INFO | [DG] Watchdog terminated
+2026-02-15 23:02:37,365 | deepgram_stream | INFO | [DG] Watchdog terminated
+INFO:     connection open
+INFO:     ('127.0.0.1', 63630) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:37,365 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:37,378 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:37,378 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:38,298 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:38,298 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:38,298 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:38,298 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:38,607 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "b84018bd-b4ca-426a-b7f3-dfd66a5a4d96",
+    "sha256": "155e437b946ac82ae591ff382b8d19efda9397b2282672dbabd91ec31ce8a651",
+    "created": "2026-02-15T17:32:19.800Z",
+    "duration": 0.06,
+    "channels": 1,
+    "models": [
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa"
+    ],
+    "model_info": {
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa": {
+            "name": "2-general-nova",
+            "version": "2024-01-11.36317",
+            "arch": "nova-2"
+        }
+    }
+}
+2026-02-15 23:02:38,805 | deepgram_service | INFO | Deepgram closed
+2026-02-15 23:02:38,805 | deepgram_service | INFO | [DG] Service stopped
+2026-02-15 23:02:42,081 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-15 23:02:42,353 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "a69bfd40-528c-48b5-87ac-ad4ebf55c44b",
+    "sha256": "155e437b946ac82ae591ff382b8d19efda9397b2282672dbabd91ec31ce8a651",
+    "created": "2026-02-15T17:32:20.991Z",
+    "duration": 0.06,
+    "channels": 1,
+    "models": [
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa"
+    ],
+    "model_info": {
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa": {
+            "name": "2-general-nova",
+            "version": "2024-01-11.36317",
+            "arch": "nova-2"
+        }
+    }
+}
+2026-02-15 23:02:42,593 | deepgram_service | INFO | Deepgram closed
+2026-02-15 23:02:42,593 | deepgram_service | INFO | [DG] Service stopped
+2026-02-15 23:02:45,363 | httpx | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:     connection open
+INFO:     ('127.0.0.1', 63631) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:45,378 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:45,378 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:45,378 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:46,489 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:46,489 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:46,489 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:46,489 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:46,489 | ws_voice | INFO | silence watcher | silence=14.05 turn_elapsed=13.00 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:46,489 | ws_voice | INFO | silence watcher | silence=12.99 turn_elapsed=11.97 final_ready=False words=0 turn_closed=False waiting=False
+INFO:     connection open
+INFO:     ('127.0.0.1', 63632) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:46,489 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:46,489 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:46,489 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:47,718 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "ddac4eb9-d74f-485d-92f7-03457cffdfd3",
+    "sha256": "incomplete",
+    "created": "2026-02-15T17:32:47.106Z",
+    "duration": 0.0,
+    "channels": 1
+}
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:47,721 | deepgram.clients.live.v1.client | ERROR | WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:47,722 | deepgram_service | ERROR | Deepgram error event: {'type': 'Exception', 'description': 'WebSocketException in LiveClient._listening', 'message': 'received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001', 'variant': ''}
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:47,722 | deepgram.clients.live.v1.client | ERROR | _signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:47,925 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:47,925 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:47,925 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:47,925 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:47,928 | ws_voice | INFO | silence watcher | silence=13.41 turn_elapsed=12.50 final_ready=False words=0 turn_closed=False waiting=False
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:47,928 | deepgram.clients.live.v1.client | ERROR | send() failed - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+INFO:     connection open
+INFO:     ('127.0.0.1', 63633) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:47,934 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:47,934 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:47,934 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:48,704 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "642e7e29-81f3-4e94-9ba8-45721f7ff811",
+    "sha256": "incomplete",
+    "created": "2026-02-15T17:32:48.056Z",
+    "duration": 0.0,
+    "channels": 1
+}
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:48,710 | deepgram.clients.live.v1.client | ERROR | WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:48,710 | deepgram_service | ERROR | Deepgram error event: {'type': 'Exception', 'description': 'WebSocketException in LiveClient._listening', 'message': 'received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001', 'variant': ''}
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:48,717 | deepgram.clients.live.v1.client | ERROR | _signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:49,019 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:49,019 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:49,019 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:49,021 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:49,024 | deepgram_stream | ERROR | Deepgram stalled — reconnecting
+2026-02-15 23:02:49,024 | deepgram_service | WARNING | Reconnecting Deepgram... attempt=1
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:49,024 | deepgram.clients.live.v1.client | ERROR | _signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:49,527 | deepgram_stream | ERROR | Deepgram stalled — reconnecting
+2026-02-15 23:02:49,527 | deepgram_service | WARNING | Reconnecting Deepgram... attempt=1
+2026-02-15 23:02:49,664 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "a21a73d4-a27f-465f-9f74-6e7a1439885a",
+    "sha256": "incomplete",
+    "created": "2026-02-15T17:32:49.066Z",
+    "duration": 0.0,
+    "channels": 1
+}
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:49,667 | deepgram.clients.live.v1.client | ERROR | WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:49,668 | deepgram_service | ERROR | Deepgram error event: {'type': 'Exception', 'description': 'WebSocketException in LiveClient._listening', 'message': 'received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001', 'variant': ''}
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:49,668 | deepgram.clients.live.v1.client | ERROR | _signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:50,169 | ws_voice | INFO | silence watcher | silence=14.73 turn_elapsed=13.78 final_ready=False words=0 turn_closed=False waiting=False
+INFO:     connection open
+INFO:     ('127.0.0.1', 63634) - "WebSocket /ws/voice?role=devops" [accepted]
+2026-02-15 23:02:50,171 | ws_voice | INFO | WebSocket connected
+2026-02-15 23:02:50,173 | ws_voice | INFO | Session jd_context: None
+2026-02-15 23:02:50,173 | ws_voice | INFO | Session resume_profile: None
+2026-02-15 23:02:50,547 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "ff7902c1-6435-459e-bef7-320d1f233308",
+    "sha256": "incomplete",
+    "created": "2026-02-15T17:32:49.990Z",
+    "duration": 0.0,
+    "channels": 1
+}
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:50,547 | deepgram.clients.live.v1.client | ERROR | WebSocketException in AsyncLiveClient._listening: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:50,550 | deepgram_service | ERROR | Deepgram error event: {'type': 'Exception', 'description': 'WebSocketException in LiveClient._listening', 'message': 'received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001', 'variant': ''}
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+_signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:50,550 | deepgram.clients.live.v1.client | ERROR | _signal_exit - WebSocketException: received 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001; then sent 1011 (internal error) Deepgram did not receive audio data or a text message within the timeout window. See https://dpgr.am/net0001
+2026-02-15 23:02:51,201 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:51,201 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:51,201 | ws_voice | INFO | Deepgram connected
+2026-02-15 23:02:51,201 | ws_voice | INFO | Interview role context: devops
+2026-02-15 23:02:51,203 | ws_voice | INFO | silence watcher | silence=17.70 turn_elapsed=16.68 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:51,205 | ws_voice | INFO | silence watcher | silence=18.77 turn_elapsed=17.72 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:51,205 | ws_voice | INFO | silence watcher | silence=14.81 turn_elapsed=13.84 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:51,207 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+INFO:     connection open
+2026-02-15 23:02:51,209 | ws_voice | INFO | silence watcher | silence=16.69 turn_elapsed=15.78 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:51,209 | ws_voice | INFO | silence watcher | silence=13.83 turn_elapsed=12.91 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:51,211 | ws_voice | WARNING | Deepgram stalled — waiting for next transcript
+2026-02-15 23:02:51,211 | ws_voice | WARNING | Deepgram stalled — waiting for next transcript
+2026-02-15 23:02:51,215 | ws_voice | INFO | silence watcher | silence=5.84 turn_elapsed=4.73 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:51,215 | ws_voice | INFO | silence watcher | silence=15.78 turn_elapsed=14.83 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:52,227 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:52,227 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:53,248 | deepgram_service | INFO | [DG] Service started
+2026-02-15 23:02:53,248 | deepgram_service | INFO | Deepgram connected (start called)
+2026-02-15 23:02:53,248 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:02:53,250 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:02:53,250 | ws_voice | INFO | silence watcher | silence=16.86 turn_elapsed=15.89 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:53,251 | ws_voice | INFO | silence watcher | silence=6.76 turn_elapsed=5.33 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:53,251 | ws_voice | INFO | silence watcher | silence=7.87 turn_elapsed=6.76 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:53,251 | ws_voice | INFO | silence watcher | silence=17.81 turn_elapsed=16.87 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:53,251 | ws_voice | INFO | silence watcher | silence=5.32 turn_elapsed=4.23 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:53,251 | ws_voice | INFO | silence watcher | silence=15.87 turn_elapsed=14.95 final_ready=False words=0 turn_closed=False waiting=False
+2026-02-15 23:02:53,251 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:02:53,251 | ws_voice | WARNING | Deepgram stalled — waiting for next transcript
+2026-02-15 23:02:53,251 | deepgram_stream | INFO | [DG] Watchdog terminated
+2026-02-15 23:02:53,251 | ws_voice | WARNING | STOP requested: client disconnect
+INFO:     connection closed
+2026-02-15 23:02:53,556 | deepgram_service | INFO | Deepgram metadata received: {
+    "type": "Metadata",
+    "transaction_key": "deprecated",
+    "request_id": "4fea1e33-cd65-4138-ba87-be970be7c08f",
+    "sha256": "8ce8ba8e726ee8925e6560d86ac35be1097691d1cfac888e6bd20e804ea9eb15",
+    "created": "2026-02-15T17:32:32.912Z",
+    "duration": 0.08,
+    "channels": 1,
+    "models": [
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa"
+    ],
+    "model_info": {
+        "1dbdfb4d-85b2-4659-9831-16b3c76229aa": {
+            "name": "2-general-nova",
+            "version": "2024-01-11.36317",
+            "arch": "nova-2"
+        }
+    }
+}
+2026-02-15 23:02:53,755 | deepgram_service | INFO | Deepgram closed
+2026-02-15 23:02:53,755 | deepgram_service | INFO | [DG] Service stopped

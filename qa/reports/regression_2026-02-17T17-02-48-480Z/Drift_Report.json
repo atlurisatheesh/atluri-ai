@@ -1,0 +1,17 @@
+{
+  "generatedAtIso": "2026-02-17T17:02:53.339Z",
+  "pass": false,
+  "tolerance": {
+    "probabilityDrift": 0.01,
+    "percentileDrift": 0.5
+  },
+  "drifts": [
+    {
+      "path": "ui.screenshotHashes.dashboard.sha256",
+      "kind": "changed",
+      "baseline": "d738b9d12d435a56470014a4b8fe05d77a1406de7c7047f614fdfe8b07a8064c",
+      "current": "55c4dafb2056f32de175bbbe89dcb1064e16835b0851c2e30dcdaab0c8eefb5e",
+      "notes": "Screenshot hash changed"
+    }
+  ]
+}

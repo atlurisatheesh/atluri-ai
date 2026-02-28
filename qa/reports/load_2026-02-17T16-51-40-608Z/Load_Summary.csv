@@ -1,0 +1,3 @@
+users,mode,duration_ms,errors,ttfq_p95_ms,answer_p95_ms,offer_p95_ms,ws_p95_ms
+2,api,34530,1,64,5100,726,2441
+2,browser,27752,1,4070,9239,1244,1484

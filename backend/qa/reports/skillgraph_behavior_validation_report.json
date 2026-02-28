@@ -1,0 +1,70 @@
+{
+  "objective": "Behavioral correctness validation for SkillGraph intelligence",
+  "summary": {
+    "generated_at": "2026-02-15T17:33:07Z",
+    "passed": 3,
+    "total": 3,
+    "all_pass": true
+  },
+  "scenarios": [
+    {
+      "name": "scenario_1_distributed_shallow",
+      "expected": {
+        "risk_flag": "SHALLOW or OVERCLAIM",
+        "escalation_mode": "ARCHITECTURE via distributed systems target",
+        "pressure_intensity": "unchanged unless performance dictates"
+      },
+      "observed": {
+        "risk_flag": "SHALLOW",
+        "escalation_mode": "ARCHITECTURE",
+        "skill_target": "Distributed Systems",
+        "pressure_intensity": 1
+      },
+      "checks": {
+        "risk_shallow_or_overclaim": true,
+        "routes_to_distributed_probe": true,
+        "persona_intensity_not_escalated": true
+      },
+      "pass": true
+    },
+    {
+      "name": "scenario_2_redis_unclaimed_but_strong",
+      "expected": {
+        "coverage": "improves",
+        "risk": "decreases",
+        "overclaim": "absent"
+      },
+      "observed": {
+        "coverage_before": 0.0,
+        "coverage_after": 100.0,
+        "redis_risk_before": "GAP",
+        "redis_risk_after": "SHALLOW",
+        "escalation_mode": "INCIDENT"
+      },
+      "checks": {
+        "coverage_improves": true,
+        "risk_decreases": true,
+        "no_overclaim": true
+      },
+      "pass": true
+    },
+    {
+      "name": "scenario_3_leadership_claim_no_signals",
+      "expected": {
+        "leadership_risk": "detected",
+        "escalation_mode": "LEADERSHIP_PROBE"
+      },
+      "observed": {
+        "leadership_risk_flag": "GAP",
+        "skill_target": "Leadership",
+        "escalation_mode": "LEADERSHIP_PROBE",
+        "leadership_score": 20
+      },
+      "checks": {
+        "leadership_risk_detected": true,
+        "leadership_probe_routed": true
+      },
+      "pass": true
+    }
+  ]
+}

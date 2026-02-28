@@ -1,0 +1,4 @@
+date,tester_id,user_type,round,scenario,delta_believability_1_5,goal_actionability_1_5,motivation_1_5,clarity_next_step_1_5,emotional_tone_supportive_1_5,felt_helped_yn,felt_judged_yn,voluntary_retry_yn,behavior_changed_from_goal_yn,confusion_points,evidence_quote,moderator_notes
+2026-02-16,U01,founder,1,baseline,,,,,,,,,,,,
+2026-02-16,U01,founder,2,goal_following,,,,,,,,,,,,
+2026-02-16,U01,founder,3,pressure,,,,,,,,,,,,

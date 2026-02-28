@@ -1,0 +1,255 @@
+{
+  "generatedAtIso": "2026-02-17T16:52:44.778Z",
+  "environment": {
+    "backendUrl": "http://localhost:9010",
+    "frontendUrl": "http://localhost:3001",
+    "headless": true,
+    "nodeVersion": "v24.13.1",
+    "osPlatform": "win32"
+  },
+  "config": {
+    "maxUsers": 2,
+    "batchSizes": [
+      2
+    ],
+    "answersPerUser": 3,
+    "thresholds": {
+      "latencyThresholdMs": 7000,
+      "errorThresholdPercent": 2,
+      "memoryThresholdMb": 900,
+      "wsConnectThresholdMs": 2500,
+      "offerComputeThresholdMs": 2500
+    }
+  },
+  "backendMetricsWindow": {
+    "before": {
+      "generated_at": 1771347101.8119686,
+      "stream_duration_total_sec": 0,
+      "stream_duration_samples": 0,
+      "latency_total_ms": 0,
+      "latency_samples": 0,
+      "redis_publish_total_ms": 0,
+      "redis_publish_samples": 0,
+      "fanout_delay_total_ms": 0,
+      "fanout_delay_samples": 0,
+      "ws_connections_active": 1,
+      "ws_rooms_active": 1,
+      "ws_disconnects_total": 3,
+      "ws_disconnect_client_disconnect": 3,
+      "ws_disconnect_stop_command": 0,
+      "ws_disconnect_receive_audio_error": 0,
+      "ws_disconnect_deepgram_error": 0,
+      "ws_disconnect_socket_closed": 0,
+      "ws_disconnect_max_turns_reached": 0,
+      "ws_disconnect_other": 0,
+      "answer_streams_started": 0,
+      "answer_streams_cancelled": 0,
+      "emotional_events_emitted": 0,
+      "assist_hints_emitted": 0,
+      "share_tokens_active": 0,
+      "share_tokens_revoked": 0,
+      "avg_stream_duration": 0,
+      "avg_latency_ms": 0,
+      "avg_redis_publish_latency_ms": 0,
+      "avg_fanout_delay_ms": 0,
+      "share_token_ttl_sec": 86400
+    },
+    "after": {
+      "generated_at": 1771347164.7742853,
+      "stream_duration_total_sec": 0,
+      "stream_duration_samples": 0,
+      "latency_total_ms": 0,
+      "latency_samples": 0,
+      "redis_publish_total_ms": 0,
+      "redis_publish_samples": 0,
+      "fanout_delay_total_ms": 0,
+      "fanout_delay_samples": 0,
+      "ws_connections_active": 3,
+      "ws_rooms_active": 3,
+      "ws_disconnects_total": 5,
+      "ws_disconnect_client_disconnect": 5,
+      "ws_disconnect_stop_command": 0,
+      "ws_disconnect_receive_audio_error": 0,
+      "ws_disconnect_deepgram_error": 0,
+      "ws_disconnect_socket_closed": 0,
+      "ws_disconnect_max_turns_reached": 0,
+      "ws_disconnect_other": 0,
+      "answer_streams_started": 0,
+      "answer_streams_cancelled": 0,
+      "emotional_events_emitted": 0,
+      "assist_hints_emitted": 0,
+      "share_tokens_active": 2,
+      "share_tokens_revoked": 0,
+      "avg_stream_duration": 0,
+      "avg_latency_ms": 0,
+      "avg_redis_publish_latency_ms": 0,
+      "avg_fanout_delay_ms": 0,
+      "share_token_ttl_sec": 86400
+    },
+    "delta": {
+      "redisPublishAvgMs": 0,
+      "fanoutDelayAvgMs": 0,
+      "wsDisconnects": 2
+    }
+  },
+  "results": [
+    {
+      "users": 2,
+      "mode": "api",
+      "durationMs": 34530,
+      "errors": 1,
+      "opsAttempted": 28,
+      "opsFailed": 1,
+      "userFailures": 1,
+      "metrics": {
+        "ttfq_ms": {
+          "count": 2,
+          "min": 54,
+          "max": 65,
+          "mean": 59.5,
+          "p50": 59.5,
+          "p95": 64.45,
+          "p99": 64.89
+        },
+        "answer_latency_ms": {
+          "count": 10,
+          "min": 2886,
+          "max": 5160,
+          "mean": 4281.9,
+          "p50": 4433,
+          "p95": 5099.7,
+          "p99": 5147.94
+        },
+        "offer_compute_ms": {
+          "count": 2,
+          "min": 633,
+          "max": 731,
+          "mean": 682,
+          "p50": 682,
+          "p95": 726.1,
+          "p99": 730.02
+        },
+        "ws_connect_ms": {
+          "count": 2,
+          "min": 1040,
+          "max": 2515,
+          "mean": 1777.5,
+          "p50": 1777.5,
+          "p95": 2441.25,
+          "p99": 2500.25
+        },
+        "offer_determinism_diff": {
+          "count": 2,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        }
+      }
+    },
+    {
+      "users": 2,
+      "mode": "browser",
+      "durationMs": 27752,
+      "errors": 1,
+      "opsAttempted": 0,
+      "opsFailed": 0,
+      "userFailures": 0,
+      "metrics": {
+        "ttfq_ms": {
+          "count": 2,
+          "min": 2572,
+          "max": 4149,
+          "mean": 3360.5,
+          "p50": 3360.5,
+          "p95": 4070.1499999999996,
+          "p99": 4133.23
+        },
+        "answer_latency_ms": {
+          "count": 6,
+          "min": 3749,
+          "max": 9377,
+          "mean": 5741,
+          "p50": 4319.5,
+          "p95": 9238.5,
+          "p99": 9349.3
+        },
+        "offer_compute_ms": {
+          "count": 2,
+          "min": 1203,
+          "max": 1246,
+          "mean": 1224.5,
+          "p50": 1224.5,
+          "p95": 1243.85,
+          "p99": 1245.57
+        },
+        "ws_connect_ms": {
+          "count": 1,
+          "min": 1484,
+          "max": 1484,
+          "mean": 1484,
+          "p50": 1484,
+          "p95": 1484,
+          "p99": 1484
+        },
+        "offer_determinism_diff": {
+          "count": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        }
+      }
+    }
+  ],
+  "errorEvents": [
+    {
+      "userId": "load-api-1771347101827-1",
+      "scenario": "api",
+      "step": "ws_connect",
+      "message": "Timeout (2500ms)",
+      "atIso": "2026-02-17T16:51:46.492Z"
+    },
+    {
+      "userId": "load-browser-1771347136358-2-1",
+      "scenario": "browser",
+      "step": "ws_connect",
+      "message": "WS connect timeout (2500ms)",
+      "atIso": "2026-02-17T16:52:24.492Z"
+    }
+  ],
+  "graph": {
+    "users": [
+      2
+    ],
+    "offerP95ms": [
+      726
+    ],
+    "answerP95ms": [
+      5100
+    ],
+    "ttfqP95ms": [
+      64
+    ],
+    "wsP95ms": [
+      2441
+    ],
+    "failedRequestRatePercent": [
+      3.57
+    ],
+    "userFailureRatePercent": [
+      50
+    ],
+    "offerDeterminismMaxDiff": [
+      0
+    ]
+  },
+  "pass": false,
+  "failReasons": [
+    "Failed request rate 3.57% exceeds threshold 2%"
+  ]
+}

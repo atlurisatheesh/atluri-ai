@@ -1,0 +1,207 @@
+{
+  "generated_at": "2026-02-17T07:27:57Z",
+  "duration_sec": 0.29,
+  "objective": "Pre-beta hard-mode behavioral + trust simulation",
+  "all_pass": true,
+  "scores": {
+    "technical_readiness_10": 10.0,
+    "trust_framing_10": 10.0,
+    "psychological_resilience_10": 10.0,
+    "social_stress_tolerance_10": 10.0
+  },
+  "checks": {
+    "first_impression_latency_under_3000ms": true,
+    "too_low_attack_has_context_fields": true,
+    "too_high_attack_penalized": true,
+    "too_high_attack_integrity_surface": true,
+    "no_movement_has_plateau_or_velocity": true,
+    "social_comparison_has_percentile": true,
+    "rage_quit_context_for_low_baseline": true,
+    "high_performer_plateau_guard": true,
+    "power_user_velocity_positive": true,
+    "determinism_field_available": true,
+    "feedback_summary_endpoint_alive": true
+  },
+  "summary_probe": {
+    "status": 200,
+    "latency_ms": 4.84,
+    "payload": {
+      "total_feedback": 1,
+      "accurate_count": 1,
+      "inaccurate_count": 0,
+      "accurate_rate_pct": 100.0,
+      "latest": {
+        "session_id": "sim-sim-1771313276-power-5-bf49d0",
+        "offer_probability": 86.2,
+        "confidence_band": "medium",
+        "felt_accuracy": true,
+        "label": "accurate",
+        "note": "",
+        "created_at": 1771313277.210669,
+        "user_id": "sim-1771313276-power"
+      }
+    }
+  },
+  "archetype_offers": {
+    "faang_anxious": {
+      "offer_probability": 84.03,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 58.14
+    },
+    "mba": {
+      "offer_probability": 87.59,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 76.74
+    },
+    "student": {
+      "offer_probability": 27.44,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 4.65
+    },
+    "senior_manager": {
+      "offer_probability": 88.89,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 86.05
+    },
+    "career_switcher": {
+      "offer_probability": 60.64,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 20.93
+    },
+    "cheater": {
+      "offer_probability": 62.1,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 23.26
+    },
+    "high_performer": {
+      "offer_probability": 91.06,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 100.0
+    },
+    "overthinker": {
+      "offer_probability": 78.9,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 48.84
+    },
+    "confidence_seeker": {
+      "offer_probability": 66.35,
+      "delta_vs_last_session": 0.0,
+      "velocity": 0.0,
+      "confidence_band": "low",
+      "beta_percentile": 39.53
+    },
+    "power_user": {
+      "offer_probability": 86.2,
+      "delta_vs_last_session": 1.81,
+      "velocity": 3.13,
+      "confidence_band": "medium",
+      "beta_percentile": 67.44
+    },
+    "plateau_user": {
+      "offer_probability": 90.52,
+      "delta_vs_last_session": 0.02,
+      "velocity": 0.09,
+      "confidence_band": "medium",
+      "beta_percentile": 90.7
+    }
+  },
+  "latency": {
+    "faang_anxious": {
+      "offer_status": 200,
+      "offer_ms": 24.7,
+      "dashboard_status": 200,
+      "dashboard_ms": 5.34,
+      "dashboard_sessions": 0
+    },
+    "mba": {
+      "offer_status": 200,
+      "offer_ms": 9.19,
+      "dashboard_status": 200,
+      "dashboard_ms": 8.23,
+      "dashboard_sessions": 0
+    },
+    "student": {
+      "offer_status": 200,
+      "offer_ms": 12.2,
+      "dashboard_status": 200,
+      "dashboard_ms": 4.92,
+      "dashboard_sessions": 0
+    },
+    "senior_manager": {
+      "offer_status": 200,
+      "offer_ms": 8.25,
+      "dashboard_status": 200,
+      "dashboard_ms": 4.5,
+      "dashboard_sessions": 0
+    },
+    "career_switcher": {
+      "offer_status": 200,
+      "offer_ms": 10.76,
+      "dashboard_status": 200,
+      "dashboard_ms": 4.32,
+      "dashboard_sessions": 0
+    },
+    "cheater": {
+      "offer_status": 200,
+      "offer_ms": 8.75,
+      "dashboard_status": 200,
+      "dashboard_ms": 4.61,
+      "dashboard_sessions": 0
+    },
+    "high_performer": {
+      "offer_status": 200,
+      "offer_ms": 8.43,
+      "dashboard_status": 200,
+      "dashboard_ms": 3.66,
+      "dashboard_sessions": 0
+    },
+    "overthinker": {
+      "offer_status": 200,
+      "offer_ms": 9.06,
+      "dashboard_status": 200,
+      "dashboard_ms": 8.01,
+      "dashboard_sessions": 0
+    },
+    "confidence_seeker": {
+      "offer_status": 200,
+      "offer_ms": 13.32,
+      "dashboard_status": 200,
+      "dashboard_ms": 3.71,
+      "dashboard_sessions": 0
+    },
+    "power_user": {
+      "offer_status": 200,
+      "offer_ms": 8.33,
+      "dashboard_status": 200,
+      "dashboard_ms": 4.24,
+      "dashboard_sessions": 0
+    },
+    "plateau_user": {
+      "offer_status": 200,
+      "offer_ms": 8.74,
+      "dashboard_status": 200,
+      "dashboard_ms": 6.13,
+      "dashboard_sessions": 0
+    }
+  },
+  "notes": [
+    "Latency measurements use in-process TestClient and are directional, not browser/network true latency.",
+    "UI overload and emotional perception still require live moderated sessions to validate micro-interaction timing."
+  ]
+}

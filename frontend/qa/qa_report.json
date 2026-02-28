@@ -1,0 +1,210 @@
+{
+  "generated_at": "2026-02-14T20:22:34.842Z",
+  "qa_backend": {
+    "host": "127.0.0.1",
+    "port": 9002,
+    "qa_mode": true,
+    "stdout_log": "D:\\linkedin-ai-main\\frontend\\qa\\qa_backend_stdout.log",
+    "stderr_log": "D:\\linkedin-ai-main\\frontend\\qa\\qa_backend_stderr.log"
+  },
+  "finalize_reason_distribution_global": {
+    "deepgram_final": 25
+  },
+  "scenarios": [
+    {
+      "scenario": "improving_candidate",
+      "expected": "QA_MODE deterministic transcript injection should drive full multi-turn event flow",
+      "steps_executed": [
+        "Open browser context (Playwright)",
+        "Open direct websocket to /ws/voice",
+        "Inject qa_transcript lines per scenario",
+        "Wait for transcript, ai_decision, next_question, live_coaching, final_summary",
+        "Validate schema/contracts and behavioral constraints"
+      ],
+      "event_counts": {
+        "question": 1,
+        "transcript": 5,
+        "ai_decision": 5,
+        "live_coaching": 5,
+        "next_question": 4,
+        "final_summary": 1
+      },
+      "finalize_reason_distribution": {},
+      "checks": {
+        "ws_opened": true,
+        "transcript_seen": true,
+        "partial_or_transcript_seen": true,
+        "ai_decision_seen": true,
+        "next_question_seen": true,
+        "live_coaching_seen": true,
+        "no_difficulty_jump_gt_1": true,
+        "no_duplicate_transcript_events": true,
+        "escalation_mode_present": true,
+        "leadership_signals_present": true,
+        "analytics_fields_present": true,
+        "event_contract_stable": true,
+        "no_duplicate_finalize_events": true,
+        "final_summary_seen": true
+      },
+      "failed_checks": [],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "scenario": "declining_candidate",
+      "expected": "QA_MODE deterministic transcript injection should drive full multi-turn event flow",
+      "steps_executed": [
+        "Open browser context (Playwright)",
+        "Open direct websocket to /ws/voice",
+        "Inject qa_transcript lines per scenario",
+        "Wait for transcript, ai_decision, next_question, live_coaching, final_summary",
+        "Validate schema/contracts and behavioral constraints"
+      ],
+      "event_counts": {
+        "question": 1,
+        "transcript": 5,
+        "ai_decision": 5,
+        "live_coaching": 5,
+        "next_question": 4,
+        "final_summary": 1
+      },
+      "finalize_reason_distribution": {},
+      "checks": {
+        "ws_opened": true,
+        "transcript_seen": true,
+        "partial_or_transcript_seen": true,
+        "ai_decision_seen": true,
+        "next_question_seen": true,
+        "live_coaching_seen": true,
+        "no_difficulty_jump_gt_1": true,
+        "no_duplicate_transcript_events": true,
+        "escalation_mode_present": true,
+        "leadership_signals_present": true,
+        "analytics_fields_present": true,
+        "event_contract_stable": true,
+        "no_duplicate_finalize_events": true,
+        "final_summary_seen": true
+      },
+      "failed_checks": [],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "scenario": "volatile_candidate",
+      "expected": "QA_MODE deterministic transcript injection should drive full multi-turn event flow",
+      "steps_executed": [
+        "Open browser context (Playwright)",
+        "Open direct websocket to /ws/voice",
+        "Inject qa_transcript lines per scenario",
+        "Wait for transcript, ai_decision, next_question, live_coaching, final_summary",
+        "Validate schema/contracts and behavioral constraints"
+      ],
+      "event_counts": {
+        "question": 1,
+        "transcript": 5,
+        "ai_decision": 5,
+        "live_coaching": 5,
+        "next_question": 4,
+        "final_summary": 1
+      },
+      "finalize_reason_distribution": {},
+      "checks": {
+        "ws_opened": true,
+        "transcript_seen": true,
+        "partial_or_transcript_seen": true,
+        "ai_decision_seen": true,
+        "next_question_seen": true,
+        "live_coaching_seen": true,
+        "no_difficulty_jump_gt_1": true,
+        "no_duplicate_transcript_events": true,
+        "escalation_mode_present": true,
+        "leadership_signals_present": true,
+        "analytics_fields_present": true,
+        "event_contract_stable": true,
+        "no_duplicate_finalize_events": true,
+        "final_summary_seen": true
+      },
+      "failed_checks": [],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "scenario": "strong_senior_candidate",
+      "expected": "QA_MODE deterministic transcript injection should drive full multi-turn event flow",
+      "steps_executed": [
+        "Open browser context (Playwright)",
+        "Open direct websocket to /ws/voice",
+        "Inject qa_transcript lines per scenario",
+        "Wait for transcript, ai_decision, next_question, live_coaching, final_summary",
+        "Validate schema/contracts and behavioral constraints"
+      ],
+      "event_counts": {
+        "question": 1,
+        "transcript": 5,
+        "ai_decision": 5,
+        "live_coaching": 5,
+        "next_question": 4,
+        "final_summary": 1
+      },
+      "finalize_reason_distribution": {},
+      "checks": {
+        "ws_opened": true,
+        "transcript_seen": true,
+        "partial_or_transcript_seen": true,
+        "ai_decision_seen": true,
+        "next_question_seen": true,
+        "live_coaching_seen": true,
+        "no_difficulty_jump_gt_1": true,
+        "no_duplicate_transcript_events": true,
+        "escalation_mode_present": true,
+        "leadership_signals_present": true,
+        "analytics_fields_present": true,
+        "event_contract_stable": true,
+        "no_duplicate_finalize_events": true,
+        "final_summary_seen": true
+      },
+      "failed_checks": [],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "scenario": "weak_leadership_senior_candidate",
+      "expected": "QA_MODE deterministic transcript injection should drive full multi-turn event flow",
+      "steps_executed": [
+        "Open browser context (Playwright)",
+        "Open direct websocket to /ws/voice",
+        "Inject qa_transcript lines per scenario",
+        "Wait for transcript, ai_decision, next_question, live_coaching, final_summary",
+        "Validate schema/contracts and behavioral constraints"
+      ],
+      "event_counts": {
+        "question": 1,
+        "transcript": 5,
+        "ai_decision": 5,
+        "live_coaching": 5,
+        "next_question": 4,
+        "final_summary": 1
+      },
+      "finalize_reason_distribution": {},
+      "checks": {
+        "ws_opened": true,
+        "transcript_seen": true,
+        "partial_or_transcript_seen": true,
+        "ai_decision_seen": true,
+        "next_question_seen": true,
+        "live_coaching_seen": true,
+        "no_difficulty_jump_gt_1": true,
+        "no_duplicate_transcript_events": true,
+        "escalation_mode_present": true,
+        "leadership_signals_present": true,
+        "analytics_fields_present": true,
+        "event_contract_stable": true,
+        "no_duplicate_finalize_events": true,
+        "final_summary_seen": true
+      },
+      "failed_checks": [],
+      "errors": [],
+      "pass": true
+    }
+  ]
+}

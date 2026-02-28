@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-02-17T05:52:12Z",
+  "duration_sec": 8.61,
+  "all_pass": true,
+  "result": {
+    "ok": true,
+    "room_id": "cda03964-53e8-4dbf-84b1-8ab1eb9496ae",
+    "candidate_seen": [
+      "question",
+      "interviewer_question"
+    ],
+    "received_event": {
+      "type": "interviewer_question",
+      "session_id": "6090bae7-16a2-42d7-9fa9-3abf8fef3429",
+      "question": "Cross-instance fanout verification question",
+      "room_id": "cda03964-53e8-4dbf-84b1-8ab1eb9496ae"
+    },
+    "question": "Cross-instance fanout verification question"
+  },
+  "instance_a": {
+    "port": 9111,
+    "return_code": null,
+    "stderr_tail": "captured on failure only"
+  },
+  "instance_b": {
+    "port": 9112,
+    "return_code": null,
+    "stderr_tail": "captured on failure only"
+  }
+}

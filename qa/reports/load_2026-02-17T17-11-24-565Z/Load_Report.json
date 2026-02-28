@@ -1,0 +1,261 @@
+{
+  "generatedAtIso": "2026-02-17T17:12:49.843Z",
+  "environment": {
+    "backendUrl": "http://localhost:9010",
+    "frontendUrl": "http://localhost:3001",
+    "headless": true,
+    "nodeVersion": "v24.13.1",
+    "osPlatform": "win32"
+  },
+  "config": {
+    "maxUsers": 2,
+    "batchSizes": [
+      2
+    ],
+    "answersPerUser": 3,
+    "thresholds": {
+      "latencyThresholdMs": 7000,
+      "errorThresholdPercent": 2,
+      "memoryThresholdMb": 900,
+      "memoryDeltaThresholdMb": 250,
+      "wsConnectThresholdMs": 2500,
+      "wsRttP95ThresholdMs": 800,
+      "wsDisconnectThreshold": 0,
+      "offerComputeThresholdMs": 2500
+    }
+  },
+  "backendMetricsWindow": {
+    "before": {
+      "generated_at": 1771348285.837545,
+      "stream_duration_total_sec": 0,
+      "stream_duration_samples": 0,
+      "latency_total_ms": 0,
+      "latency_samples": 0,
+      "redis_publish_total_ms": 0,
+      "redis_publish_samples": 0,
+      "fanout_delay_total_ms": 0,
+      "fanout_delay_samples": 0,
+      "ws_connections_active": 0,
+      "ws_rooms_active": 0,
+      "ws_disconnects_total": 0,
+      "ws_disconnect_client_disconnect": 0,
+      "ws_disconnect_stop_command": 0,
+      "ws_disconnect_receive_audio_error": 0,
+      "ws_disconnect_deepgram_error": 0,
+      "ws_disconnect_socket_closed": 0,
+      "ws_disconnect_max_turns_reached": 0,
+      "ws_disconnect_other": 0,
+      "answer_streams_started": 0,
+      "answer_streams_cancelled": 0,
+      "emotional_events_emitted": 0,
+      "assist_hints_emitted": 0,
+      "share_tokens_active": 0,
+      "share_tokens_revoked": 0,
+      "avg_stream_duration": 0,
+      "avg_latency_ms": 0,
+      "avg_redis_publish_latency_ms": 0,
+      "avg_fanout_delay_ms": 0,
+      "share_token_ttl_sec": 86400
+    },
+    "after": {
+      "generated_at": 1771348369.837151,
+      "stream_duration_total_sec": 0,
+      "stream_duration_samples": 0,
+      "latency_total_ms": 0,
+      "latency_samples": 0,
+      "redis_publish_total_ms": 0,
+      "redis_publish_samples": 0,
+      "fanout_delay_total_ms": 0,
+      "fanout_delay_samples": 0,
+      "ws_connections_active": 0,
+      "ws_rooms_active": 0,
+      "ws_disconnects_total": 8,
+      "ws_disconnect_client_disconnect": 8,
+      "ws_disconnect_stop_command": 0,
+      "ws_disconnect_receive_audio_error": 0,
+      "ws_disconnect_deepgram_error": 0,
+      "ws_disconnect_socket_closed": 0,
+      "ws_disconnect_max_turns_reached": 0,
+      "ws_disconnect_other": 0,
+      "answer_streams_started": 0,
+      "answer_streams_cancelled": 0,
+      "emotional_events_emitted": 0,
+      "assist_hints_emitted": 0,
+      "share_tokens_active": 2,
+      "share_tokens_revoked": 0,
+      "avg_stream_duration": 0,
+      "avg_latency_ms": 0,
+      "avg_redis_publish_latency_ms": 0,
+      "avg_fanout_delay_ms": 0,
+      "share_token_ttl_sec": 86400
+    },
+    "delta": {
+      "redisPublishAvgMs": 0,
+      "fanoutDelayAvgMs": 0,
+      "wsDisconnects": 8
+    }
+  },
+  "results": [
+    {
+      "users": 2,
+      "mode": "api",
+      "durationMs": 46729,
+      "errors": 0,
+      "opsAttempted": 30,
+      "opsFailed": 0,
+      "userFailures": 0,
+      "metrics": {
+        "ttfq_ms": {
+          "count": 2,
+          "min": 645,
+          "max": 694,
+          "mean": 669.5,
+          "p50": 669.5,
+          "p95": 691.55,
+          "p99": 693.51
+        },
+        "answer_latency_ms": {
+          "count": 10,
+          "min": 2667,
+          "max": 5592,
+          "mean": 4351.8,
+          "p50": 4544,
+          "p95": 5334.599999999999,
+          "p99": 5540.52
+        },
+        "offer_compute_ms": {
+          "count": 2,
+          "min": 813,
+          "max": 822,
+          "mean": 817.5,
+          "p50": 817.5,
+          "p95": 821.55,
+          "p99": 821.91
+        },
+        "ws_connect_ms": {
+          "count": 4,
+          "min": 1452,
+          "max": 2250,
+          "mean": 1745.75,
+          "p50": 1640.5,
+          "p95": 2163.6,
+          "p99": 2232.72
+        },
+        "offer_determinism_diff": {
+          "count": 2,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        }
+      },
+      "batchMemory": {
+        "nodeStartRssMb": 342,
+        "nodeEndRssMb": 278,
+        "nodeDeltaMb": -64,
+        "backendStartRssMb": 99,
+        "backendEndRssMb": 123,
+        "backendDeltaMb": 24,
+        "backendPid": 31492
+      }
+    },
+    {
+      "users": 2,
+      "mode": "browser",
+      "durationMs": 34667,
+      "errors": 0,
+      "opsAttempted": 0,
+      "opsFailed": 0,
+      "userFailures": 0,
+      "metrics": {
+        "ttfq_ms": {
+          "count": 2,
+          "min": 3131,
+          "max": 3134,
+          "mean": 3132.5,
+          "p50": 3132.5,
+          "p95": 3133.85,
+          "p99": 3133.97
+        },
+        "answer_latency_ms": {
+          "count": 6,
+          "min": 4155,
+          "max": 8950,
+          "mean": 5825.5,
+          "p50": 4523,
+          "p95": 8808.5,
+          "p99": 8921.7
+        },
+        "offer_compute_ms": {
+          "count": 2,
+          "min": 1217,
+          "max": 1285,
+          "mean": 1251,
+          "p50": 1251,
+          "p95": 1281.6,
+          "p99": 1284.32
+        },
+        "ws_connect_ms": {
+          "count": 2,
+          "min": 1608,
+          "max": 1611,
+          "mean": 1609.5,
+          "p50": 1609.5,
+          "p95": 1610.85,
+          "p99": 1610.97
+        },
+        "offer_determinism_diff": {
+          "count": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        }
+      },
+      "batchMemory": {
+        "nodeStartRssMb": 342,
+        "nodeEndRssMb": 278,
+        "nodeDeltaMb": -64,
+        "backendStartRssMb": 99,
+        "backendEndRssMb": 123,
+        "backendDeltaMb": 24,
+        "backendPid": 31492
+      }
+    }
+  ],
+  "errorEvents": [],
+  "graph": {
+    "users": [
+      2
+    ],
+    "offerP95ms": [
+      822
+    ],
+    "answerP95ms": [
+      5335
+    ],
+    "ttfqP95ms": [
+      692
+    ],
+    "wsP95ms": [
+      2164
+    ],
+    "failedRequestRatePercent": [
+      0
+    ],
+    "userFailureRatePercent": [
+      0
+    ],
+    "offerDeterminismMaxDiff": [
+      0
+    ]
+  },
+  "pass": false,
+  "failReasons": [
+    "WS disconnects during load 8 exceeds threshold 0"
+  ]
+}

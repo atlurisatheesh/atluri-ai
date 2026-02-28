@@ -1,0 +1,2225 @@
+{
+  "generated_at": "2026-02-15T17:30:57Z",
+  "objective": "Concurrent lifecycle + isolation invariant validation",
+  "phase_qa_concurrency": {
+    "backend": {
+      "port": 9011,
+      "stdout_log": "D:\\linkedin-ai-main\\backend\\qa\\reports\\phase_qa_stdout.log",
+      "stderr_log": "D:\\linkedin-ai-main\\backend\\qa\\reports\\phase_qa_stderr.log",
+      "qa_mode": true
+    },
+    "session_results": [
+      {
+        "session_id": "s1",
+        "sent_lines": [
+          "I designed a rollout and reduced failures by 40 percent.",
+          "I introduced canary checks and rollback automation.",
+          "I tracked latency and error budgets each release.",
+          "I led incident triage and stakeholder updates.",
+          "I improved reliability while reducing cost."
+        ],
+        "events": [
+          {
+            "type": "question",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "question": "Tell me about yourself."
+          },
+          {
+            "type": "transcript",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "text": "I designed a rollout and reduced failures by 40 percent."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 65,
+              "structure_score": 40,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": 0.0,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 100.0,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 20,
+              "leadership_strengths": [
+                "Demonstrated ability to reduce failures"
+              ],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Average",
+              "explanation": "Good baseline answer; improve clarity and structure for stronger impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Answer lacks sufficient depth.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "What specific strategies did you implement in the rollout to achieve the 40 percent reduction in failures, and what trade-offs did you consider in choosing those strategies?",
+              "why": "Answer needs more depth",
+              "answer_quality": "average",
+              "hint": null
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "tips": [
+              "Expand your answer with one concrete example and measurable impact."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "question": "What specific strategies did you implement in the rollout to achieve the 40 percent reduction in failures, and what trade-offs did you consider in choosing those strategies?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "text": "I introduced canary checks and rollback automation."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -18.42,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "structure",
+              "consistency_score": 68.0,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 30,
+              "leadership_strengths": [
+                "Risk anticipation"
+              ],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Stakeholder awareness"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 1,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 1,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (7 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "text": "I tracked latency and error budgets each release."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 40,
+              "structure_score": 15,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -22.57,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 73.6,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (8 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "text": "I led incident triage and stakeholder updates."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -31.96,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "structure",
+              "consistency_score": 73.85,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 40,
+              "leadership_strengths": [
+                "Ownership and accountability",
+                "Stakeholder awareness"
+              ],
+              "leadership_gaps": [
+                "Decision-making clarity",
+                "Risk anticipation",
+                "Influence and collaboration tone"
+              ],
+              "leadership_signals": {
+                "ownership_count": 1,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 1,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 1,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 1,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (7 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "text": "I improved reliability while reducing cost."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 40,
+              "structure_score": 30,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -27.76,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 76.11,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 20,
+              "leadership_strengths": [
+                "Improved reliability",
+                "Reduced cost"
+              ],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (6 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "final_summary",
+            "session_id": "f6d690b8-332b-4209-8f6d-ddd99c5bde98",
+            "data": {
+              "verdict": "Strong",
+              "strengths": [
+                "Demonstrated effective problem-solving skills by designing a rollout that reduced failures by 40%.",
+                "Successfully implemented canary checks and rollback automation, showcasing a proactive approach to deployment.",
+                "Consistently tracked latency and error budgets, indicating a strong focus on performance metrics.",
+                "Led incident triage and communicated effectively with stakeholders, highlighting leadership and collaboration abilities.",
+                "Achieved improvements in reliability while also reducing costs, reflecting a balance between quality and efficiency."
+              ],
+              "improvements": [
+                "Continue to seek opportunities for further innovation in deployment strategies.",
+                "Expand knowledge in emerging technologies to enhance technical skill set."
+              ],
+              "summary": "The candidate demonstrated strong technical skills and leadership abilities throughout the interview, with a clear focus on improving system reliability and performance. With continued growth in innovation and technology, they are well-positioned for success."
+            }
+          }
+        ],
+        "errors": [],
+        "counts": {
+          "ai_decision": 5,
+          "next_question": 4,
+          "transcript": 5,
+          "final_summary": 1
+        },
+        "persona_telemetry": [
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          }
+        ],
+        "transcripts": [
+          "I designed a rollout and reduced failures by 40 percent.",
+          "I introduced canary checks and rollback automation.",
+          "I tracked latency and error budgets each release.",
+          "I led incident triage and stakeholder updates.",
+          "I improved reliability while reducing cost."
+        ]
+      },
+      {
+        "session_id": "s2",
+        "sent_lines": [
+          "I worked on tasks.",
+          "I am not sure.",
+          "I did small updates.",
+          "No measurable impact.",
+          "I cannot recall details."
+        ],
+        "events": [
+          {
+            "type": "question",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "question": "Tell me about yourself."
+          },
+          {
+            "type": "transcript",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "text": "I worked on tasks."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 20,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": 0.0,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 100.0,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (4 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "text": "I am not sure."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.6,
+              "hesitation_count": 1,
+              "clarity_score": 36,
+              "depth_score": 0,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 8,
+              "improvement_pct": -19.48,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "depth",
+              "consistency_score": 78.45,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 0,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (4 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "text": "I did small updates."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -17.82,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "structure",
+              "consistency_score": 82.0,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (4 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "text": "No measurable impact."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 15,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -12.22,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 83.03,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 0,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (3 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "text": "I cannot recall details."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -13.47,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "structure",
+              "consistency_score": 84.81,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 0,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (4 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "final_summary",
+            "session_id": "559940ce-2a78-4dde-a7f3-4a8630b52d87",
+            "data": {
+              "verdict": "Needs Improvement",
+              "strengths": [
+                "Demonstrated a willingness to engage in technical discussions.",
+                "Displayed confidence in the interview setting."
+              ],
+              "improvements": [
+                "Need to provide more specific examples of past work and its impact.",
+                "Should enhance recall of technical details and project contributions."
+              ],
+              "summary": "The candidate showed confidence but struggled to articulate specific experiences and their outcomes. Focusing on detailed examples and measurable impacts will strengthen future interviews."
+            }
+          }
+        ],
+        "errors": [],
+        "counts": {
+          "ai_decision": 5,
+          "next_question": 4,
+          "transcript": 5,
+          "final_summary": 1
+        },
+        "persona_telemetry": [
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          }
+        ],
+        "transcripts": [
+          "I worked on tasks.",
+          "I am not sure.",
+          "I did small updates.",
+          "No measurable impact.",
+          "I cannot recall details."
+        ]
+      },
+      {
+        "session_id": "s3",
+        "sent_lines": [
+          "I migrated service configs."
+        ],
+        "events": [
+          {
+            "type": "question",
+            "session_id": "b88d3594-56cb-4405-9799-66688e853a55",
+            "question": "Tell me about yourself."
+          }
+        ],
+        "errors": [],
+        "counts": {
+          "ai_decision": 0,
+          "next_question": 0,
+          "transcript": 0,
+          "final_summary": 0
+        },
+        "persona_telemetry": [],
+        "transcripts": []
+      },
+      {
+        "session_id": "s4",
+        "sent_lines": [
+          "I improved pipeline visibility and rollback speed.",
+          "I compared consistency and cost tradeoffs.",
+          "I mitigated risk with staged releases.",
+          "I documented incident response flows.",
+          "I improved delivery reliability across teams."
+        ],
+        "events": [
+          {
+            "type": "question",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "question": "Tell me about yourself."
+          },
+          {
+            "type": "transcript",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "text": "I improved pipeline visibility and rollback speed."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 65,
+              "structure_score": 15,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": 0.0,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 100.0,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 25,
+              "leadership_strengths": [
+                "Risk anticipation"
+              ],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Stakeholder awareness"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 1,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 1,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (7 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "text": "I compared consistency and cost tradeoffs."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 65,
+              "structure_score": 15,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": 0.0,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 100.0,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 40,
+              "leadership_strengths": [
+                "Decision-making clarity"
+              ],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Risk anticipation",
+                "Stakeholder awareness"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 1,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 1,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (6 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "text": "I mitigated risk with staged releases."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -15.42,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "structure",
+              "consistency_score": 77.83,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 40,
+              "leadership_strengths": [
+                "Risk anticipation"
+              ],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Stakeholder awareness"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 2,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 2,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (6 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "text": "I documented incident response flows."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.6,
+              "hesitation_count": 1,
+              "clarity_score": 36,
+              "depth_score": 0,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 8,
+              "improvement_pct": -34.36,
+              "decline_warning": true,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "depth",
+              "consistency_score": 67.38,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (5 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "text": "I improved delivery reliability across teams."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 40,
+              "structure_score": 15,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -28.17,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 70.66,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [
+                "Improved delivery reliability"
+              ],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (6 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "final_summary",
+            "session_id": "030bd35c-1c0d-4375-8be9-a4dcd0a5f297",
+            "data": {
+              "verdict": "Strong",
+              "strengths": [
+                "Demonstrated a clear understanding of pipeline visibility and rollback speed improvements.",
+                "Effectively compared consistency and cost tradeoffs in technical decisions.",
+                "Implemented risk mitigation strategies through staged releases.",
+                "Provided thorough documentation for incident response flows.",
+                "Enhanced delivery reliability across teams, showcasing strong collaboration skills."
+              ],
+              "improvements": [
+                "Continue to seek opportunities for further optimization in processes.",
+                "Explore advanced metrics for measuring the impact of improvements."
+              ],
+              "summary": "The candidate showcased strong technical skills and a proactive approach to problem-solving. Their ability to improve processes and document workflows is commendable. With continued focus on optimization and metrics, they will further enhance their contributions."
+            }
+          }
+        ],
+        "errors": [],
+        "counts": {
+          "ai_decision": 5,
+          "next_question": 4,
+          "transcript": 5,
+          "final_summary": 1
+        },
+        "persona_telemetry": [
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          }
+        ],
+        "transcripts": [
+          "I improved pipeline visibility and rollback speed.",
+          "I compared consistency and cost tradeoffs.",
+          "I mitigated risk with staged releases.",
+          "I documented incident response flows.",
+          "I improved delivery reliability across teams."
+        ]
+      },
+      {
+        "session_id": "s5",
+        "sent_lines": [
+          "I configured kubernetes workloads.",
+          "I optimized autoscaling settings.",
+          "I lowered deployment drift via automation.",
+          "I created runbooks for on-call.",
+          "I cut mean-time-to-recovery."
+        ],
+        "events": [
+          {
+            "type": "question",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "question": "Tell me about yourself."
+          },
+          {
+            "type": "transcript",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "text": "I configured kubernetes workloads."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 45,
+              "structure_score": 20,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": 0.0,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 100.0,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (4 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "text": "I optimized autoscaling settings."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 20,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -6.89,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 90.79,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (4 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "text": "I lowered deployment drift via automation."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -16.1,
+              "decline_warning": true,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "structure",
+              "consistency_score": 86.89,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (6 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "text": "I created runbooks for on-call."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 25,
+              "structure_score": 0,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -21.63,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "structure",
+              "consistency_score": 86.88,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (5 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "next_question",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?"
+          },
+          {
+            "type": "transcript",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "text": "I cut mean-time-to-recovery."
+          },
+          {
+            "type": "ai_decision",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "decision": {
+              "action": "probe",
+              "intent": "depth_probe",
+              "difficulty": "easy",
+              "confidence": 0.7,
+              "hesitation_count": 0,
+              "clarity_score": 40,
+              "depth_score": 40,
+              "structure_score": 15,
+              "alignment_score": 0,
+              "seniority_adjustment": 0,
+              "hesitation_penalty": 0,
+              "improvement_pct": -15.97,
+              "decline_warning": false,
+              "strongest_dimension": "confidence",
+              "weakest_dimension": "alignment",
+              "consistency_score": 87.22,
+              "jd_coverage_pct": 0.0,
+              "leadership_score": 10,
+              "leadership_strengths": [],
+              "leadership_gaps": [
+                "Ownership and accountability",
+                "Decision-making clarity",
+                "Risk anticipation"
+              ],
+              "leadership_signals": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "leadership_signal_counts": {
+                "ownership_count": 0,
+                "decision_count": 0,
+                "risk_count": 0,
+                "stakeholder_count": 0,
+                "conflict_count": 0
+              },
+              "escalation_mode": "NORMAL",
+              "verdict": "Needs Improvement",
+              "explanation": "Answer length is limited (3 words). Provide context, concrete actions, and measurable impact.",
+              "persona_name": null,
+              "pressure_intensity": null,
+              "skill_target": null,
+              "skill_risk_flag": "NONE",
+              "skill_jd_coverage_pct": 0.0,
+              "resume_credibility_pct": 0.0,
+              "high_risk_skill_count": 0,
+              "overclaim_index": 0.0,
+              "blind_spot_index": 0.0,
+              "contradiction_count": 0,
+              "unresolved_contradictions": 0,
+              "unresolved_assertion_count": 0,
+              "memory_consistency_score": 1.0,
+              "memory_recall_context": null,
+              "memory_priority_subject": null,
+              "memory_priority_severity": 0.0,
+              "message": "Short answer detected. Adding a guided follow-up.",
+              "evidence": [
+                "low depth score"
+              ],
+              "next_question": "Please give one specific example: what was the problem, what exactly did you do, and what measurable result did you achieve?",
+              "why": "Need more detail to evaluate impact and technical depth.",
+              "answer_quality": "too_short",
+              "hint": "Use 3 parts: context, action you took, and measurable result."
+            }
+          },
+          {
+            "type": "live_coaching",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "tips": [
+              "Provide a more complete answer with specific technical details."
+            ]
+          },
+          {
+            "type": "final_summary",
+            "session_id": "52c6647e-6af4-4a27-85dc-c5dc5034f1be",
+            "data": {
+              "verdict": "Strong",
+              "strengths": [
+                "Demonstrated strong technical skills in configuring Kubernetes workloads.",
+                "Effectively optimized autoscaling settings, showcasing a solid understanding of performance management.",
+                "Implemented automation to reduce deployment drift, indicating a proactive approach to DevOps practices.",
+                "Created comprehensive runbooks for on-call processes, highlighting a commitment to operational excellence.",
+                "Successfully reduced mean-time-to-recovery, reflecting strong problem-solving abilities."
+              ],
+              "improvements": [],
+              "summary": "The candidate exhibited exceptional technical proficiency and a proactive mindset in their approach to DevOps and system management. Their contributions to optimizing processes and enhancing operational efficiency are commendable. Overall, they are well-prepared for the role."
+            }
+          }
+        ],
+        "errors": [],
+        "counts": {
+          "ai_decision": 5,
+          "next_question": 4,
+          "transcript": 5,
+          "final_summary": 1
+        },
+        "persona_telemetry": [
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          },
+          {
+            "persona_name": null,
+            "pressure_intensity": null
+          }
+        ],
+        "transcripts": [
+          "I configured kubernetes workloads.",
+          "I optimized autoscaling settings.",
+          "I lowered deployment drift via automation.",
+          "I created runbooks for on-call.",
+          "I cut mean-time-to-recovery."
+        ]
+      }
+    ],
+    "invariants": {
+      "session_isolation": true,
+      "finalize_safety": true,
+      "event_contract_integrity": true,
+      "disconnect_safety": true,
+      "no_cross_session_deepgram": true
+    },
+    "violations": {
+      "bleed": [],
+      "duplicates": [],
+      "contract": [],
+      "errors": []
+    },
+    "log_counts": {
+      "qa_mode_disabled_dg": 5,
+      "deepgram_reconnect": 0,
+      "watchdog_terminated": 0,
+      "service_started": 0,
+      "service_stopped": 0
+    }
+  },
+  "phase_nonqa_lifecycle": {
+    "backend": {
+      "port": 9011,
+      "stdout_log": "D:\\linkedin-ai-main\\backend\\qa\\reports\\phase_nonqa_stdout.log",
+      "stderr_log": "D:\\linkedin-ai-main\\backend\\qa\\reports\\phase_nonqa_stderr.log",
+      "qa_mode": false
+    },
+    "session_results": [
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      }
+    ],
+    "flood_results": [
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      },
+      {
+        "ok": true,
+        "error": null
+      }
+    ],
+    "invariants": {
+      "deepgram_lifecycle_isolation": true,
+      "no_keep_alive_thread_error": true,
+      "no_reconnect_failure_loop": true,
+      "no_unhandled_asgi_exceptions": true
+    },
+    "log_counts": {
+      "service_started": 17,
+      "service_stopped": 6,
+      "watchdog_terminated": 6,
+      "reconnect": 2,
+      "reconnect_failed": 0,
+      "keep_alive_thread_error": 0,
+      "asgi_exception": 0
+    }
+  },
+  "phase_persona_isolation": {
+    "intensity_traces": {
+      "s1": [
+        1,
+        2,
+        3
+      ],
+      "s2": [
+        1,
+        1,
+        1
+      ],
+      "s3": [
+        1,
+        1,
+        1
+      ]
+    },
+    "invariants": {
+      "s1_increases": true,
+      "s2_not_global_with_s1": true,
+      "s3_stable": true,
+      "divergent_states": true
+    }
+  },
+  "summary": {
+    "passed": 13,
+    "total": 13,
+    "checks": {
+      "qa::session_isolation": true,
+      "qa::finalize_safety": true,
+      "qa::event_contract_integrity": true,
+      "qa::disconnect_safety": true,
+      "qa::no_cross_session_deepgram": true,
+      "nonqa::deepgram_lifecycle_isolation": true,
+      "nonqa::no_keep_alive_thread_error": true,
+      "nonqa::no_reconnect_failure_loop": true,
+      "nonqa::no_unhandled_asgi_exceptions": true,
+      "persona::s1_increases": true,
+      "persona::s2_not_global_with_s1": true,
+      "persona::s3_stable": true,
+      "persona::divergent_states": true
+    }
+  }
+}

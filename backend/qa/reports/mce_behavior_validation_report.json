@@ -1,0 +1,74 @@
+{
+  "objective": "Behavioral correctness validation for Memory + Contradiction Engine",
+  "summary": {
+    "generated_at": "2026-02-15T11:47:03Z",
+    "passed": 3,
+    "total": 3,
+    "all_pass": true
+  },
+  "scenarios": [
+    {
+      "name": "scenario_1_direct_contradiction",
+      "expected": {
+        "contradiction": "detected",
+        "severity": ">0.7",
+        "recall": "clarification planned"
+      },
+      "observed": {
+        "contradiction_count": 1,
+        "top_severity": 0.75,
+        "inject_context_present": true,
+        "priority_subject": "Caching",
+        "priority_severity": 0.75
+      },
+      "checks": {
+        "contradiction_detected": true,
+        "severity_high": true,
+        "recall_context_generated": true,
+        "planner_priority_high": true
+      },
+      "pass": true
+    },
+    {
+      "name": "scenario_2_soft_evolution_no_false_positive",
+      "expected": {
+        "contradiction": "none",
+        "severity": "low",
+        "recall": "no harsh confrontation"
+      },
+      "observed": {
+        "contradiction_count": 0,
+        "unresolved_contradictions": 0,
+        "priority_severity": 0.0,
+        "recall_context": null
+      },
+      "checks": {
+        "no_false_positive": true,
+        "no_unresolved_conflict": true,
+        "no_harsh_recall": true
+      },
+      "pass": true
+    },
+    {
+      "name": "scenario_3_quantitative_conflict",
+      "expected": {
+        "contradiction": "detected",
+        "severity": "moderate-high",
+        "recall": "clarification follow-up"
+      },
+      "observed": {
+        "contradiction_count": 1,
+        "top_severity": 0.8,
+        "subject": "Scale",
+        "recall_context_present": true,
+        "priority_severity": 0.8
+      },
+      "checks": {
+        "quant_contradiction_detected": true,
+        "moderate_high_severity": true,
+        "clarification_planned": true
+      },
+      "pass": true
+    }
+  ]
+}

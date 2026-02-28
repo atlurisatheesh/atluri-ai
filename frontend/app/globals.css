@@ -1,0 +1,84 @@
+@config "../tailwind.config.js";
+@import "tailwindcss";
+
+:root {
+  --bg: #131b2b;
+  --surface-1: #1a2336;
+  --surface-2: #212c41;
+  --text-primary: #e8eef9;
+  --text-muted: #97a6bf;
+  --accent: #6d92ff;
+  --danger: #ff6f86;
+  --border-subtle: rgba(198, 214, 244, 0.14);
+  --fog-a-alpha: 0.16;
+  --fog-b-alpha: 0.14;
+  --grain-alpha: 0.012;
+  --gradient-top: #172033;
+  --gradient-bottom: #121927;
+}
+
+body[data-atmosphere="subtle"] {
+  --fog-a-alpha: 0.1;
+  --fog-b-alpha: 0.08;
+  --grain-alpha: 0.007;
+  --gradient-top: #182236;
+  --gradient-bottom: #131a2a;
+}
+
+body[data-atmosphere="balanced"] {
+  --fog-a-alpha: 0.16;
+  --fog-b-alpha: 0.14;
+  --grain-alpha: 0.012;
+  --gradient-top: #172033;
+  --gradient-bottom: #121927;
+}
+
+body[data-atmosphere="deep"] {
+  --fog-a-alpha: 0.22;
+  --fog-b-alpha: 0.19;
+  --grain-alpha: 0.017;
+  --gradient-top: #161f31;
+  --gradient-bottom: #101726;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1100px circle at 14% -8%, rgba(152, 178, 228, var(--fog-a-alpha)), transparent 58%),
+    radial-gradient(900px circle at 84% 0%, rgba(116, 142, 191, var(--fog-b-alpha)), transparent 52%),
+    linear-gradient(180deg, var(--gradient-top) 0%, var(--gradient-bottom) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, var(--grain-alpha)) 0 1px, transparent 1px 3px);
+  color: var(--text-primary);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+.surface {
+  background: var(--surface-1);
+}
+
+.surface-2 {
+  background: var(--surface-2);
+}
+
+.rule {
+  border-top: 1px solid var(--border-subtle);
+}

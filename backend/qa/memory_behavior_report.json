@@ -1,0 +1,132 @@
+{
+  "generated_at": "2026-02-15T17:33:08Z",
+  "total": 5,
+  "passed": 5,
+  "failed": 0,
+  "all_pass": true,
+  "qa_mode_bypass_respected": true,
+  "qa_mode_parity": [
+    {
+      "scenario": "Direct Logical Contradiction",
+      "same_contradictions": true,
+      "same_recall": true
+    },
+    {
+      "scenario": "Architectural Evolution No False Positive",
+      "same_contradictions": true,
+      "same_recall": true
+    }
+  ],
+  "details": [
+    {
+      "scenario": "Direct Logical Contradiction",
+      "pass": true,
+      "contradiction_count": 1,
+      "unresolved_assertions": 0,
+      "severity": 0.75,
+      "planned_recall_subject": "Caching",
+      "recall_triggered": true,
+      "checks": {
+        "expected_contradictions": true,
+        "subject_match": true,
+        "severity_threshold": true,
+        "severity_false_positive_guard": true,
+        "no_false_positive_mode": true,
+        "recall_triggered_match": true,
+        "over_trigger_guard": true,
+        "scoring_unchanged": true,
+        "difficulty_unchanged": true,
+        "escalation_stable_when_no_recall": true,
+        "no_global_state_bleed": true
+      }
+    },
+    {
+      "scenario": "Architectural Evolution No False Positive",
+      "pass": true,
+      "contradiction_count": 0,
+      "unresolved_assertions": 0,
+      "severity": 0.0,
+      "planned_recall_subject": null,
+      "recall_triggered": false,
+      "checks": {
+        "expected_contradictions": true,
+        "subject_match": true,
+        "severity_threshold": true,
+        "severity_false_positive_guard": true,
+        "no_false_positive_mode": true,
+        "recall_triggered_match": true,
+        "over_trigger_guard": true,
+        "scoring_unchanged": true,
+        "difficulty_unchanged": true,
+        "escalation_stable_when_no_recall": true,
+        "no_global_state_bleed": true
+      }
+    },
+    {
+      "scenario": "Quantitative Conflict",
+      "pass": true,
+      "contradiction_count": 1,
+      "unresolved_assertions": 0,
+      "severity": 0.8,
+      "planned_recall_subject": "Scale",
+      "recall_triggered": true,
+      "checks": {
+        "expected_contradictions": true,
+        "subject_match": true,
+        "severity_threshold": true,
+        "severity_false_positive_guard": true,
+        "no_false_positive_mode": true,
+        "recall_triggered_match": true,
+        "over_trigger_guard": true,
+        "scoring_unchanged": true,
+        "difficulty_unchanged": true,
+        "escalation_stable_when_no_recall": true,
+        "no_global_state_bleed": true
+      }
+    },
+    {
+      "scenario": "Leadership Downgrade",
+      "pass": true,
+      "contradiction_count": 1,
+      "unresolved_assertions": 0,
+      "severity": 0.75,
+      "planned_recall_subject": "Leadership",
+      "recall_triggered": true,
+      "checks": {
+        "expected_contradictions": true,
+        "subject_match": true,
+        "severity_threshold": true,
+        "severity_false_positive_guard": true,
+        "no_false_positive_mode": true,
+        "recall_triggered_match": true,
+        "over_trigger_guard": true,
+        "scoring_unchanged": true,
+        "difficulty_unchanged": true,
+        "escalation_stable_when_no_recall": true,
+        "no_global_state_bleed": true
+      }
+    },
+    {
+      "scenario": "Soft Clarification No False Positive",
+      "pass": true,
+      "contradiction_count": 0,
+      "unresolved_assertions": 0,
+      "severity": 0.0,
+      "planned_recall_subject": null,
+      "recall_triggered": false,
+      "checks": {
+        "expected_contradictions": true,
+        "subject_match": true,
+        "severity_threshold": true,
+        "severity_false_positive_guard": true,
+        "no_false_positive_mode": true,
+        "recall_triggered_match": true,
+        "over_trigger_guard": true,
+        "scoring_unchanged": true,
+        "difficulty_unchanged": true,
+        "escalation_stable_when_no_recall": true,
+        "no_global_state_bleed": true
+      }
+    }
+  ]
+}

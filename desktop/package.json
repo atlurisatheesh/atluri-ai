@@ -1,0 +1,50 @@
+{
+  "name": "atluriin-desktop-practice",
+  "private": true,
+  "version": "0.1.0",
+  "main": "dist/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && cpx \"src/renderer/index.html\" dist/renderer",
+    "dev": "npm run build && electron .",
+    "dev:watch": "concurrently -k \"tsc -p tsconfig.json -w\" \"electron .\"",
+    "pack": "npm run build && electron-builder --dir",
+    "dist:win": "npm run build && electron-builder --win"
+  },
+  "dependencies": {
+    "ws": "^8.18.1"
+  },
+  "optionalDependencies": {
+    "win-audio-capture": "^1.0.1"
+  },
+  "devDependencies": {
+    "electron": "^35.7.4",
+    "cpx": "^1.5.0",
+    "concurrently": "^9.1.2",
+    "@types/ws": "^8.18.1",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.7.3"
+  },
+  "build": {
+    "appId": "com.atluriin.practice",
+    "productName": "AtluriIn Practice",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "signAndEditExecutable": false,
+      "target": ["nsis"],
+      "artifactName": "${productName}-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

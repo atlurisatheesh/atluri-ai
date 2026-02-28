@@ -1,0 +1,238 @@
+{
+  "generatedAtIso": "2026-02-17T16:54:36.793Z",
+  "environment": {
+    "backendUrl": "http://localhost:9010",
+    "frontendUrl": "http://localhost:3001",
+    "headless": true,
+    "nodeVersion": "v24.13.1",
+    "osPlatform": "win32"
+  },
+  "config": {
+    "maxUsers": 2,
+    "batchSizes": [
+      2
+    ],
+    "answersPerUser": 3,
+    "thresholds": {
+      "latencyThresholdMs": 7000,
+      "errorThresholdPercent": 2,
+      "memoryThresholdMb": 900,
+      "wsConnectThresholdMs": 2500,
+      "offerComputeThresholdMs": 2500
+    }
+  },
+  "backendMetricsWindow": {
+    "before": {
+      "generated_at": 1771347218.6760528,
+      "stream_duration_total_sec": 0,
+      "stream_duration_samples": 0,
+      "latency_total_ms": 0,
+      "latency_samples": 0,
+      "redis_publish_total_ms": 0,
+      "redis_publish_samples": 0,
+      "fanout_delay_total_ms": 0,
+      "fanout_delay_samples": 0,
+      "ws_connections_active": 3,
+      "ws_rooms_active": 3,
+      "ws_disconnects_total": 5,
+      "ws_disconnect_client_disconnect": 5,
+      "ws_disconnect_stop_command": 0,
+      "ws_disconnect_receive_audio_error": 0,
+      "ws_disconnect_deepgram_error": 0,
+      "ws_disconnect_socket_closed": 0,
+      "ws_disconnect_max_turns_reached": 0,
+      "ws_disconnect_other": 0,
+      "answer_streams_started": 0,
+      "answer_streams_cancelled": 0,
+      "emotional_events_emitted": 0,
+      "assist_hints_emitted": 0,
+      "share_tokens_active": 2,
+      "share_tokens_revoked": 0,
+      "avg_stream_duration": 0,
+      "avg_latency_ms": 0,
+      "avg_redis_publish_latency_ms": 0,
+      "avg_fanout_delay_ms": 0,
+      "share_token_ttl_sec": 86400
+    },
+    "after": {
+      "generated_at": 1771347276.790789,
+      "stream_duration_total_sec": 0,
+      "stream_duration_samples": 0,
+      "latency_total_ms": 0,
+      "latency_samples": 0,
+      "redis_publish_total_ms": 0,
+      "redis_publish_samples": 0,
+      "fanout_delay_total_ms": 0,
+      "fanout_delay_samples": 0,
+      "ws_connections_active": 3,
+      "ws_rooms_active": 3,
+      "ws_disconnects_total": 9,
+      "ws_disconnect_client_disconnect": 9,
+      "ws_disconnect_stop_command": 0,
+      "ws_disconnect_receive_audio_error": 0,
+      "ws_disconnect_deepgram_error": 0,
+      "ws_disconnect_socket_closed": 0,
+      "ws_disconnect_max_turns_reached": 0,
+      "ws_disconnect_other": 0,
+      "answer_streams_started": 0,
+      "answer_streams_cancelled": 0,
+      "emotional_events_emitted": 0,
+      "assist_hints_emitted": 0,
+      "share_tokens_active": 4,
+      "share_tokens_revoked": 0,
+      "avg_stream_duration": 0,
+      "avg_latency_ms": 0,
+      "avg_redis_publish_latency_ms": 0,
+      "avg_fanout_delay_ms": 0,
+      "share_token_ttl_sec": 86400
+    },
+    "delta": {
+      "redisPublishAvgMs": 0,
+      "fanoutDelayAvgMs": 0,
+      "wsDisconnects": 4
+    }
+  },
+  "results": [
+    {
+      "users": 2,
+      "mode": "api",
+      "durationMs": 30551,
+      "errors": 0,
+      "opsAttempted": 28,
+      "opsFailed": 0,
+      "userFailures": 0,
+      "metrics": {
+        "ttfq_ms": {
+          "count": 2,
+          "min": 81,
+          "max": 136,
+          "mean": 108.5,
+          "p50": 108.5,
+          "p95": 133.25,
+          "p99": 135.45
+        },
+        "answer_latency_ms": {
+          "count": 10,
+          "min": 2321,
+          "max": 5296,
+          "mean": 3764.2,
+          "p50": 3681.5,
+          "p95": 5110.15,
+          "p99": 5258.83
+        },
+        "offer_compute_ms": {
+          "count": 2,
+          "min": 703,
+          "max": 832,
+          "mean": 767.5,
+          "p50": 767.5,
+          "p95": 825.55,
+          "p99": 830.71
+        },
+        "ws_connect_ms": {
+          "count": 2,
+          "min": 820,
+          "max": 1608,
+          "mean": 1214,
+          "p50": 1214,
+          "p95": 1568.6,
+          "p99": 1600.12
+        },
+        "offer_determinism_diff": {
+          "count": 2,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        }
+      }
+    },
+    {
+      "users": 2,
+      "mode": "browser",
+      "durationMs": 26928,
+      "errors": 0,
+      "opsAttempted": 0,
+      "opsFailed": 0,
+      "userFailures": 0,
+      "metrics": {
+        "ttfq_ms": {
+          "count": 2,
+          "min": 2524,
+          "max": 2539,
+          "mean": 2531.5,
+          "p50": 2531.5,
+          "p95": 2538.25,
+          "p99": 2538.85
+        },
+        "answer_latency_ms": {
+          "count": 6,
+          "min": 1242,
+          "max": 11144,
+          "mean": 5877.333333333333,
+          "p50": 4534.5,
+          "p95": 10998,
+          "p99": 11114.8
+        },
+        "offer_compute_ms": {
+          "count": 2,
+          "min": 1204,
+          "max": 1272,
+          "mean": 1238,
+          "p50": 1238,
+          "p95": 1268.6,
+          "p99": 1271.32
+        },
+        "ws_connect_ms": {
+          "count": 2,
+          "min": 820,
+          "max": 2015,
+          "mean": 1417.5,
+          "p50": 1417.5,
+          "p95": 1955.25,
+          "p99": 2003.05
+        },
+        "offer_determinism_diff": {
+          "count": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "p50": 0,
+          "p95": 0,
+          "p99": 0
+        }
+      }
+    }
+  ],
+  "errorEvents": [],
+  "graph": {
+    "users": [
+      2
+    ],
+    "offerP95ms": [
+      826
+    ],
+    "answerP95ms": [
+      5110
+    ],
+    "ttfqP95ms": [
+      133
+    ],
+    "wsP95ms": [
+      1569
+    ],
+    "failedRequestRatePercent": [
+      0
+    ],
+    "userFailureRatePercent": [
+      0
+    ],
+    "offerDeterminismMaxDiff": [
+      0
+    ]
+  },
+  "pass": true,
+  "failReasons": []
+}

@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-02-15T17:33:25Z",
+  "duration_sec": 8.23,
+  "all_pass": true,
+  "seeded_sessions": [
+    "dc0c69de-6f1a-4b72-96ea-c17d5971e62f",
+    "18f9af9f-39bf-4192-a36b-598e70fe0035"
+  ],
+  "steps": [
+    {
+      "name": "user_progress",
+      "ok": true,
+      "detail": "status=200, points=4"
+    },
+    {
+      "name": "session_export_csv",
+      "ok": true,
+      "detail": "status=200, bytes=260"
+    },
+    {
+      "name": "session_share",
+      "ok": true,
+      "detail": "status=200, has_token=True"
+    },
+    {
+      "name": "public_snapshot",
+      "ok": true,
+      "detail": "status=200, integrity=82.0"
+    }
+  ]
+}

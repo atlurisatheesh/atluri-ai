@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-02-15T17:54:57Z",
+  "duration_sec": 110.44,
+  "required_actions": {
+    "room_hardening_smokes": {
+      "script": "D:\\linkedin-ai-main\\backend\\qa\\run_room_hardening_smokes.py",
+      "exit_code": 0,
+      "duration_sec": 74.64,
+      "stdout_tail": "C answer_suggestion_chunk\nC answer_suggestion_chunk\nC answer_suggestion_chunk\nC answer_suggestion_chunk\nC answer_suggestion_chunk\nC answer_suggestion_done\nC answer_suggestion\nINTERVIEWER_TYPES ['question', 'interviewer_question', 'answer_suggestion_start', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_done', 'answer_suggestion']\nCANDIDATE_TYPES ['question', 'interviewer_question', 'answer_suggestion_start', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_done', 'answer_suggestion']\nROOM_REJOIN_OK\nSYNC_ACTIVE_QUESTION How did you improve API latency in production with measurable impact?\nSYNC_IS_STREAMING False\nSYNC_PARTIAL_ANSWER_LEN 692\nROOM_STREAM_CANCEL_OK\n\n=== Running tmp_room_ws_smoke.py ===\n=== tmp_room_ws_smoke.py exit=0 ===\n\n=== Running tmp_room_rejoin_smoke.py ===\n=== tmp_room_rejoin_smoke.py exit=0 ===\n\n=== Running tmp_room_stream_cancel_smoke.py ===\n=== tmp_room_stream_cancel_smoke.py exit=0 ===\n\nROOM_HARDENING_SMOKES_OK",
+      "stderr_tail": ""
+    },
+    "manual_live_room_test": {
+      "script": "D:\\linkedin-ai-main\\backend\\tmp_room_ws_smoke.py",
+      "exit_code": 0,
+      "duration_sec": 30.83,
+      "stdout_tail": "I interviewer_question\nI answer_suggestion_start\nI answer_suggestion_chunk\nI answer_suggestion_chunk\nI answer_suggestion_chunk\nI answer_suggestion_chunk\nI answer_suggestion_chunk\nI answer_suggestion_done\nI answer_suggestion\nC interviewer_question\nC answer_suggestion_start\nC answer_suggestion_chunk\nC answer_suggestion_chunk\nC answer_suggestion_chunk\nC answer_suggestion_chunk\nC answer_suggestion_chunk\nC answer_suggestion_done\nC answer_suggestion\nINTERVIEWER_TYPES ['question', 'interviewer_question', 'answer_suggestion_start', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_done', 'answer_suggestion']\nCANDIDATE_TYPES ['question', 'interviewer_question', 'answer_suggestion_start', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_chunk', 'answer_suggestion_done', 'answer_suggestion']",
+      "stderr_tail": ""
+    },
+    "progress_and_public_security": {
+      "checks": [
+        {
+          "name": "progress_requires_auth",
+          "ok": true,
+          "detail": "status=401"
+        },
+        {
+          "name": "progress_user_scope_dev",
+          "ok": true,
+          "detail": "status=200, points=1"
+        },
+        {
+          "name": "progress_user_scope_other",
+          "ok": true,
+          "detail": "status=200, points=1"
+        },
+        {
+          "name": "share_create_authorized",
+          "ok": true,
+          "detail": "status=200, token=True"
+        },
+        {
+          "name": "public_snapshot_valid_token",
+          "ok": true,
+          "detail": "status=200"
+        },
+        {
+          "name": "public_snapshot_missing_token_blocked",
+          "ok": true,
+          "detail": "status=403"
+        },
+        {
+          "name": "public_snapshot_invalid_token_blocked",
+          "ok": true,
+          "detail": "status=403"
+        },
+        {
+          "name": "public_snapshot_token_session_bound",
+          "ok": true,
+          "detail": "status=403"
+        },
+        {
+          "name": "share_revoke_endpoint",
+          "ok": true,
+          "detail": "status=200, revoked_count=1"
+        },
+        {
+          "name": "public_snapshot_revoked_token_blocked",
+          "ok": true,
+          "detail": "status=403"
+        },
+        {
+          "name": "public_snapshot_expired_token_blocked",
+          "ok": true,
+          "detail": "status=403"
+        },
+        {
+          "name": "system_metrics_requires_auth",
+          "ok": true,
+          "detail": "status=401"
+        },
+        {
+          "name": "system_metrics_shape",
+          "ok": true,
+          "detail": "status=200, keys=11"
+        }
+      ],
+      "all_pass": true
+    }
+  },
+  "all_pass": true
+}

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AtluriIn Practice Overlay</title>
+    <style>
+      :root { color-scheme: dark; }
+      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #0d1420; color: #e6eefc; border-radius: 12px; overflow: hidden; }
+      header { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+      header .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      header .title { font-weight: 800; letter-spacing: 0.2px; }
+      header .sub { font-size: 12px; opacity: 0.8; }
+      main { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+      /* Frameless window: allow dragging via header, but keep controls clickable. */
+      button, input, select, label { -webkit-app-region: no-drag; }
+
+      .row { display: flex; gap: 8px; align-items: center; }
+      input, select { background: #111a29; border: 1px solid rgba(255,255,255,0.12); color: #e6eefc; padding: 8px 10px; border-radius: 8px; width: 100%; }
+      input[type="range"] { width: 78px; padding: 0; height: 18px; }
+      button { background: #2a6df4; color: white; border: 0; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; }
+      button.secondary { background: #233047; }
+      button.danger { background: #b4232c; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; opacity: 0.9; }
+      .log { max-height: 260px; overflow: auto; white-space: pre-wrap; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(42,109,244,0.2); border: 1px solid rgba(42,109,244,0.35); font-size: 12px; }
+
+      .kpi { display: flex; align-items: baseline; gap: 10px; }
+      .kpi .pct { font-size: 22px; font-weight: 900; }
+      .kpi .delta { font-size: 13px; opacity: 0.9; }
+
+      .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); }
+      .chip.warn { border-color: rgba(240, 186, 50, 0.35); background: rgba(240, 186, 50, 0.12); }
+      .chip.danger { border-color: rgba(255, 80, 105, 0.35); background: rgba(255, 80, 105, 0.12); }
+      .chip.good { border-color: rgba(60, 255, 170, 0.25); background: rgba(60, 255, 170, 0.10); }
+
+      .meters { display: grid; grid-template-columns: 1fr; gap: 10px; }
+      .meter .label { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.9; margin-bottom: 4px; }
+      .bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.10); overflow: hidden; border: 1px solid rgba(255,255,255,0.10); }
+      .bar > i { display: block; height: 100%; width: 0%; background: rgba(42,109,244,0.90); }
+
+      .feed { max-height: 160px; overflow: auto; font-size: 12px; line-height: 1.35; }
+      .feed .item { padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+      .feed .t { opacity: 0.75; margin-right: 6px; }
+      .feed .tag { margin-left: 6px; opacity: 0.85; }
+
+      /* Compact mode hides configuration/log; focuses on KPI + coaching */
+      body[data-mode="compact"] main #configCard,
+      body[data-mode="compact"] main #logCard {
+        display: none;
+      }
+
+      #stealthPanel { gap: 10px; background: rgba(0,0,0,0.20); padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
+      #stealthPanel label { font-size: 11px; opacity: 0.75; }
+
+      /* Title bar - drag zone at the very top */
+      .title-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 6px 12px; background: rgba(0,0,0,0.3); -webkit-app-region: drag; cursor: move; }
+      .title-bar .drag-indicator { display: flex; align-items: center; gap: 8px; }
+      .title-bar .drag-icon { opacity: 0.5; font-size: 14px; letter-spacing: 2px; }
+      .title-bar .title-text { font-size: 13px; font-weight: 700; opacity: 0.9; }
+
+      /* Window control buttons - top right corner */
+      .window-controls { display: flex; gap: 2px; -webkit-app-region: no-drag; }
+      .window-controls button { background: transparent; padding: 4px 10px; min-width: 32px; border-radius: 0; font-size: 14px; transition: background 0.15s; }
+      .window-controls button:hover { background: rgba(255,255,255,0.15); }
+      .window-controls .close-btn:hover { background: rgba(255,60,60,0.8); }
+    </style>
+  </head>
+  <body data-mode="expanded">
+    <!-- Drag bar at top with window controls -->
+    <div class="title-bar">
+      <div class="drag-indicator">
+        <span class="drag-icon">⋮⋮</span>
+        <span class="title-text">Practice Mode</span>
+      </div>
+      <div class="window-controls">
+        <button id="minimizeBtn" title="Minimize (Ctrl+Shift+I to restore)">─</button>
+        <button id="closeBtn" class="close-btn" title="Close overlay">✕</button>
+      </div>
+    </div>
+
+    <header>
+      <div class="top">
+        <div>
+          <div class="sub">Always-on-top overlay • Drag bar to move</div>
+        </div>
+        <div class="row" style="gap:6px; align-items:center; flex-wrap: wrap;">
+          <button id="eyeBtn" class="icon-btn" title="Toggle Stealth Mode" style="background:transparent;padding:6px 8px;">
+            <span id="eyeIcon" style="font-size:20px;">👁️</span>
+          </button>
+          <span id="stealthStatus" style="font-size:13px;min-width:90px;">Stealth: OFF</span>
+          <button id="settingsBtn" class="icon-btn" title="Settings" style="background:transparent;padding:6px 8px;">
+            <span style="font-size:20px;">⚙️</span>
+          </button>
+          <div id="stealthPanel" class="row">
+            <div class="row" style="gap:6px;">
+              <label for="uiOpacity">Opacity</label>
+              <input type="range" id="uiOpacity" min="20" max="100" value="100" />
+            </div>
+            <div class="row" style="gap:6px;">
+              <input type="checkbox" id="stealthMode" />
+              <label for="stealthMode">Stealth</label>
+            </div>
+          </div>
+          <button id="privacyBtn" class="secondary" style="padding:8px 10px;">Privacy: Off</button>
+          <button id="modeBtn" class="secondary" style="padding:8px 10px;">Compact</button>
+        </div>
+      </div>
+      <!-- Settings Modal -->
+      <div id="settingsModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:#1a2233;padding:24px 28px;border-radius:14px;min-width:320px;max-width:90vw;box-shadow:0 4px 32px #000a;">
+          <div style="font-size:18px;font-weight:700;margin-bottom:12px;">Settings</div>
+          <div class="row" style="margin-bottom:10px;">
+            <label style="width:140px;">Response Length</label>
+            <select id="settingResponseLength">
+              <option value="default">Default</option>
+              <option value="concise">Concise</option>
+              <option value="detailed">Detailed</option>
+            </select>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <label style="width:140px;">Language & Accent</label>
+            <input id="settingLanguage" placeholder="e.g. English (US)" />
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <label style="width:140px;">Process Time</label>
+            <select id="settingProcessTime">
+              <option value="fast">Fast</option>
+              <option value="medium">Medium</option>
+              <option value="quality">Quality</option>
+            </select>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <label style="width:140px;">Filler Words</label>
+            <input type="checkbox" id="settingFillerWords" /> Enable
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <label style="width:140px;">Threshold</label>
+            <input type="range" id="settingThreshold" min="0" max="100" value="50" />
+            <span id="settingThresholdVal">50</span>
+          </div>
+          <div class="row" style="margin-bottom:18px;">
+            <label style="width:140px;">Process Name</label>
+            <input id="settingProcessName" placeholder="(optional)" />
+          </div>
+          <div class="row" style="justify-content:flex-end;gap:10px;">
+            <button id="settingsCancelBtn" class="secondary">Cancel</button>
+            <button id="settingsSaveBtn">Save</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="app-root">
+      <div class="card" id="kpiCard">
+        <div class="row" style="justify-content: space-between;">
+          <span class="badge">Practice Mode Active</span>
+          <span class="mono" id="offerBand"></span>
+        </div>
+        <div style="height:8px"></div>
+        <div class="kpi">
+          <div class="pct" id="offerPct">Offer: --%</div>
+          <div class="delta" id="offerDelta">Δ --</div>
+        </div>
+        <div style="height:10px"></div>
+
+        <div class="meters">
+          <div class="meter">
+            <div class="label"><span>Impact Strength</span><span class="mono" id="mImpactVal">--</span></div>
+            <div class="bar"><i id="mImpact"></i></div>
+          </div>
+          <div class="meter">
+            <div class="label"><span>Credibility</span><span class="mono" id="mCredVal">--</span></div>
+            <div class="bar"><i id="mCred"></i></div>
+          </div>
+          <div class="meter">
+            <div class="label"><span>STAR Completion</span><span class="mono" id="mStarVal">--</span></div>
+            <div class="bar"><i id="mStar"></i></div>
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+        <div class="mono" id="drivers"></div>
+        <div style="height:8px"></div>
+        <div class="chips" id="starChips"></div>
+        <div style="height:8px"></div>
+        <div class="chips" id="warningChips"></div>
+      </div>
+
+      <div class="card" id="configCard">
+        <div class="row"><span class="badge">Practice Mode Active</span></div>
+        <div style="height:8px"></div>
+        <div class="row">
+          <label style="width:90px;opacity:.85;">Backend</label>
+          <input id="backendUrl" placeholder="http://localhost:9010" />
+        </div>
+        <div class="row">
+          <label style="width:90px;opacity:.85;">Room ID</label>
+          <input id="roomId" placeholder="(auto)" />
+        </div>
+        <div class="row">
+          <label style="width:90px;opacity:.85;">System</label>
+          <select id="systemMode">
+            <option value="display" selected>Display Capture</option>
+            <option value="loopback">WASAPI Loopback (Beta)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label style="width:90px;opacity:.85;">Role</label>
+          <select id="role">
+            <option value="behavioral">Behavioral</option>
+            <option value="system_design">System Design</option>
+            <option value="leadership">Leadership</option>
+            <option value="coding">Coding</option>
+          </select>
+        </div>
+          <div class="row">
+            <label style="width:90px;opacity:.85;">Mic</label>
+            <select id="micDevice"></select>
+            <button id="refreshDevicesBtn" class="secondary" style="padding:8px 10px;">↻</button>
+          </div>
+        <div class="row">
+          <button id="startBtn">Start (Capture System + Mic)</button>
+          <button id="stopBtn" class="danger" disabled>Stop</button>
+        </div>
+        <div class="row">
+          <button id="testSystemBtn" class="secondary">Select System Audio Source</button>
+          <button id="testMicBtn" class="secondary">Select Mic</button>
+        </div>
+        <div class="mono" id="status">Idle.</div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:6px;">Live</div>
+        <div class="mono" id="question">Question: (waiting)</div>
+        <div style="height:8px"></div>
+        <div class="mono" id="partial">Partial: </div>
+        <div style="height:8px"></div>
+        <div class="mono" id="suggestion">Suggestion: </div>
+        <div style="height:6px"></div>
+        <div class="row" id="suggestionActions" style="gap:6px;">
+          <button id="copySuggestionBtn" class="secondary" style="padding:6px 10px;font-size:12px;">📋 Copy</button>
+          <button id="ttsSuggestionBtn" class="secondary" style="padding:6px 10px;font-size:12px;">🔊 Read Aloud</button>
+          <button id="stopTtsBtn" class="secondary" style="padding:6px 10px;font-size:12px;display:none;">⏹ Stop</button>
+          <label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-left:8px;">
+            <input type="checkbox" id="autoReadToggle" /> Auto-read
+          </label>
+        </div>
+        <div style="height:10px"></div>
+        <div class="feed" id="feed"></div>
+      </div>
+
+      <div class="card" id="logCard">
+        <div style="font-weight:700;margin-bottom:6px;">Event Log</div>
+        <div class="mono log" id="log"></div>
+      </div>
+      </div>
+    </main>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
