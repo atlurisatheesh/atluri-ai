@@ -39,7 +39,7 @@ function enableLocalDevSession(): void {
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/app";
+  const nextPath = searchParams.get("next") || "/dashboard";
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showDevBypass, setShowDevBypass] = useState(false);

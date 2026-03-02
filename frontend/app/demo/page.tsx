@@ -62,7 +62,8 @@ export default function DemoPage() {
   };
 
   const openRealFlow = (targetMode: "resume" | "job" | "interview") => {
-    router.push(`/app?mode=${encodeURIComponent(targetMode)}&from_demo=1`);
+    const routes: Record<string, string> = { resume: "/resume", job: "/dashboard", interview: "/interview" };
+    router.push(routes[targetMode] || "/dashboard");
   };
 
   return (
@@ -72,7 +73,7 @@ export default function DemoPage() {
           <div style={styles.brand}>AtluriIn</div>
           <div style={styles.links}>
             <Link href="/" style={styles.link}>Home</Link>
-            <Link href="/app" style={styles.link}>App</Link>
+            <Link href="/dashboard" style={styles.link}>App</Link>
           </div>
         </header>
 

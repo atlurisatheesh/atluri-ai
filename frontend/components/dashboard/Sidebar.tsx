@@ -19,8 +19,8 @@ export const useSidebar = () => useContext(SidebarContext);
 type NavItem = { icon: React.ReactNode; label: string; path: string; highlight?: boolean } | { divider: true };
 
 const navItems: NavItem[] = [
-  { icon: <Home className="w-5 h-5" />, label: "Overview", path: "/app" },
-  { icon: <MessageSquare className="w-5 h-5" />, label: "AI Chat", path: "/app?mode=chat" },
+  { icon: <Home className="w-5 h-5" />, label: "Overview", path: "/dashboard" },
+  { icon: <MessageSquare className="w-5 h-5" />, label: "AI Chat", path: "/dashboard" },
   { icon: <Brain className="w-5 h-5" />, label: "Live Copilot", path: "/copilot", highlight: true },
   { icon: <Code2 className="w-5 h-5" />, label: "Coding Lab", path: "/coding" },
   { icon: <Target className="w-5 h-5" />, label: "Mock Interview", path: "/mock" },
@@ -80,7 +80,7 @@ export default function Sidebar() {
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b border-white/[0.06]">
-        <Link href="/app" className="flex items-center gap-2.5 overflow-hidden">
+        <Link href="/dashboard" className="flex items-center gap-2.5 overflow-hidden">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-cyan to-brand-purple flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-white" />
           </div>

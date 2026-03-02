@@ -156,7 +156,7 @@ export const supabase = {
         return { error: new Error("OAuth redirect requires a browser environment.") };
       }
       const provider = opts.provider;
-      const next = opts.options?.redirectTo || "/app";
+      const next = opts.options?.redirectTo || "/dashboard";
       // Build backend OAuth URL — backend will redirect to provider, then callback back to frontend
       const oauthUrl = `${API_URL}/api/auth/oauth/${provider}?next=${encodeURIComponent(next)}`;
       window.location.href = oauthUrl;

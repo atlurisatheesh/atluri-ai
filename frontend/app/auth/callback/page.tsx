@@ -21,7 +21,7 @@ const USER_KEY = "atluriin.auth.user";
 function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/app";
+  const next = searchParams.get("next") || "/dashboard";
   const [error, setError] = useState("");
 
   useEffect(() => {

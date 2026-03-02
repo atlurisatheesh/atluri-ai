@@ -1,10 +1,14 @@
-import { Suspense } from "react";
-import AppShell from "../../components/AppShell";
+"use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+/**
+ * Legacy /app route — redirects to the new /dashboard.
+ * Keeps old bookmarks and OAuth callbacks working.
+ */
 export default function AppPage() {
-  return (
-    <Suspense fallback={null}>
-      <AppShell />
-    </Suspense>
-  );
+  const router = useRouter();
+  useEffect(() => { router.replace("/dashboard"); }, [router]);
+  return null;
 }

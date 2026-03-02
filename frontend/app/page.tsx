@@ -78,7 +78,7 @@ export default function LandingPage() {
         ]);
         if (!mounted) return;
         if ((sessionResult as any)?.data?.session) {
-          router.replace("/app");
+          router.replace("/dashboard");
         }
       } catch {}
     };

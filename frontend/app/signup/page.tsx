@@ -39,7 +39,7 @@ function enableLocalDevSession(): void {
 function SignupPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/app";
+  const nextPath = searchParams.get("next") || "/dashboard";
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);

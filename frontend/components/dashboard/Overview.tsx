@@ -161,7 +161,7 @@ export default function Overview() {
           <GlassCard className="p-6">
             <h3 className="text-lg font-semibold text-textPrimary mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Link href="/app?mode=interview">
+              <Link href="/interview">
                 <NeonButton size="sm" className="w-full">
                   <Play className="w-4 h-4 mr-2" /> Start Session
                 </NeonButton>
@@ -171,7 +171,7 @@ export default function Overview() {
                   <BookOpen className="w-4 h-4 mr-2" /> Mock Interview
                 </NeonButton>
               </Link>
-              <Link href="/app?mode=resume">
+              <Link href="/resume">
                 <NeonButton size="sm" variant="accent" className="w-full">
                   <FileText className="w-4 h-4 mr-2" /> Build Resume
                 </NeonButton>
