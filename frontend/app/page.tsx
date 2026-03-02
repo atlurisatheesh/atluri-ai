@@ -11,10 +11,14 @@ import {
   Features,
   HowItWorks,
   StealthShowcase,
+  DemoVideos,
+  FeatureDeepDive,
+  ResumeCallout,
   Integrations,
   Pricing,
   Testimonials,
   FAQ,
+  CreatorSection,
   CTABanner,
   Footer,
 } from "../components/landing";
@@ -94,10 +98,14 @@ export default function LandingPage() {
         <Features />
         <HowItWorks />
         <StealthShowcase />
+        <DemoVideos />
+        <FeatureDeepDive />
+        <ResumeCallout />
         <Integrations />
         <Pricing />
         <Testimonials />
         <FAQ />
+        <CreatorSection />
         <CTABanner />
       </main>
 

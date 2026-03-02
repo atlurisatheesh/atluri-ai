@@ -44,7 +44,10 @@ async def get_db() -> AsyncSession:  # type: ignore[misc]
 
 async def init_db() -> None:
     """Create all tables (idempotent)."""
-    from app.db.models import User  # noqa: F401 – ensure model is registered
+    from app.db.models import (  # noqa: F401 – ensure models are registered
+        User, InterviewSession, AIResponse, Document, MockResult,
+        Question, UserQuestionProgress, CreditTransaction, MentorSession,
+    )
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

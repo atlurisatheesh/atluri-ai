@@ -58,6 +58,10 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [companyMode, setCompanyMode] = useState("general");
   const [difficulty, setDifficulty] = useState("medium");
+  const [responseTone, setResponseTone] = useState("professional");
+  const [responseLength, setResponseLength] = useState("balanced");
+  const [language, setLanguage] = useState("en");
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -175,6 +179,33 @@ export default function SettingsPage() {
           <SettingRow label="Show real-time score" description="Display live score during sessions.">
             <Toggle checked={showScore} onChange={setShowScore} />
           </SettingRow>
+          <SettingRow label="Response Tone" description="Adjust AI response style.">
+            <select value={responseTone} onChange={(e) => setResponseTone(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
+              <option value="professional">Professional</option>
+              <option value="casual">Casual</option>
+              <option value="technical">Technical</option>
+              <option value="concise">Concise</option>
+            </select>
+          </SettingRow>
+          <SettingRow label="Response Length" description="How detailed AI answers should be.">
+            <select value={responseLength} onChange={(e) => setResponseLength(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
+              <option value="brief">Brief (1-2 sentences)</option>
+              <option value="balanced">Balanced</option>
+              <option value="detailed">Detailed</option>
+            </select>
+          </SettingRow>
+          <SettingRow label="Language" description="Primary language for AI responses.">
+            <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="zh">Chinese (Mandarin)</option>
+              <option value="ja">Japanese</option>
+              <option value="ko">Korean</option>
+              <option value="hi">Hindi</option>
+            </select>
+          </SettingRow>
         </GlassCard>
       ),
     },
@@ -200,6 +231,17 @@ export default function SettingsPage() {
         <GlassCard className="p-6 space-y-4">
           <div className="flex items-center justify-between py-3">
             <div>
+              <p className="text-sm font-medium text-textPrimary">Two-Factor Authentication</p>
+              <p className="text-xs text-textMuted">Add an extra layer of security with TOTP authenticator.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <StatusBadge variant={twoFactorEnabled ? "green" : "amber"}>{twoFactorEnabled ? "Enabled" : "Disabled"}</StatusBadge>
+              <Toggle checked={twoFactorEnabled} onChange={setTwoFactorEnabled} />
+            </div>
+          </div>
+          <div className="h-px bg-white/[0.04]" />
+          <div className="flex items-center justify-between py-3">
+            <div>
               <p className="text-sm font-medium text-textPrimary">Change Password</p>
               <p className="text-xs text-textMuted">Update your account password.</p>
             </div>
@@ -218,8 +260,16 @@ export default function SettingsPage() {
           <div className="h-px bg-white/[0.04]" />
           <div className="flex items-center justify-between py-3">
             <div>
+              <p className="text-sm font-medium text-textPrimary">GDPR Data Export</p>
+              <p className="text-xs text-textMuted">Download all your personal data as a JSON archive.</p>
+            </div>
+            <NeonButton size="sm" variant="secondary">Export Data</NeonButton>
+          </div>
+          <div className="h-px bg-white/[0.04]" />
+          <div className="flex items-center justify-between py-3">
+            <div>
               <p className="text-sm font-medium text-brand-red">Delete Account</p>
-              <p className="text-xs text-textMuted">Permanently remove your account and all data.</p>
+              <p className="text-xs text-textMuted">Permanently remove your account and all data. This action is irreversible.</p>
             </div>
             <NeonButton size="sm" variant="accent">Delete</NeonButton>
           </div>

@@ -147,6 +147,32 @@ async def me(
     )
 
 
+class UpdateProfileRequest(BaseModel):
+    display_name: str | None = None
+    avatar_url: str | None = None
+
+
+@router.put("/me")
+async def update_me(
+    body: UpdateProfileRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Update current user profile (display_name, avatar_url)."""
+    from app.auth import get_user_id_async
+    user_id = await get_user_id_async(request)
+    result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, "User not found")
+    if body.display_name is not None:
+        user.display_name = body.display_name
+    if body.avatar_url is not None:
+        user.avatar_url = body.avatar_url
+    await db.commit()
+    return _user_dict(user)
+
+
 # Keep register_me_endpoint for backward compatibility but it's no longer needed
 def register_me_endpoint(app_router, get_current_user_id):
     """No longer needed — /me is handled directly by the router above."""

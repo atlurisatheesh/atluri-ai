@@ -8,6 +8,7 @@ import {
   Home, Zap, Code2, Theater, Users, EyeOff, FileText,
   BookOpen, BarChart3, Settings, CreditCard, HelpCircle,
   ChevronLeft, ChevronRight, LogOut, MessageSquare,
+  Brain, Target, Shield, Database,
 } from "lucide-react";
 
 /* ── Sidebar collapsed context ────────────────────────── */
@@ -20,11 +21,13 @@ type NavItem = { icon: React.ReactNode; label: string; path: string; highlight?:
 const navItems: NavItem[] = [
   { icon: <Home className="w-5 h-5" />, label: "Overview", path: "/app" },
   { icon: <MessageSquare className="w-5 h-5" />, label: "AI Chat", path: "/app?mode=chat" },
-  { icon: <Zap className="w-5 h-5" />, label: "AI Copilot", path: "/app?mode=interview", highlight: true },
-  { icon: <Code2 className="w-5 h-5" />, label: "Coding Lab", path: "/app?mode=coding" },
-  { icon: <Theater className="w-5 h-5" />, label: "Mock Interview", path: "/interview" },
-  { icon: <EyeOff className="w-5 h-5" />, label: "Stealth Mode", path: "/app?mode=stealth" },
-  { icon: <FileText className="w-5 h-5" />, label: "Resume Builder", path: "/app?mode=resume" },
+  { icon: <Brain className="w-5 h-5" />, label: "Live Copilot", path: "/copilot", highlight: true },
+  { icon: <Code2 className="w-5 h-5" />, label: "Coding Lab", path: "/coding" },
+  { icon: <Target className="w-5 h-5" />, label: "Mock Interview", path: "/mock" },
+  { icon: <Users className="w-5 h-5" />, label: "Duo Mode", path: "/duo" },
+  { icon: <FileText className="w-5 h-5" />, label: "Resume Lab", path: "/resume" },
+  { icon: <Shield className="w-5 h-5" />, label: "Stealth Mode", path: "/stealth" },
+  { icon: <Database className="w-5 h-5" />, label: "Documents", path: "/documents" },
   { icon: <BookOpen className="w-5 h-5" />, label: "Question Bank", path: "/questions" },
   { icon: <BarChart3 className="w-5 h-5" />, label: "Analytics", path: "/analytics" },
   { divider: true },

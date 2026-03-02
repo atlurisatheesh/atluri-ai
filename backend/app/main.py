@@ -49,6 +49,13 @@ from app.api.auth_routes import router as auth_router, register_me_endpoint
 from app.api.oauth_routes import router as oauth_router
 from app.api.question_routes import router as question_router
 from app.api.billing_routes import router as billing_router
+from app.api.ai_routes import router as ai_router
+from app.api.document_routes import router as document_router
+from app.api.duo_routes import router as duo_router
+from app.api.mock_routes import router as mock_router
+from app.api.resume_routes import router as resume_analysis_router
+from app.api.session_routes import router as session_router
+from app.api.analytics_routes import router as analytics_router
 from app.db.database import init_db
 from app.company_modes import list_company_modes
 from app.system_metrics import set_metric, get_metrics_snapshot
@@ -875,4 +882,11 @@ app.include_router(auth_router)
 app.include_router(oauth_router)
 app.include_router(question_router)
 app.include_router(billing_router)
+app.include_router(ai_router)
+app.include_router(document_router)
+app.include_router(duo_router)
+app.include_router(mock_router)
+app.include_router(resume_analysis_router)
+app.include_router(session_router)
+app.include_router(analytics_router)
 register_me_endpoint(app, get_user_id_async)

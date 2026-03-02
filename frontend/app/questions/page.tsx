@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpen, Search, Filter, Bookmark, BookmarkCheck,
-  Tag, Building2, BarChart3, RefreshCw, Clock,
+  Tag, Building2, BarChart3, RefreshCw, Clock, Play,
+  Timer, Brain, MessageSquare,
 } from "lucide-react";
 import { DashboardLayout } from "../../components/dashboard";
 import { GlassCard, NeonButton, GhostButton, StatusBadge, Tabs } from "../../components/ui";
@@ -294,6 +295,31 @@ export default function QuestionsPage() {
               </motion.div>
             ))
           )}
+        </div>
+      ),
+    },
+    {
+      label: "Practice",
+      content: (
+        <div className="space-y-4">
+          <GlassCard className="p-6">
+            <h3 className="text-sm font-semibold text-textPrimary mb-4 flex items-center gap-2"><Brain className="w-4 h-4 text-brand-cyan" /> Practice Modes</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { icon: <Timer className="w-6 h-6" />, title: "Timed Challenge", desc: "2 min per question. Test under pressure.", color: "brand-red", count: "5 questions" },
+                { icon: <Brain className="w-6 h-6" />, title: "Deep Practice", desc: "No time limit. Focus on quality answers.", color: "brand-cyan", count: "10 questions" },
+                { icon: <MessageSquare className="w-6 h-6" />, title: "STAR Drill", desc: "Behavioral only. Perfect your framework.", color: "brand-purple", count: "5 scenarios" },
+              ].map((mode) => (
+                <GlassCard key={mode.title} className="p-5 text-center hover:scale-[1.02] transition-all cursor-pointer">
+                  <div className={`w-12 h-12 mx-auto rounded-xl bg-${mode.color}/10 flex items-center justify-center text-${mode.color} mb-3`}>{mode.icon}</div>
+                  <h4 className="text-sm font-semibold text-textPrimary">{mode.title}</h4>
+                  <p className="text-xs text-textMuted mt-1">{mode.desc}</p>
+                  <p className="text-[10px] text-textMuted mt-2">{mode.count}</p>
+                  <NeonButton className="w-full mt-3 !text-xs !py-1.5"><Play className="w-3 h-3 mr-1" /> Start</NeonButton>
+                </GlassCard>
+              ))}
+            </div>
+          </GlassCard>
         </div>
       ),
     },

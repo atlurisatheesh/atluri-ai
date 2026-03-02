@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart3, TrendingUp, Clock, Target, Calendar, Zap,
-  ArrowUpRight, ArrowDownRight, Minus,
+  ArrowUpRight, ArrowDownRight, Minus, Award, Flame, Star,
+  PieChart, CheckCircle,
 } from "lucide-react";
 import { DashboardLayout } from "../../components/dashboard";
 import { GlassCard, AnimatedCounter, ProgressRing, Tabs, StatusBadge } from "../../components/ui";
@@ -28,6 +29,61 @@ function MiniBarChart({ data }: { data: number[] }) {
     </div>
   );
 }
+
+/* ── Activity heatmap (GitHub-style) ── */
+const DAYS = ["Mon", "", "Wed", "", "Fri", "", ""];
+function ActivityHeatmap() {
+  const weeks = 12;
+  const cells: number[][] = Array.from({ length: weeks }, () =>
+    Array.from({ length: 7 }, () => Math.random() < 0.35 ? 0 : Math.floor(Math.random() * 4) + 1)
+  );
+  const levelColor = (l: number) =>
+    l === 0 ? "bg-white/[0.03]" : l === 1 ? "bg-brand-green/20" : l === 2 ? "bg-brand-green/40" : l === 3 ? "bg-brand-green/60" : "bg-brand-green";
+  return (
+    <div className="flex gap-1">
+      <div className="flex flex-col gap-1 text-[9px] text-textMuted mr-1 pt-0">{DAYS.map((d, i) => <span key={i} className="h-3 leading-3">{d}</span>)}</div>
+      {cells.map((week, wi) => (
+        <div key={wi} className="flex flex-col gap-1">
+          {week.map((level, di) => (
+            <div key={di} className={`w-3 h-3 rounded-sm ${levelColor(level)}`} title={`${level} sessions`} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Mini pie chart (CSS only) ── */
+function CategoryPie({ data }: { data: { label: string; value: number; color: string }[] }) {
+  const total = data.reduce((a, d) => a + d.value, 0) || 1;
+  let cum = 0;
+  return (
+    <div className="flex items-center gap-6">
+      <div className="relative w-24 h-24 rounded-full" style={{ background: `conic-gradient(${data.map((d) => { const start = cum; cum += (d.value / total) * 360; return `${d.color} ${start}deg ${cum}deg`; }).join(", ")})` }}>
+        <div className="absolute inset-2 rounded-full bg-canvas" />
+      </div>
+      <div className="space-y-1.5">
+        {data.map((d) => (
+          <div key={d.label} className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full" style={{ background: d.color }} />
+            <span className="text-xs text-textSecondary">{d.label}</span>
+            <span className="text-xs text-textMuted ml-auto">{d.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Achievements data ── */
+const ACHIEVEMENTS = [
+  { icon: <Flame className="w-5 h-5" />, name: "7-Day Streak", desc: "Practice 7 days in a row", unlocked: true, color: "brand-orange" },
+  { icon: <Star className="w-5 h-5" />, name: "First 90+", desc: "Score 90+ on any session", unlocked: true, color: "brand-amber" },
+  { icon: <Target className="w-5 h-5" />, name: "Mock Master", desc: "Complete 10 mock interviews", unlocked: false, color: "brand-purple" },
+  { icon: <Award className="w-5 h-5" />, name: "Resume Pro", desc: "Achieve 90+ ATS score", unlocked: false, color: "brand-green" },
+  { icon: <CheckCircle className="w-5 h-5" />, name: "Duo Pioneer", desc: "Complete a duo session", unlocked: true, color: "brand-cyan" },
+  { icon: <Zap className="w-5 h-5" />, name: "Speed Demon", desc: "Answer in under 30 seconds", unlocked: false, color: "brand-red" },
+];
 
 /* ── types ───────────────────────────────────────────── */
 type SessionItem = {
@@ -135,6 +191,32 @@ export default function AnalyticsPage() {
               </div>
             </GlassCard>
           </div>
+
+          {/* Activity heatmap + Category pie */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <GlassCard className="p-6">
+              <h3 className="text-sm font-semibold text-textPrimary mb-4 flex items-center gap-2"><Calendar className="w-4 h-4 text-brand-green" /> Activity (Last 12 Weeks)</h3>
+              <ActivityHeatmap />
+              <div className="flex items-center gap-3 mt-3 text-[9px] text-textMuted">
+                <span>Less</span>
+                {[0, 1, 2, 3, 4].map((l) => (
+                  <div key={l} className={`w-3 h-3 rounded-sm ${l === 0 ? "bg-white/[0.03]" : l === 1 ? "bg-brand-green/20" : l === 2 ? "bg-brand-green/40" : l === 3 ? "bg-brand-green/60" : "bg-brand-green"}`} />
+                ))}
+                <span>More</span>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <h3 className="text-sm font-semibold text-textPrimary mb-4 flex items-center gap-2"><PieChart className="w-4 h-4 text-brand-purple" /> Sessions by Category</h3>
+              <CategoryPie data={[
+                { label: "Technical", value: 12, color: "var(--brand-cyan)" },
+                { label: "Behavioral", value: 8, color: "var(--brand-purple)" },
+                { label: "System Design", value: 5, color: "var(--brand-green)" },
+                { label: "Mock", value: 6, color: "var(--brand-amber)" },
+                { label: "Coding", value: 4, color: "var(--brand-orange)" },
+              ]} />
+            </GlassCard>
+          </div>
         </div>
       ),
     },
@@ -163,6 +245,26 @@ export default function AnalyticsPage() {
                   <StatusBadge variant={s.score && s.score >= 70 ? "green" : s.score && s.score >= 50 ? "amber" : "red"}>
                     {s.score ?? "N/A"}/100
                   </StatusBadge>
+                </div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      label: "Achievements",
+      content: (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {ACHIEVEMENTS.map((a, i) => (
+            <motion.div key={a.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+              <GlassCard className={`p-5 ${!a.unlocked ? "opacity-40" : ""}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${a.unlocked ? `bg-${a.color}/20 text-${a.color}` : "bg-white/5 text-textMuted"}`}>{a.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-textPrimary flex items-center gap-2">{a.name} {a.unlocked && <CheckCircle className="w-3.5 h-3.5 text-brand-green" />}</p>
+                    <p className="text-xs text-textMuted">{a.desc}</p>
+                  </div>
                 </div>
               </GlassCard>
             </motion.div>
