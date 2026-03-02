@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { apiRequest } from "../../../../lib/api";
 
@@ -23,7 +23,7 @@ type PublicSnapshot = {
   };
 };
 
-export default function PublicSessionReportPage() {
+function PublicSessionReportPageContent() {
   const params = useParams<{ sessionId: string }>();
   const search = useSearchParams();
   const sessionId = String(params?.sessionId || "");
@@ -156,5 +156,13 @@ export default function PublicSessionReportPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+export default function PublicSessionReportPage() {
+  return (
+    <Suspense fallback={null}>
+      <PublicSessionReportPageContent />
+    </Suspense>
   );
 }

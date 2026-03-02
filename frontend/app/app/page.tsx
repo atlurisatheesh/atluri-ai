@@ -1,7 +1,10 @@
-"use client";
-
+import { Suspense } from "react";
 import AppShell from "../../components/AppShell";
 
 export default function AppPage() {
-  return <AppShell />;
+  return (
+    <Suspense fallback={null}>
+      <AppShell />
+    </Suspense>
+  );
 }

@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #050508;
+  --bg-secondary: #0D0D14;
+  --bg-card: #12121F;
+  --bg-glass: rgba(255, 255, 255, 0.04);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(0, 212, 255, 0.3);
+
+  /* Brand Colors */
+  --primary: #00D4FF;
+  --primary-dim: #0099BB;
+  --secondary: #7B2FFF;
+  --accent: #FF6B35;
+  --success: #00FF88;
+  --warning: #FFB800;
+  --danger: #FF4466;
+
+  /* Text */
+  --text-primary: #F0F0FF;
+  --text-secondary: #8B8BA7;
+  --text-muted: #4A4A6A;
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(135deg, #050508 0%, #0D0A1F 50%, #050508 100%);
+  --gradient-cta: linear-gradient(135deg, #00D4FF, #7B2FFF);
+  --gradient-card: linear-gradient(145deg, rgba(0,212,255,0.05), rgba(123,47,255,0.05));
+
+  /* Effects */
+  --blur-glass: blur(20px) saturate(180%);
+  --shadow-glow: 0 0 30px rgba(0,212,255,0.15);
+  --shadow-card: 0 4px 40px rgba(0,0,0,0.4);
+  --shadow-neon: 0 0 20px rgba(0,212,255,0.4), 0 0 60px rgba(0,212,255,0.1);
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+
+  /* Typography */
+  --font-display: 'Syne', sans-serif;
+  --font-heading: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Selection */
+::selection {
+  background: rgba(0, 212, 255, 0.3);
+  color: #fff;
+}
+
+/* Utility Classes */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border);
+}
+
+.glass-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.gradient-text {
+  background: var(--gradient-cta);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.neon-glow {
+  box-shadow: var(--shadow-neon);
+}
+
+.border-glow {
+  border: 1px solid var(--border-glow);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #00D4FF, #7B2FFF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Shimmer Loading */
+.shimmer {
+  background: linear-gradient(90deg, var(--bg-card) 25%, rgba(255,255,255,0.08) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Section spacing */
+.section-padding {
+  padding: 6rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .section-padding {
+    padding: 8rem 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-padding {
+    padding: 10rem 4rem;
+  }
+}

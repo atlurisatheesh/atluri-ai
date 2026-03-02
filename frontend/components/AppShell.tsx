@@ -105,9 +105,9 @@ export default function AppShell() {
       } catch {
         user = null;
       }
-      const metadataName = String(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.user_metadata?.display_name || "").trim();
+      const displayNameValue = String(user?.display_name || "").trim();
       const emailName = String(user?.email || "").split("@")[0] || "";
-      const resolvedName = metadataName || emailName || "User";
+      const resolvedName = displayNameValue || emailName || "User";
       if (!mounted) return;
       setDisplayName(user ? resolvedName : "");
       setAuthResolved(true);
@@ -116,9 +116,9 @@ export default function AppShell() {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user || null;
-      const metadataName = String(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.user_metadata?.display_name || "").trim();
+      const displayNameValue = String(user?.display_name || "").trim();
       const emailName = String(user?.email || "").split("@")[0] || "";
-      const resolvedName = metadataName || emailName || "User";
+      const resolvedName = displayNameValue || emailName || "User";
       setDisplayName(user ? resolvedName : "");
       setAuthResolved(true);
     });
@@ -174,6 +174,14 @@ export default function AppShell() {
   const handleSignOut = async () => {
     try {
       setSigningOut(true);
+      // Clear E2E dev bypass keys so logout actually works
+      try {
+        window.localStorage.removeItem("atluriin.e2e.bypass");
+        window.localStorage.removeItem("atluriin.e2e.user_id");
+        // Clear local auth tokens
+        window.localStorage.removeItem("atluriin.auth.token");
+        window.localStorage.removeItem("atluriin.auth.user");
+      } catch { /* ignore */ }
       await supabase.auth.signOut();
       router.push("/login?next=/app");
     } catch {

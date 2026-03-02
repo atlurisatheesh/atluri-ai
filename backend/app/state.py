@@ -1,10 +1,13 @@
 import json
+import logging
 import math
 import time
 from pathlib import Path
 from threading import Lock
 from typing import Any, Dict
 from app.company_modes import normalize_company_mode
+
+logger = logging.getLogger("app.state")
 
 
 def _empty_context() -> Dict[str, Any]:
@@ -36,6 +39,32 @@ def _empty_context() -> Dict[str, Any]:
 _state_lock = Lock()
 _store_path = Path(__file__).resolve().parents[1] / "data" / "user_context_store.json"
 user_context_by_user_id: Dict[str, Dict[str, Any]] = {}
+
+# ─── Redis integration (lazy init) ───────────────────────────────────
+_redis_ctx_store = None
+_redis_ctx_checked = False
+
+def _get_redis_ctx_store():
+    """Lazy-init Redis user context store. Returns None if unavailable."""
+    global _redis_ctx_store, _redis_ctx_checked
+    if _redis_ctx_checked:
+        return _redis_ctx_store
+    _redis_ctx_checked = True
+    try:
+        from core.redis_pool import get_redis_sync, is_redis_enabled
+        if is_redis_enabled():
+            rs = get_redis_sync()
+            if rs is not None:
+                from app.session.redis_user_context import RedisUserContextStore
+                _redis_ctx_store = RedisUserContextStore(rs)
+                logger.info("User context store: Redis")
+            else:
+                logger.info("User context store: local JSON (Redis pool failed)")
+        else:
+            logger.info("User context store: local JSON (REDIS_URL not set)")
+    except Exception as exc:
+        logger.warning("Redis user context init failed, using local JSON: %s", exc)
+    return _redis_ctx_store
 
 
 def _sanitize_context(raw: Any) -> Dict[str, Any]:
@@ -103,7 +132,13 @@ def _load_store() -> None:
         user_context_by_user_id = {}
 
 
-def _persist_store() -> None:
+def _persist_store(user_id: str = "") -> None:
+    """Persist to Redis if available, otherwise JSON file."""
+    rstore = _get_redis_ctx_store()
+    if rstore is not None and user_id:
+        rstore.put(user_id, user_context_by_user_id.get(user_id, _empty_context()))
+        return
+    # Fallback: JSON file
     _store_path.parent.mkdir(parents=True, exist_ok=True)
     temp_path = _store_path.with_suffix(".tmp")
     temp_path.write_text(json.dumps(user_context_by_user_id, ensure_ascii=False), encoding="utf-8")
@@ -112,9 +147,18 @@ def _persist_store() -> None:
 
 def get_user_context(user_id: str) -> Dict[str, Any]:
     with _state_lock:
+        # Try Redis first
+        rstore = _get_redis_ctx_store()
+        if rstore is not None:
+            cached = rstore.get(user_id)
+            if cached is not None:
+                ctx = _sanitize_context(cached)
+                user_context_by_user_id[user_id] = ctx
+                return ctx
+
         if user_id not in user_context_by_user_id:
             user_context_by_user_id[user_id] = _empty_context()
-            _persist_store()
+            _persist_store(user_id)
         return user_context_by_user_id[user_id]
 
 
@@ -122,14 +166,14 @@ def set_resume_text(user_id: str, text: str) -> None:
     with _state_lock:
         context = user_context_by_user_id.setdefault(user_id, _empty_context())
         context["resume_text"] = text
-        _persist_store()
+        _persist_store(user_id)
 
 
 def set_job_description(user_id: str, description: str) -> None:
     with _state_lock:
         context = user_context_by_user_id.setdefault(user_id, _empty_context())
         context["job_description"] = description
-        _persist_store()
+        _persist_store(user_id)
 
 
 def mark_interview_started(user_id: str, session_id: str, role: str, question: str) -> None:
@@ -144,7 +188,7 @@ def mark_interview_started(user_id: str, session_id: str, role: str, question: s
             "last_payload": None,
             "updated_at": time.time(),
         }
-        _persist_store()
+        _persist_store(user_id)
 
 
 def mark_interview_update(user_id: str, session_id: str, payload: dict) -> None:
@@ -172,7 +216,7 @@ def mark_interview_update(user_id: str, session_id: str, payload: dict) -> None:
             })
             context["interview_history"] = history[-50:]
 
-        _persist_store()
+        _persist_store(user_id)
 
 
 def mark_credibility_snapshot(user_id: str, snapshot: dict) -> None:
@@ -195,7 +239,7 @@ def mark_credibility_snapshot(user_id: str, snapshot: dict) -> None:
             "captured_at": now,
         })
         context["credibility_history"] = history[-100:]
-        _persist_store()
+        _persist_store(user_id)
 
 
 def set_company_mode(user_id: str, company_mode: str) -> str:
@@ -203,7 +247,7 @@ def set_company_mode(user_id: str, company_mode: str) -> str:
     with _state_lock:
         context = user_context_by_user_id.setdefault(user_id, _empty_context())
         context["company_mode"] = normalized
-        _persist_store()
+        _persist_store(user_id)
     return normalized
 
 
@@ -332,7 +376,7 @@ def set_assist_intensity(user_id: str, level: int) -> int:
         assist = context.get("assist") if isinstance(context.get("assist"), dict) else {}
         assist["intensity"] = normalized
         context["assist"] = assist
-        _persist_store()
+        _persist_store(user_id)
     return normalized
 
 
@@ -549,7 +593,7 @@ def compute_offer_probability(sessions: list[dict[str, Any]], company_mode: str)
 def reset_user_context(user_id: str) -> None:
     with _state_lock:
         user_context_by_user_id[user_id] = _empty_context()
-        _persist_store()
+        _persist_store(user_id)
 
 
 _load_store()

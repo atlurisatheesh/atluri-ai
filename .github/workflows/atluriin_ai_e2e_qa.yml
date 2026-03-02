@@ -1,0 +1,98 @@
+name: AtluriIn AI E2E QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend deps
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install QA deps
+        working-directory: qa
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: qa
+        run: npx playwright install --with-deps chromium
+
+      - name: Start backend
+        working-directory: backend
+        env:
+          ENV: development
+          ALLOW_UNVERIFIED_JWT_DEV: "true"
+          SUPABASE_JWT_SECRET: ""
+          SUPABASE_URL: ""
+          SUPABASE_SERVICE_KEY: ""
+          SUPABASE_ANON_KEY: ""
+          SUPABASE_KEY: ""
+        run: |
+          nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 9010 > ../qa/reports/backend.log 2>&1 &
+
+      - name: Start frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:9010
+          NEXT_PUBLIC_E2E_BYPASS_AUTH: "true"
+          # Supabase is bypassed in E2E, but createClient() still requires non-empty values.
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e_dummy_key
+        run: |
+          nohup npx next dev -p 3001 > ../qa/reports/frontend.log 2>&1 &
+
+      - name: Wait for services
+        run: |
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:9010/openapi.json >/dev/null 2>&1 && break || true
+            sleep 1
+          done
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:3001/ >/dev/null 2>&1 && break || true
+            sleep 1
+          done
+
+      - name: Run full AI E2E
+        working-directory: qa
+        env:
+          E2E_FRONTEND_URL: http://127.0.0.1:3001
+          E2E_BACKEND_URL: http://127.0.0.1:9010
+          E2E_HEADLESS: "true"
+        run: npx ts-node e2e/run-full-ai-e2e.ts
+
+      - name: Upload QA report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AtluriIn_E2E_QA_Report
+          path: |
+            qa/reports/AtluriIn_E2E_Report.json
+            qa/reports/AtluriIn_E2E_Report.docx
+            qa/reports/backend.log
+            qa/reports/frontend.log
+            qa/reports/screenshots_*

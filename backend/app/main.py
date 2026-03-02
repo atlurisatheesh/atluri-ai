@@ -44,9 +44,16 @@ from app.analytics.offer_probability_feedback_store import (
 )
 from app.api.ws_voice import router as voice_ws_router
 from app.api.credibility import router as credibility_router
+from app.api.beta_telemetry import router as beta_telemetry_router
+from app.api.auth_routes import router as auth_router, register_me_endpoint
+from app.api.oauth_routes import router as oauth_router
+from app.api.question_routes import router as question_router
+from app.api.billing_routes import router as billing_router
+from app.db.database import init_db
 from app.company_modes import list_company_modes
 from app.system_metrics import set_metric, get_metrics_snapshot
 from core.config import QA_MODE
+from app.api.ws_admission import get_admission_controller
 
 app = FastAPI(title="AtluriIn AI – Phase 2")
 logger = logging.getLogger("app.main")
@@ -234,6 +241,14 @@ async def rate_limit_middleware(request: Request, call_next):
 @app.on_event("startup")
 async def startup_banner():
     global _session_cleanup_task
+
+    # Initialize PostgreSQL tables
+    try:
+        await init_db()
+        logger.info("[SYSTEM] PostgreSQL database initialized")
+    except Exception as db_err:
+        logger.error("[SYSTEM] PostgreSQL init failed: %s", db_err)
+
     if QA_MODE:
         logger.info("[SYSTEM] QA_MODE ENABLED — Deepgram bypass active")
     logger.info("[SYSTEM] CORS allow_origins=%s", _allowed_origins)
@@ -265,6 +280,12 @@ async def shutdown_handler():
             pass
         finally:
             _session_cleanup_task = None
+    # Close Redis pools
+    try:
+        from core.redis_pool import close_pools
+        await close_pools()
+    except Exception:
+        pass
     logger.info("[SYSTEM] shutdown complete")
 
 
@@ -828,8 +849,11 @@ def system_metrics_route(request: Request):
     get_user_id(request)
     _prune_expired_share_tokens()
     _refresh_share_token_metrics()
+    admission_stats = get_admission_controller().stats()
     return get_metrics_snapshot(extra={
         "share_token_ttl_sec": SHARE_TOKEN_TTL_SEC,
+        "admission": admission_stats,
+        "worker_pid": os.getpid(),
     })
 
 
@@ -846,3 +870,9 @@ def system_pid_route(request: Request):
 
 app.include_router(voice_ws_router)
 app.include_router(credibility_router)
+app.include_router(beta_telemetry_router)
+app.include_router(auth_router)
+app.include_router(oauth_router)
+app.include_router(question_router)
+app.include_router(billing_router)
+register_me_endpoint(app, get_user_id_async)

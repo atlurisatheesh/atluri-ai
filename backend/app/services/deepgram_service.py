@@ -446,22 +446,49 @@ class DeepgramService:
             if not channel or not channel.alternatives:
                 return
 
-            text = channel.alternatives[0].transcript.strip()
+            alt = channel.alternatives[0]
+            text = alt.transcript.strip()
             if not text:
                 return
 
             is_final = result.is_final
+            # VAD signal: True when Deepgram detects end of speech utterance
+            speech_final = getattr(result, "speech_final", False)
+            
+            # Word-level data for detailed analysis
+            words = getattr(alt, "words", []) or []
+            word_count = len(words)
+            
+            # ISSUE 2 FIX: Use word-level average confidence (more stable than alternative-level)
+            # Alternative-level confidence can fluctuate; word average is production-grade
+            alt_confidence = getattr(alt, "confidence", 0.0) or 0.0
+            if words and len(words) > 0:
+                word_confidences = [getattr(w, "confidence", 0.0) or 0.0 for w in words]
+                # Filter out zero confidences (missing data)
+                valid_confs = [c for c in word_confidences if c > 0]
+                word_avg_confidence = sum(valid_confs) / len(valid_confs) if valid_confs else alt_confidence
+            else:
+                word_avg_confidence = alt_confidence
+            
+            # Use word average as primary, fallback to alternative confidence
+            confidence = word_avg_confidence if word_avg_confidence > 0 else alt_confidence
 
             message = {
                 "text": text,
                 "is_final": is_final,
+                "speech_final": speech_final,
+                "confidence": confidence,
+                "alt_confidence": alt_confidence,  # Keep original for comparison
+                "word_avg_confidence": word_avg_confidence,
+                "word_count": word_count,
                 "start": getattr(result, "start", 0),
             }
 
             if self.guard and not self.guard.is_in_order(message):
                 return
 
-            logger.info("DG TEXT: %s | final: %s", text, is_final)
+            logger.info("DG TEXT: %s | final=%s | speech_final=%s | conf=%.2f | words=%d", 
+                       text, is_final, speech_final, confidence, word_count)
 
             self.transcript_queue.put_nowait(message)
 

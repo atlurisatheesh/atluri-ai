@@ -50,4 +50,16 @@ class SessionRegistry:
         return removed
 
 
-session_registry = SessionRegistry()
+def _build_session_registry():
+    """Auto-select Redis-backed registry when REDIS_URL is configured."""
+    try:
+        from core.redis_pool import is_redis_enabled
+        if is_redis_enabled():
+            from app.session.redis_registry import RedisSessionRegistry
+            return RedisSessionRegistry()
+    except Exception:
+        pass
+    return SessionRegistry()
+
+
+session_registry = _build_session_registry()

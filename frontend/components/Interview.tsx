@@ -1,3 +1,4 @@
+// This file has been renamed to InterviewLegacy.tsx to resolve casing/module conflict.
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";

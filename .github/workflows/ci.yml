@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  backend-qa:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      ENV: development
+      QA_MODE: "false"
+      ALLOW_UNVERIFIED_JWT_DEV: "true"
+      RATE_LIMIT_ENABLED: "false"
+      REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Backend syntax compile check
+        run: python -m compileall app qa
+
+      - name: Run skillgraph behavior validation
+        run: python qa/skillgraph_behavior_validation.py
+
+      - name: Run memory behavior validation
+        run: python qa/memory_behavior_validation.py
+
+      - name: Run progress export smoke
+        run: python qa/run_progress_export_smoke.py
+
+      - name: Run distributed room fanout smoke
+        run: python qa/run_distributed_room_fanout_smoke.py
+
+  frontend-typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: TypeScript no-emit
+        run: npx tsc --noEmit

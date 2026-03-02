@@ -8,6 +8,11 @@ import os
 from collections import defaultdict
 
 from app.services.deepgram_service import DeepgramService
+from app.services.asr_metrics import get_asr_metrics, TriggerType
+from app.services.transcript_smoother import get_transcript_smoother
+from app.services.adaptive_vad import create_adaptive_vad, AdaptiveVADEngine
+from app.services.token_budget import get_token_budget_controller
+from app.services.observability_dashboard import get_observability_dashboard
 from app.auth import resolve_user_id_from_token_async
 from app.api.ws_voice_components import (
     CoachingEmitter,
@@ -16,6 +21,7 @@ from app.api.ws_voice_components import (
     TranscriptRouter,
     TurnDecisionPipeline,
 )
+from app.api.ws_admission import get_admission_controller
 from app.transcript.engine import TranscriptTruthEngine
 from app.transcript.models import TranscriptTurn
 from app.interview_state.engine import InterviewStateEngine
@@ -65,6 +71,7 @@ SILENCE_FINALIZE_SEC = max(1.0, float(os.getenv("WS_SILENCE_FINALIZE_SEC", "2.0"
 HARD_TIMEOUT_SEC = max(10.0, float(os.getenv("WS_TURN_HARD_TIMEOUT_SEC", "24.0")))
 PARTIAL_FALLBACK_SEC = max(4.0, float(os.getenv("WS_PARTIAL_FALLBACK_SEC", "6.0")))
 MIN_PARTIAL_WORDS_FOR_FALLBACK = max(6, int(os.getenv("WS_MIN_PARTIAL_WORDS", "8")))
+WS_DEEPGRAM_CONNECT_TIMEOUT_SEC = max(0.5, float(os.getenv("WS_DEEPGRAM_CONNECT_TIMEOUT_SEC", "1.5")))
 
 router = APIRouter()
 room_connections: dict[str, set[WebSocket]] = defaultdict(set)
@@ -577,7 +584,31 @@ def _append_transcript_fragment(buffer: str, fragment: str) -> str:
 
 @router.websocket("/ws/voice")
 async def voice_ws(websocket: WebSocket):
+    # ================= ADMISSION CONTROL =================
+    admission = get_admission_controller()
+    admitted = await admission.acquire()
+    if not admitted:
+        try:
+            await websocket.accept()
+            await websocket.send_text(json.dumps({
+                "type": "error",
+                "code": "server_busy",
+                "message": "Server is at capacity. Please retry in a few seconds.",
+            }))
+            await websocket.close(code=1013, reason="Server busy")
+        except Exception:
+            pass
+        return
+
+    try:
+        await _voice_ws_inner(websocket)
+    finally:
+        await admission.release()
+
+
+async def _voice_ws_inner(websocket: WebSocket):
     # ================= LIFECYCLE OWNER =================
+    connect_started_at = time.perf_counter()
     controller = SessionController()
     stop_event = controller.stop_event
     session_id = str(uuid.uuid4())
@@ -591,11 +622,31 @@ async def voice_ws(websocket: WebSocket):
     if not token:
         await websocket.close(code=1008, reason="Unauthorized")
         return
+
+    # ── ACCEPT-FIRST: accept the WebSocket immediately so the client
+    # sees a connected socket while we verify the token in parallel.
+    # This drops perceived latency from ~6s to <200ms.
+    await websocket.accept()
+    _accept_wall_ms = round((time.perf_counter() - connect_started_at) * 1000.0, 2)
+
+    # ── AUTH (runs after accept, so client already has an open socket)
+    _auth_started = time.perf_counter()
     try:
         await resolve_user_id_from_token_async(token)
     except Exception:
+        _auth_ms = round((time.perf_counter() - _auth_started) * 1000.0, 2)
+        observe_latency_ms(_auth_ms)
+        try:
+            await websocket.send_text(json.dumps({
+                "type": "error",
+                "code": "auth_failed",
+                "message": "Unauthorized",
+            }))
+        except Exception:
+            pass
         await websocket.close(code=1008, reason="Unauthorized")
         return
+    _auth_ms = round((time.perf_counter() - _auth_started) * 1000.0, 2)
 
     room_id_raw = str(websocket.query_params.get("room_id") or "").strip()
     stop_reason = "other"
@@ -630,12 +681,13 @@ async def voice_ws(websocket: WebSocket):
 
     logger = _SessionStructuredLogger()
 
-    await websocket.accept()
+    # websocket.accept() already called above (accept-first pattern)
     logger.info("WebSocket connected")
 
     def _log_event(event: str, **fields):
         log_event("ws_voice", event, session_id, room_id=room_id, **fields)
 
+    _log_event("connect_accepted", accept_latency_ms=_accept_wall_ms, auth_latency_ms=_auth_ms)
     _log_event("authenticated", participant=participant)
     _log_event("connect", participant=participant)
 
@@ -777,8 +829,12 @@ async def voice_ws(websocket: WebSocket):
         # Pass language mode for optimization: "english" uses "en" (faster), "detected" uses "multi"
         dg_language = "english" if answer_language == "english" else "multi"
         dg = dependency_provider.create_deepgram_service(language_mode=dg_language)
-        await dg.connect()
-        if not dg.is_active():
+        try:
+            await asyncio.wait_for(dg.connect(), timeout=WS_DEEPGRAM_CONNECT_TIMEOUT_SEC)
+        except asyncio.TimeoutError:
+            logger.warning("Deepgram connect timed out after %.2fs", WS_DEEPGRAM_CONNECT_TIMEOUT_SEC)
+            dg = None
+        if dg and (not dg.is_active()):
             logger.warning("Deepgram unavailable; continuing without live transcript ingest")
             dg = None
         if dg:
@@ -973,12 +1029,21 @@ async def voice_ws(websocket: WebSocket):
             jd_loaded = bool(getattr(se, "jd_context", None))
             current_role = str(getattr(se, "role", role) or role or "general")
             
+            # TRANSCRIPT SMOOTHING: Clean filler words before LLM
+            # Improves answer quality by providing cleaner input
+            smoother = get_transcript_smoother()
+            smooth_result = smoother.smooth(question_text)
+            smoothed_question = smooth_result.smoothed
+            if smooth_result.fillers_removed:
+                logger.debug("Smoothed question: '%s' -> '%s' (removed: %s)",
+                           question_text[:50], smoothed_question[:50], smooth_result.fillers_removed)
+            
             # INSTANT FEEDBACK: Send thinking indicator immediately
             # This makes UI show activity while waiting for OpenAI (2-3s network latency)
             thinking_payload = {
                 "type": "answer_suggestion_chunk",
                 "session_id": session_id,
-                "question": question_text,
+                "question": question_text,  # Keep original for display
                 "chunk": "▸ ",  # Thinking indicator
                 "index": 0,
                 "room_id": room_id,
@@ -994,8 +1059,9 @@ async def voice_ws(websocket: WebSocket):
             chunk_index = 1  # Start at 1 since thinking indicator is 0
             first_chunk_at: float | None = None
             
+            # Use smoothed question for LLM (cleaner input = better output)
             async for token in stream_answer_live(
-                question=question_text,
+                question=smoothed_question,  # Use cleaned question
                 user_id=session_id,
                 role=current_role,
                 resume_loaded=resume_loaded,
@@ -1162,6 +1228,73 @@ async def voice_ws(websocket: WebSocket):
                             # Cancel the active answer generation task
                             await cancel_active_suggestion(reason="user_cancelled")
                             logger.info("User cancelled answer generation")
+                            continue
+
+                        if payload.get("type") == "transcript":
+                            transcript_text = str(payload.get("text") or "").strip()
+                            transcript_is_final = bool(payload.get("is_final", True))
+                            transcript_participant = str(payload.get("participant") or participant).strip().lower()
+
+                            if not transcript_text:
+                                continue
+
+                            # ── INSTANT ACK: tell the client we received the transcript
+                            # so it doesn't see dead air while we process
+                            await _safe_send({
+                                "type": "transcript_ack",
+                                "session_id": session_id,
+                                "text": transcript_text[:80],
+                                "participant": transcript_participant,
+                                "is_final": transcript_is_final,
+                                "ts": time.time(),
+                            })
+
+                            if transcript_participant == "interviewer" and transcript_is_final:
+                                question_text = transcript_text
+                                word_count = len(question_text.split())
+                                if word_count < 4:
+                                    logger.info("Skipping partial question transcript (only %d words) | text=%s", word_count, question_text[:40])
+                                    continue
+
+                                now = time.time()
+                                question_key = question_text.lower()[:50]
+                                if (
+                                    question_key == last_interviewer_question_key
+                                    and (now - last_interviewer_question_ts) < 3.0
+                                ):
+                                    logger.info("Skipping duplicate transcript question | key=%s", question_key[:30])
+                                    continue
+                                last_interviewer_question_key = question_key
+                                last_interviewer_question_ts = now
+
+                                try:
+                                    se.start_turn(question_text)
+                                    current_turn = TurnLifecycle()
+                                    if isinstance(se.current_turn, dict):
+                                        se.current_turn["turn_id"] = current_turn.turn_id
+                                except Exception:
+                                    pass
+
+                                question_payload = {
+                                    "type": "interviewer_question",
+                                    "session_id": session_id,
+                                    "question": question_text,
+                                    "room_id": room_id,
+                                }
+                                if websocket.client_state == WebSocketState.CONNECTED:
+                                    await _safe_send(question_payload)
+                                await _broadcast_room(room_id, question_payload, exclude=websocket)
+
+                                await _update_room_state(
+                                    room_id,
+                                    {
+                                        "active_question": question_text,
+                                        "partial_answer": "",
+                                        "is_streaming": False,
+                                        "assist_intensity": assist_intensity,
+                                    },
+                                )
+                                await start_answer_suggestion(question_text)
                             continue
 
                         if payload.get("type") == "interviewer_question":
@@ -1438,7 +1571,7 @@ async def voice_ws(websocket: WebSocket):
 
     # ================= TRANSCRIPT INGEST =================
     async def send_transcripts():
-        nonlocal last_final_ts, last_transcript_activity_ts, transcript_buffer, last_candidate_question_key, last_candidate_question_ts, dg, pending_partial_question, pending_partial_question_ts, last_interviewer_question_key, last_interviewer_question_ts, last_transcript_was_final, last_transcript_confidence
+        nonlocal last_final_ts, last_transcript_activity_ts, transcript_buffer, last_candidate_question_key, last_candidate_question_ts, dg, pending_partial_question, pending_partial_question_ts, last_interviewer_question_key, last_interviewer_question_ts, last_transcript_was_final, last_transcript_speech_final, last_transcript_confidence, last_vad_trigger_ts, last_transcript_hash, last_transcript_change_ts
         if QA_MODE or (not dg) or (not dg.is_active()):
             logger.info("send_transcripts disabled (qa_mode=%s deepgram_available=%s)", QA_MODE, bool(dg and dg.is_active()))
             return
@@ -1462,20 +1595,32 @@ async def voice_ws(websocket: WebSocket):
 
                 text = result.get("text", "").strip()
                 is_final = result.get("is_final", False)
+                # VAD signals from Deepgram
+                speech_final = result.get("speech_final", False)
+                confidence = result.get("confidence", 0.0) or 0.0
+                dg_word_count = result.get("word_count", 0) or len(text.split())
 
                 if not text:
                     continue
 
                 logger.info(
-                    "DG transcript | final=%s final_ready=%s already_finalized=%s text=%s",
+                    "DG transcript | final=%s speech_final=%s conf=%.2f words=%d text=%s",
                     is_final,
-                    tte.state.final_ready,
-                    tte.state.already_finalized,
-                    text,
+                    speech_final,
+                    confidence,
+                    dg_word_count,
+                    text[:80] if len(text) > 80 else text,
                 )
 
                 if not is_final:
                     now = time.time()
+                    
+                    # CONFIDENCE FILTERING: Skip very low confidence partials
+                    if confidence > 0 and confidence < CONF_IGNORE_THRESHOLD:
+                        logger.debug("Ignoring low-confidence partial (conf=%.2f < %.2f) | text=%s",
+                                    confidence, CONF_IGNORE_THRESHOLD, text[:50])
+                        continue
+                    
                     tte.ingest_partial(
                         text=text,
                         speaker="candidate",
@@ -1483,6 +1628,41 @@ async def voice_ws(websocket: WebSocket):
                         ts=now,
                     )
                     last_transcript_activity_ts = now
+                    # Track VAD signals for partials too (speech_final can be True for partials)
+                    last_transcript_was_final = False
+                    last_transcript_speech_final = speech_final
+                    last_transcript_confidence = confidence
+                    
+                    # Track transcript changes for stabilization
+                    new_hash = str(hash(text.lower().strip()))
+                    if new_hash != last_transcript_hash:
+                        last_transcript_hash = new_hash
+                        last_transcript_change_ts = now
+                    
+                    # Record partial in ASR metrics
+                    asr_metrics.record_partial(
+                        session_id=session_id,
+                        text=text,
+                        confidence=confidence,
+                        speech_final=speech_final,
+                        word_count=dg_word_count,
+                    )
+                    
+                    # Feed adaptive VAD engine for threshold learning
+                    if ADAPTIVE_VAD_ENABLED:
+                        adaptive_vad.observe_transcript(
+                            confidence=confidence,
+                            word_count=dg_word_count,
+                            is_final=False,
+                            speech_final=speech_final,
+                        )
+                        # Record in observability dashboard
+                        await obs_dashboard.record_vad_event(
+                            session_id=session_id,
+                            quality=adaptive_vad.get_quality().value,
+                            confidence=confidence,
+                            is_tier_change=False,
+                        )
 
                     # CRITICAL FIX: Do NOT immediately process partial transcripts as questions
                     # Only send as partial_transcript for UI display (no answer generation yet)
@@ -1492,6 +1672,8 @@ async def voice_ws(websocket: WebSocket):
                             "type": "partial_transcript",
                             "session_id": session_id,
                             "text": text,
+                            "speech_final": speech_final,
+                            "confidence": confidence,
                         })
                     
                     # Track partial if it looks like a question (4+ words, question pattern)
@@ -1499,9 +1681,82 @@ async def voice_ws(websocket: WebSocket):
                     if participant == "candidate" and _is_question_or_opening(text) and len(text.split()) >= 4:
                         pending_partial_question = text
                         pending_partial_question_ts = now
-                        # Track that this was a partial (not final) for silence threshold calculation
-                        last_transcript_was_final = False
-                        last_transcript_confidence = 0.0
+                        
+                        # ISSUE 1 FIX: Partial VAD trigger is RISKY without is_final
+                        # speech_final can fire mid-sentence in noisy conditions
+                        # ONLY allow partial VAD with VERY HIGH confidence (0.90+) as safety measure
+                        # This prevents misfires from mic glitches or background noise
+                        
+                        # Use adaptive thresholds if enabled, otherwise use static
+                        if ADAPTIVE_VAD_ENABLED:
+                            adaptive_thresholds = adaptive_vad.get_thresholds()
+                            PARTIAL_VAD_CONFIDENCE_THRESHOLD = adaptive_thresholds.partial_confidence
+                            current_min_words = adaptive_thresholds.min_words
+                            current_stabilization_ms = adaptive_thresholds.stabilization_ms
+                        else:
+                            PARTIAL_VAD_CONFIDENCE_THRESHOLD = 0.90  # Much higher than normal VAD
+                            current_min_words = VAD_MIN_WORDS
+                            current_stabilization_ms = STABILIZATION_WINDOW_MS
+                        
+                        # Partial VAD trigger: Require speech_final + very high confidence
+                        if speech_final and confidence >= PARTIAL_VAD_CONFIDENCE_THRESHOLD and dg_word_count >= current_min_words:
+                            # Stabilization check: ensure transcript hasn't changed recently
+                            time_since_change_ms = (now - last_transcript_change_ts) * 1000
+                            is_stabilized = time_since_change_ms >= current_stabilization_ms or last_transcript_change_ts == 0
+                            
+                            can_vad_trigger = (now - last_vad_trigger_ts) >= VAD_DEBOUNCE_SEC
+                            question_key = _question_key(text)
+                            is_duplicate = (
+                                question_key == last_interviewer_question_key
+                                and (now - last_interviewer_question_ts) < 3.0
+                            )
+                            if can_vad_trigger and not is_duplicate and is_stabilized:
+                                adaptive_quality = adaptive_vad.get_quality().value if ADAPTIVE_VAD_ENABLED else "static"
+                                logger.info("VAD_TRIGGER (partial speech_final) | conf=%.2f words=%d stabilized=%s quality=%s text=%s",
+                                           confidence, dg_word_count, is_stabilized, adaptive_quality, text[:50])
+                                last_vad_trigger_ts = now
+                                last_interviewer_question_key = question_key
+                                last_interviewer_question_ts = now
+                                pending_partial_question = ""
+                                pending_partial_question_ts = 0.0
+                                
+                                # ISSUE 4 FIX: Reset mutation state per-utterance to prevent blocking next trigger
+                                last_transcript_hash = ""
+                                last_transcript_change_ts = 0.0
+                                
+                                # Record trigger in ASR metrics
+                                asr_metrics.record_trigger(
+                                    session_id=session_id,
+                                    text=text,
+                                    trigger_type=TriggerType.PARTIAL_VAD_TRIGGER,
+                                    confidence=confidence,
+                                    speech_final=speech_final,
+                                    is_final=False,
+                                    word_count=dg_word_count,
+                                )
+                                
+                                # Record in observability dashboard
+                                latency_ms = (now - pending_partial_question_ts) * 1000 if pending_partial_question_ts > 0 else 0
+                                await obs_dashboard.record_trigger(
+                                    session_id=session_id,
+                                    trigger_type="PARTIAL_VAD_TRIGGER",
+                                    latency_ms=latency_ms,
+                                    confidence=confidence,
+                                    word_count=dg_word_count,
+                                    text_preview=text[:50],
+                                )
+                                
+                                if websocket.client_state == WebSocketState.CONNECTED:
+                                    await _safe_send({
+                                        "type": "interviewer_question",
+                                        "session_id": session_id,
+                                        "question": text,
+                                        "room_id": room_id,
+                                        "trigger_type": "PARTIAL_VAD_TRIGGER",
+                                        "confidence": confidence,
+                                    })
+                                await start_answer_suggestion(text)
+                                continue
 
                     assist_engine = getattr(se, "realtime_assist", None)
                     if assist_engine is not None and websocket.client_state == WebSocketState.CONNECTED:
@@ -1600,9 +1855,20 @@ async def voice_ws(websocket: WebSocket):
                         speaker="candidate",
                         source="deepgram",
                     )
-                    # Track that Deepgram marked this as final (used by silence watcher)
+                    
+                    # Feed adaptive VAD engine for threshold learning (finals)
+                    if ADAPTIVE_VAD_ENABLED:
+                        adaptive_vad.observe_transcript(
+                            confidence=confidence if confidence > 0 else 0.9,
+                            word_count=dg_word_count,
+                            is_final=True,
+                            speech_final=speech_final,
+                        )
+                    
+                    # Track VAD signals from Deepgram (used by silence watcher)
                     last_transcript_was_final = True
-                    last_transcript_confidence = 0.9  # Deepgram final transcripts have high confidence
+                    last_transcript_speech_final = speech_final
+                    last_transcript_confidence = confidence if confidence > 0 else 0.9  # Fallback to 0.9 for finals
                     
                     if participant == "candidate" and _is_question_or_opening(text):
                         now = time.time()
@@ -1627,38 +1893,89 @@ async def voice_ws(websocket: WebSocket):
                             or (candidate_question_key and candidate_question_key != active_question_key)
                         )
                         if should_trigger_new_question:
-                            # Update unified tracker BEFORE sending to prevent race conditions
-                            last_interviewer_question_key = candidate_question_key
-                            last_interviewer_question_ts = now
+                            # Determine trigger type for metrics
+                            # Use adaptive thresholds for VAD trigger check on finals
+                            if ADAPTIVE_VAD_ENABLED:
+                                adaptive_thresholds = adaptive_vad.get_thresholds()
+                                final_vad_confidence = adaptive_thresholds.min_confidence
+                            else:
+                                final_vad_confidence = VAD_MIN_CONFIDENCE
                             
-                            # Clear pending partial (FINAL transcript supersedes it)
-                            pending_partial_question = ""
-                            pending_partial_question_ts = 0.0
+                            is_vad_trigger = speech_final and confidence >= final_vad_confidence
+                            trigger_type = "VAD_TRIGGER" if is_vad_trigger else "FINAL_TRANSCRIPT"
+                            trigger_type_enum = TriggerType.VAD_TRIGGER if is_vad_trigger else TriggerType.FINAL_TRANSCRIPT
                             
-                            question_payload = {
-                                "type": "interviewer_question",
-                                "session_id": session_id,
-                                "question": text,
-                                "room_id": room_id,
-                            }
-                            if websocket.client_state == WebSocketState.CONNECTED:
-                                await _safe_send(question_payload)
-                            await _broadcast_room(room_id, question_payload, exclude=websocket)
-                            await _update_room_state(
-                                room_id,
-                                {
-                                    "active_question": text,
-                                    "partial_answer": "",
-                                    "is_streaming": False,
-                                    "assist_intensity": assist_intensity,
-                                },
-                            )
-                            await start_answer_suggestion(text)
-                            transcript_buffer = ""
-                            last_transcript_activity_ts = now
-                            last_candidate_question_key = candidate_question_key
-                            last_candidate_question_ts = now
-                            continue
+                            # VAD debounce check
+                            can_trigger = True
+                            if trigger_type == "VAD_TRIGGER":
+                                can_trigger = (now - last_vad_trigger_ts) >= VAD_DEBOUNCE_SEC
+                                if can_trigger:
+                                    last_vad_trigger_ts = now
+                                    adaptive_quality = adaptive_vad.get_quality().value if ADAPTIVE_VAD_ENABLED else "static"
+                                    logger.info("VAD_TRIGGER (final) | conf=%.2f speech_final=%s words=%d quality=%s",
+                                               confidence, speech_final, dg_word_count, adaptive_quality)
+                            
+                            if can_trigger:
+                                # Update unified tracker BEFORE sending to prevent race conditions
+                                last_interviewer_question_key = candidate_question_key
+                                last_interviewer_question_ts = now
+                                
+                                # Clear pending partial (FINAL transcript supersedes it)
+                                pending_partial_question = ""
+                                pending_partial_question_ts = 0.0
+                                
+                                # Record trigger in ASR metrics
+                                asr_metrics.record_trigger(
+                                    session_id=session_id,
+                                    text=text,
+                                    trigger_type=trigger_type_enum,
+                                    confidence=confidence,
+                                    speech_final=speech_final,
+                                    is_final=True,
+                                    word_count=dg_word_count,
+                                )
+                                
+                                # Record in observability dashboard
+                                await obs_dashboard.record_trigger(
+                                    session_id=session_id,
+                                    trigger_type=trigger_type,
+                                    latency_ms=0,  # Immediate on final
+                                    confidence=confidence,
+                                    word_count=dg_word_count,
+                                    text_preview=text[:50],
+                                )
+                                
+                                question_payload = {
+                                    "type": "interviewer_question",
+                                    "session_id": session_id,
+                                    "question": text,
+                                    "room_id": room_id,
+                                    "trigger_type": trigger_type,
+                                    "confidence": confidence,
+                                    "speech_final": speech_final,
+                                }
+                                if websocket.client_state == WebSocketState.CONNECTED:
+                                    await _safe_send(question_payload)
+                                await _broadcast_room(room_id, question_payload, exclude=websocket)
+                                await _update_room_state(
+                                    room_id,
+                                    {
+                                        "active_question": text,
+                                        "partial_answer": "",
+                                        "is_streaming": False,
+                                        "assist_intensity": assist_intensity,
+                                    },
+                                )
+                                await start_answer_suggestion(text)
+                                transcript_buffer = ""
+                                last_transcript_activity_ts = now
+                                last_candidate_question_key = candidate_question_key
+                                last_candidate_question_ts = now
+                                
+                                # ISSUE 4 FIX: Reset mutation state per-utterance
+                                last_transcript_hash = ""
+                                last_transcript_change_ts = 0.0
+                                continue
                     transcript_buffer = _append_transcript_fragment(transcript_buffer, text)
                     last_transcript_activity_ts = time.time()
                     tte.state.last_final_text = transcript_buffer
@@ -2024,18 +2341,52 @@ async def voice_ws(websocket: WebSocket):
     
     # Track if last transcript was marked final by Deepgram
     last_transcript_was_final = False
+    last_transcript_speech_final = False  # VAD signal: True when speaker finished utterance
     last_transcript_confidence = 0.0
+    last_vad_trigger_ts = 0.0  # Debounce VAD triggers
     
-    def compute_silence_threshold(transcript: str, was_final: bool = False, confidence: float = 0.0) -> float:
+    # VAD Trigger configuration
+    VAD_MIN_CONFIDENCE = float(os.getenv("VAD_MIN_CONFIDENCE", "0.70"))  # Minimum confidence to trigger
+    VAD_MIN_WORDS = int(os.getenv("VAD_MIN_WORDS", "4"))  # Minimum words for VAD trigger
+    VAD_DEBOUNCE_SEC = float(os.getenv("VAD_DEBOUNCE_SEC", "1.0"))  # Prevent double-triggers
+    
+    # Confidence filtering thresholds
+    CONF_IGNORE_THRESHOLD = float(os.getenv("ASR_CONF_IGNORE", "0.50"))  # Below this: ignore entirely
+    CONF_WAIT_THRESHOLD = float(os.getenv("ASR_CONF_WAIT", "0.70"))  # Below this: wait longer
+    CONF_FASTTRACK_THRESHOLD = float(os.getenv("ASR_CONF_FASTTRACK", "0.85"))  # Above this: fast-track
+    
+    # Stabilization window (ms)
+    STABILIZATION_WINDOW_MS = float(os.getenv("ASR_STABILIZATION_MS", "200"))  # Wait for transcript to stabilize
+    last_transcript_hash = ""  # Track transcript changes for stabilization
+    last_transcript_change_ts = 0.0  # When transcript last changed
+    
+    # ASR Metrics tracker
+    asr_metrics = get_asr_metrics()
+    
+    # Adaptive VAD engine - learns from session conditions
+    adaptive_vad = create_adaptive_vad(session_id=session_id)
+    
+    # Token budget controller - prevents cost explosion from speculative generation
+    token_budget = get_token_budget_controller()
+    
+    # Observability dashboard - real-time metrics for production monitoring
+    obs_dashboard = get_observability_dashboard()
+    
+    # Feature flag for adaptive VAD (can disable with env var)
+    ADAPTIVE_VAD_ENABLED = str(os.getenv("ADAPTIVE_VAD_ENABLED", "true")).strip().lower() in {"1", "true", "yes", "on"}
+    
+    def compute_silence_threshold(transcript: str, was_final: bool = False, speech_final: bool = False, confidence: float = 0.0) -> float:
         """Dynamic silence threshold based on sentence completeness.
         
         Uses multiple signals:
         1. Terminal punctuation (.?!)
         2. Deepgram's is_final flag
-        3. Word patterns suggesting complete thought
-        4. Confidence level from STT
+        3. Deepgram's speech_final flag (VAD detected end of utterance)
+        4. Word patterns suggesting complete thought
+        5. Confidence level from STT
         
         Returns:
+        - 0.3s for VAD confirmed end of speech (speech_final=True)
         - 0.5s for high-confidence complete sentences
         - 0.7s for likely complete (is_final + good length)
         - 1.0s for medium confidence
@@ -2048,9 +2399,18 @@ async def voice_ws(websocket: WebSocket):
         word_count = len(text.split())
         lower_text = text.lower()
         
+        # ===== INSTANT VAD TRIGGER (0.3s) =====
+        # Deepgram VAD says speaker stopped + high confidence = immediate trigger
+        if speech_final and was_final and confidence >= 0.70:
+            return 0.3
+        
         # ===== FAST TRIGGERS (0.5s) =====
         # Complete sentence with terminal punctuation - always fast
         if text.endswith((".", "?", "!", "。", "？", "！")):
+            return 0.5
+        
+        # VAD indicated end but lower confidence - still fast
+        if speech_final and word_count >= 4:
             return 0.5
         
         # ===== MEDIUM-FAST TRIGGERS (0.7s) =====
@@ -2082,7 +2442,7 @@ async def voice_ws(websocket: WebSocket):
         return 1.0
     
     async def silence_watcher():
-        nonlocal last_audio_ts, turn_closed, waiting_for_next_turn, transcript_buffer, last_transcript_activity_ts, turn_start_ts, hard_timeout_without_final_count, pending_partial_question, pending_partial_question_ts, last_interviewer_question_key, last_interviewer_question_ts
+        nonlocal last_audio_ts, turn_closed, waiting_for_next_turn, transcript_buffer, last_transcript_activity_ts, turn_start_ts, hard_timeout_without_final_count, pending_partial_question, pending_partial_question_ts, last_interviewer_question_key, last_interviewer_question_ts, last_vad_trigger_ts, last_transcript_hash, last_transcript_change_ts
         
         while not stop_event.is_set():
             await asyncio.sleep(0.1)  # Fast polling for instant response
@@ -2099,10 +2459,11 @@ async def voice_ws(websocket: WebSocket):
                 silence_since_partial = now_ts - pending_partial_question_ts
                 transcript_silence = now_ts - last_transcript_activity_ts
                 
-                # Dynamic threshold using all available signals
+                # Dynamic threshold using all available signals including VAD speech_final
                 required_timeout = compute_silence_threshold(
                     pending_partial_question, 
                     was_final=last_transcript_was_final,
+                    speech_final=last_transcript_speech_final,
                     confidence=last_transcript_confidence
                 )
                 
@@ -2118,24 +2479,47 @@ async def voice_ws(websocket: WebSocket):
                     )
                     
                     if not is_duplicate:
-                        logger.info("Finalizing partial question after %.2fs silence (threshold=%.2f) | text=%s", 
-                                   silence_since_partial, required_timeout, question_text[:50])
+                        # Determine trigger type for metrics
+                        is_vad_assisted = last_transcript_speech_final and last_transcript_confidence >= VAD_MIN_CONFIDENCE
+                        trigger_type = "VAD_ASSISTED_SILENCE" if is_vad_assisted else "SILENCE_FALLBACK"
+                        trigger_type_enum = TriggerType.VAD_ASSISTED_SILENCE if is_vad_assisted else TriggerType.SILENCE_FALLBACK
+                        
+                        logger.info("SILENCE_TRIGGER | type=%s silence=%.2fs threshold=%.2f conf=%.2f text=%s", 
+                                   trigger_type, silence_since_partial, required_timeout, last_transcript_confidence, question_text[:50])
                         
                         # Update tracker
                         last_interviewer_question_key = question_key
                         last_interviewer_question_ts = now_ts
                         
-                        # Send question to frontend
+                        # Record trigger in ASR metrics
+                        asr_metrics.record_trigger(
+                            session_id=session_id,
+                            text=question_text,
+                            trigger_type=trigger_type_enum,
+                            confidence=last_transcript_confidence,
+                            speech_final=last_transcript_speech_final,
+                            is_final=last_transcript_was_final,
+                            word_count=len(question_text.split()),
+                            silence_duration_ms=silence_since_partial * 1000,
+                        )
+                        
+                        # Send question to frontend with trigger metadata
                         if websocket.client_state == WebSocketState.CONNECTED:
                             await _safe_send({
                                 "type": "interviewer_question",
                                 "session_id": session_id,
                                 "question": question_text,
                                 "room_id": room_id,
+                                "trigger_type": trigger_type,
+                                "confidence": last_transcript_confidence,
                             })
                         
                         # Trigger answer generation
                         await start_answer_suggestion(question_text)
+                        
+                        # ISSUE 4 FIX: Reset mutation state per-utterance
+                        last_transcript_hash = ""
+                        last_transcript_change_ts = 0.0
                     
                     # Clear pending question (whether triggered or deduplicated)
                     pending_partial_question = ""
@@ -2286,8 +2670,12 @@ async def voice_ws(websocket: WebSocket):
 
     try:
         _log_event("session_started", participant=participant)
+        # Record session start in observability dashboard
+        await obs_dashboard.record_session_start(session_id)
         await stop_event.wait()
     finally:
+        # Record session end in observability dashboard
+        await obs_dashboard.record_session_end(session_id)
         await cancel_active_suggestion(reason="session_stopped")
         await controller.stop()
         try:
@@ -2299,5 +2687,19 @@ async def voice_ws(websocket: WebSocket):
         session_registry.mark_inactive(session_id)
         decrement_metric("ws_connections_active", 1)
         record_ws_disconnect(stop_reason)
+        
+        # Log ASR metrics summary for this session
+        session_metrics = asr_metrics.get_session_metrics(session_id)
+        if session_metrics:
+            logger.info("ASR_SESSION_SUMMARY | session=%s triggers=%d vad_rate=%.1f%% avg_conf=%.2f avg_latency_ms=%.1f",
+                       session_id,
+                       session_metrics.get("total_triggers", 0),
+                       (session_metrics.get("trigger_counts", {}).get("VAD_TRIGGER", 0) + 
+                        session_metrics.get("trigger_counts", {}).get("PARTIAL_VAD_TRIGGER", 0)) / 
+                       max(1, session_metrics.get("total_triggers", 1)) * 100,
+                       session_metrics.get("avg_confidence", 0),
+                       session_metrics.get("avg_time_to_trigger_ms", 0))
+        asr_metrics.clear_session(session_id)
+        
         _log_event("disconnect", reason=stop_reason)
         _log_event("session_stopped", reason=stop_reason)
