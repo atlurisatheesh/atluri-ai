@@ -1,10 +1,120 @@
 import path from "path";
-import { app, BrowserWindow, globalShortcut, ipcMain, screen } from "electron";
+import { app, BrowserWindow, globalShortcut, ipcMain, screen, desktopCapturer, nativeImage, shell } from "electron";
 import { startWindowsLoopback, type LoopbackStartParams } from "./loopback/win_loopback";
+import Store from "electron-store";
+import { createServer, IncomingMessage } from "http";
+import { WebSocketServer, WebSocket as WsSocket } from "ws";
+import { exec } from "child_process";
+import { StealthEngine, type ThreatLevel, type ProctoringDetection, type StealthHealthReport } from "./stealth_engine";
+import { AntiDetectionEngine } from "./anti_detection";
 
 const DEFAULT_FRONTEND_URL = process.env.DESKTOP_FRONTEND_URL || "http://localhost:3001";
 const OPEN_DEVTOOLS = String(process.env.DESKTOP_OPEN_DEVTOOLS || "").toLowerCase() === "true";
-const OVERLAY_CONTENT_PROTECTION = String(process.env.DESKTOP_OVERLAY_CONTENT_PROTECTION || "").toLowerCase() === "true";
+// Content protection defaults OFF — can cause click/input issues on some Windows versions
+// Set DESKTOP_OVERLAY_CONTENT_PROTECTION=true to enable
+const OVERLAY_CONTENT_PROTECTION = String(process.env.DESKTOP_OVERLAY_CONTENT_PROTECTION || "false").toLowerCase() === "true";
+
+// ═══════════════════════════════════════════════════════════
+// ELECTRON-STORE: Encrypted persistent settings
+// Stores API keys, resume/JD, hotkey config, preferences
+// ═══════════════════════════════════════════════════════════
+interface StoreSchema {
+  apiKeys: {
+    openai: string;
+    claude: string;
+  };
+  resume: string;
+  jobDescription: string;
+  hotkeys: {
+    toggleOverlay: string;
+    captureScreen: string;
+    toggleMic: string;
+    toggleAi: string;
+    toggleClickThrough: string;
+    quit: string;
+  };
+  preferences: {
+    opacity: number;
+    responseLength: string;
+    language: string;
+    processTime: string;
+    fillerWords: boolean;
+    threshold: number;
+    processName: string;
+    autoRead: boolean;
+  };
+  personas: Array<{
+    id: string;
+    name: string;
+    systemPrompt: string;
+    icon: string;
+  }>;
+  activePersona: string;
+  sessionSetup: {
+    scenario: string;
+    company: string;
+    position: string;
+    objective: string;
+    industry: string;
+    experience: string;
+    companyResearch: string;
+    imageContext: string;
+    model: string;
+    coachStyle: string;
+    coachEnabled: boolean;
+    mode: string;
+  };
+}
+
+const store = new Store<StoreSchema>({
+  name: "atluriin-settings",
+  encryptionKey: "atluriin-practice-v1-enc-key",
+  defaults: {
+    apiKeys: { openai: "", claude: "" },
+    resume: "",
+    jobDescription: "",
+    hotkeys: {
+      toggleOverlay: "CommandOrControl+Shift+H",
+      captureScreen: "CommandOrControl+Shift+S",
+      toggleMic: "CommandOrControl+Shift+M",
+      toggleAi: "CommandOrControl+Shift+P",
+      toggleClickThrough: "CommandOrControl+Shift+T",
+      quit: "CommandOrControl+Shift+Q",
+    },
+    preferences: {
+      opacity: 100,
+      responseLength: "default",
+      language: "",
+      processTime: "fast",
+      fillerWords: false,
+      threshold: 50,
+      processName: "",
+      autoRead: false,
+    },
+    personas: [
+      { id: "default", name: "Interview Coach", systemPrompt: "You are an expert interview coach. Provide concise, actionable STAR-format answers.", icon: "🎯" },
+      { id: "technical", name: "Technical Expert", systemPrompt: "You are a senior staff engineer. Give precise technical answers with code examples and complexity analysis.", icon: "💻" },
+      { id: "behavioral", name: "Behavioral Coach", systemPrompt: "You are a behavioral interview specialist. Structure every answer using STAR format with quantified results.", icon: "🌟" },
+      { id: "executive", name: "Executive Advisor", systemPrompt: "You are an executive communication coach. Provide strategic, high-level answers with business impact framing.", icon: "👔" },
+      { id: "casual", name: "Casual Friend", systemPrompt: "You are a friendly colleague helping practice. Keep it conversational, relaxed, and encouraging.", icon: "😊" },
+    ],
+    activePersona: "default",
+    sessionSetup: {
+      scenario: "general",
+      company: "",
+      position: "",
+      objective: "",
+      industry: "default",
+      experience: "mid",
+      companyResearch: "",
+      imageContext: "",
+      model: "gpt4o",
+      coachStyle: "balanced",
+      coachEnabled: true,
+      mode: "live",
+    },
+  },
+});
 
 function log(...args: Array<string | number | boolean | null | undefined>) {
   // Electron main-process logs go to the launching terminal.
@@ -12,6 +122,12 @@ function log(...args: Array<string | number | boolean | null | undefined>) {
   // eslint-disable-next-line no-console
   console.log("[desktop]", ...args);
 }
+
+// ═══════════════════════════════════════════════════════════
+// STEALTH: macOS ScreenCaptureKit bypass — MUST be called before app.whenReady()
+// Prevents macOS Ventura/Sonoma+ from capturing through content protection.
+// ═══════════════════════════════════════════════════════════
+app.commandLine.appendSwitch("disable-features", "IOSurfaceCapturer,DesktopCaptureMacV2");
 
 // Some Windows environments deny Chromium cache/quota DB writes in default locations.
 // Force userData + disk cache to a known-writable AppData folder.
@@ -33,9 +149,11 @@ process.on("unhandledRejection", (reason) => {
 
 let appWindow: BrowserWindow | null = null;
 let overlayWindow: BrowserWindow | null = null;
+let overlayInteractive = true; // tracks whether overlay accepts mouse input
+let micMuted = false;
+let aiPaused = false;
 
 // --- Recording Detection Logic ---
-import { desktopCapturer } from "electron";
 
 // Helper to check for capture state (customize as needed)
 function checkCaptureState(sources: Electron.DesktopCapturerSource[]): boolean {
@@ -58,6 +176,52 @@ let overlayStealthEnabled = false;
 let overlayOpacity = 1.0;
 
 let loopbackSession: { stop: () => Promise<void> } | null = null;
+
+// ═══════════════════════════════════════════════════════════
+// STEALTH ENGINE v2.0 + ANTI-DETECTION ENGINE
+// ═══════════════════════════════════════════════════════════
+const stealthEngine = new StealthEngine({
+  enableProctoringDetection: true,
+  enableWindowCloaking: true,
+  enableProcessMasking: true,
+  enableAutoEvasion: true,
+  scanIntervalMs: 3000,
+  threatCallback: (detection: ProctoringDetection) => {
+    if (overlayWindow) {
+      overlayWindow.webContents.send("stealth:threatDetected", detection);
+    }
+  },
+  evasionCallback: (threatLevel: ThreatLevel) => {
+    if (overlayWindow) {
+      overlayWindow.webContents.send("stealth:threatLevelChanged", threatLevel);
+    }
+  },
+});
+
+const antiDetectionEngine = new AntiDetectionEngine();
+
+// Stealth Engine IPC handlers
+ipcMain.handle("stealth:getHealth", async () => {
+  return stealthEngine.getHealthReport();
+});
+
+ipcMain.handle("stealth:getThreatLevel", async () => {
+  return stealthEngine.getThreatLevel();
+});
+
+ipcMain.handle("stealth:getActiveThreats", async () => {
+  return stealthEngine.getActiveThreats();
+});
+
+ipcMain.handle("stealth:applyAntiDetection", async () => {
+  if (!appWindow) return { ok: false, error: "no app window" };
+  try {
+    await antiDetectionEngine.applyToWindow(appWindow);
+    return { ok: true };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message || e) };
+  }
+});
 
 ipcMain.handle("overlay:getContentProtection", async () => {
   return Boolean(overlayContentProtectionEnabled);
@@ -129,9 +293,8 @@ ipcMain.handle("overlay:minimize", async () => {
 
 // Close overlay (hide, not quit - use Ctrl+Shift+Q to quit app)
 ipcMain.handle("overlay:close", async () => {
-  if (!overlayWindow) return;
-  overlayWindow.hide();
-  log("overlay closed");
+  log("overlay close requested — quitting app");
+  app.quit();
 });
 
 // Manual window drag - get current position
@@ -146,6 +309,69 @@ ipcMain.handle("overlay:setPosition", async (_event, payload: { x: number; y: nu
   if (!overlayWindow) return;
   overlayWindow.setPosition(Math.round(payload.x), Math.round(payload.y));
 });
+
+// ═══════════════════════════════════════════════════════════
+// SCREEN CAPTURE — region crop + full screen
+// ═══════════════════════════════════════════════════════════
+ipcMain.handle("capture:fullScreen", async () => {
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ["screen"],
+      thumbnailSize: { width: 1920, height: 1080 },
+    });
+    if (!sources.length) return { ok: false, error: "no screen sources" };
+    const img = sources[0].thumbnail;
+    const base64 = img.toPNG().toString("base64");
+    return { ok: true, base64, width: img.getSize().width, height: img.getSize().height };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message || e) };
+  }
+});
+
+ipcMain.handle("capture:region", async (_event, payload: { x: number; y: number; width: number; height: number }) => {
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ["screen"],
+      thumbnailSize: { width: 1920, height: 1080 },
+    });
+    if (!sources.length) return { ok: false, error: "no screen sources" };
+    const img = sources[0].thumbnail;
+    // Crop to the requested region
+    const cropped = img.crop({
+      x: Math.round(payload.x),
+      y: Math.round(payload.y),
+      width: Math.round(payload.width),
+      height: Math.round(payload.height),
+    });
+    const base64 = cropped.toPNG().toString("base64");
+    return { ok: true, base64, width: cropped.getSize().width, height: cropped.getSize().height };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message || e) };
+  }
+});
+
+ipcMain.handle("capture:startRegionSelect", async () => {
+  // Temporarily make overlay interactive + focusable for drag selection
+  if (!overlayWindow) return;
+  overlayWindow.setIgnoreMouseEvents(false);
+  overlayWindow.setFocusable(true);
+  overlayWindow.focus();
+  overlayWindow.webContents.send("capture:enterRegionSelect");
+});
+
+ipcMain.handle("capture:endRegionSelect", async () => {
+  // Restore overlay state after region selection completes
+  if (!overlayWindow) return;
+  if (!overlayInteractive) {
+    overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// MIC + AI TOGGLE state (forwarded to renderer)
+// ═══════════════════════════════════════════════════════════
+ipcMain.handle("control:getMicMuted", async () => micMuted);
+ipcMain.handle("control:getAiPaused", async () => aiPaused);
 
 ipcMain.handle("auth:getAccessToken", async () => {
   if (!appWindow) return null;
@@ -202,6 +428,429 @@ ipcMain.handle("loopback:stop", async () => {
   return { ok: true };
 });
 
+// ═══════════════════════════════════════════════════════════
+// PERSISTENT SETTINGS via electron-store (encrypted)
+// ═══════════════════════════════════════════════════════════
+
+// Generic store get/set
+ipcMain.handle("settings:get", async (_event, key: string) => {
+  try {
+    return store.get(key as keyof StoreSchema);
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle("settings:set", async (_event, key: string, value: any) => {
+  try {
+    store.set(key as keyof StoreSchema, value);
+    return { ok: true };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message || e) };
+  }
+});
+
+// API Keys
+ipcMain.handle("settings:getApiKeys", async () => {
+  return store.get("apiKeys", { openai: "", claude: "" });
+});
+
+ipcMain.handle("settings:setApiKeys", async (_event, keys: { openai?: string; claude?: string }) => {
+  const current = store.get("apiKeys", { openai: "", claude: "" });
+  store.set("apiKeys", {
+    openai: typeof keys.openai === "string" ? keys.openai : current.openai,
+    claude: typeof keys.claude === "string" ? keys.claude : current.claude,
+  });
+  log("API keys updated");
+  return { ok: true };
+});
+
+// Resume & Job Description
+ipcMain.handle("settings:getResume", async () => {
+  return store.get("resume", "");
+});
+
+ipcMain.handle("settings:setResume", async (_event, text: string) => {
+  store.set("resume", String(text || ""));
+  return { ok: true };
+});
+
+ipcMain.handle("settings:getJobDescription", async () => {
+  return store.get("jobDescription", "");
+});
+
+ipcMain.handle("settings:setJobDescription", async (_event, text: string) => {
+  store.set("jobDescription", String(text || ""));
+  return { ok: true };
+});
+
+// Preferences
+ipcMain.handle("settings:getPreferences", async () => {
+  return store.get("preferences");
+});
+
+ipcMain.handle("settings:setPreferences", async (_event, prefs: Partial<StoreSchema["preferences"]>) => {
+  const current = store.get("preferences");
+  store.set("preferences", { ...current, ...prefs });
+  return { ok: true };
+});
+
+// Hotkey config
+ipcMain.handle("settings:getHotkeys", async () => {
+  return store.get("hotkeys");
+});
+
+ipcMain.handle("settings:setHotkeys", async (_event, hotkeys: Partial<StoreSchema["hotkeys"]>) => {
+  const current = store.get("hotkeys");
+  const updated = { ...current, ...hotkeys };
+  store.set("hotkeys", updated);
+  // Re-register hotkeys with new bindings
+  reregisterHotkeys(updated);
+  return { ok: true };
+});
+
+// All settings at once (for bulk load/save)
+ipcMain.handle("settings:getAll", async () => {
+  return {
+    apiKeys: store.get("apiKeys"),
+    resume: store.get("resume"),
+    jobDescription: store.get("jobDescription"),
+    hotkeys: store.get("hotkeys"),
+    preferences: store.get("preferences"),
+  };
+});
+
+ipcMain.handle("settings:setAll", async (_event, data: Partial<StoreSchema>) => {
+  if (data.apiKeys) store.set("apiKeys", data.apiKeys);
+  if (typeof data.resume === "string") store.set("resume", data.resume);
+  if (typeof data.jobDescription === "string") store.set("jobDescription", data.jobDescription);
+  if (data.hotkeys) {
+    store.set("hotkeys", data.hotkeys);
+    reregisterHotkeys(data.hotkeys);
+  }
+  if (data.preferences) {
+    const current = store.get("preferences");
+    store.set("preferences", { ...current, ...data.preferences });
+  }
+  if (data.sessionSetup) {
+    const current = store.get("sessionSetup");
+    store.set("sessionSetup", { ...current, ...data.sessionSetup });
+  }
+  return { ok: true };
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 3: DUAL MONITOR SMART ROUTING
+// Detects all displays and moves overlay to secondary monitor
+// ═══════════════════════════════════════════════════════════
+ipcMain.handle("display:getAll", async () => {
+  const displays = screen.getAllDisplays();
+  return displays.map((d, i) => ({
+    id: d.id,
+    label: `Display ${i + 1} (${d.size.width}x${d.size.height})`,
+    bounds: d.bounds,
+    isPrimary: d.bounds.x === 0 && d.bounds.y === 0,
+  }));
+});
+
+ipcMain.handle("display:moveToDisplay", async (_event, displayId: number) => {
+  if (!overlayWindow) return { ok: false, error: "no overlay" };
+  const displays = screen.getAllDisplays();
+  const target = displays.find(d => d.id === displayId);
+  if (!target) return { ok: false, error: "display not found" };
+  const [, ] = overlayWindow.getSize();
+  overlayWindow.setPosition(target.bounds.x + 20, target.bounds.y + 20);
+  log("overlay moved to display", String(displayId));
+  return { ok: true };
+});
+
+ipcMain.handle("display:moveToSecondary", async () => {
+  if (!overlayWindow) return { ok: false, error: "no overlay" };
+  const displays = screen.getAllDisplays();
+  const primary = screen.getPrimaryDisplay();
+  const secondary = displays.find(d => d.id !== primary.id);
+  if (!secondary) return { ok: false, error: "no secondary display" };
+  overlayWindow.setPosition(secondary.bounds.x + 20, secondary.bounds.y + 20);
+  log("overlay moved to secondary display");
+  return { ok: true };
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 5: PERSONA SWITCHING
+// Preset prompt personas stored in electron-store
+// ═══════════════════════════════════════════════════════════
+ipcMain.handle("persona:getAll", async () => {
+  return store.get("personas");
+});
+
+ipcMain.handle("persona:setAll", async (_event, personas: StoreSchema["personas"]) => {
+  store.set("personas", personas);
+  return { ok: true };
+});
+
+ipcMain.handle("persona:getActive", async () => {
+  return store.get("activePersona");
+});
+
+ipcMain.handle("persona:setActive", async (_event, id: string) => {
+  store.set("activePersona", String(id));
+  // Notify renderer of persona change
+  if (overlayWindow) {
+    const personas = store.get("personas");
+    const active = personas.find(p => p.id === id);
+    overlayWindow.webContents.send("persona:changed", active || null);
+  }
+  log("active persona set to", id);
+  return { ok: true };
+});
+
+ipcMain.handle("persona:add", async (_event, persona: StoreSchema["personas"][0]) => {
+  const current = store.get("personas");
+  current.push(persona);
+  store.set("personas", current);
+  return { ok: true };
+});
+
+ipcMain.handle("persona:remove", async (_event, id: string) => {
+  const current = store.get("personas");
+  store.set("personas", current.filter(p => p.id !== id));
+  if (store.get("activePersona") === id) store.set("activePersona", "default");
+  return { ok: true };
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 8: BLACKHOLE AUTO-INSTALLER (macOS)
+// Detects if BlackHole is installed, offers auto-install
+// ═══════════════════════════════════════════════════════════
+ipcMain.handle("blackhole:check", async () => {
+  if (process.platform !== "darwin") return { installed: false, platform: "non-mac" };
+  return new Promise<{ installed: boolean; platform: string }>((resolve) => {
+    exec("system_profiler SPAudioDataType 2>/dev/null | grep -i blackhole", (err, stdout) => {
+      resolve({ installed: !err && stdout.toLowerCase().includes("blackhole"), platform: "darwin" });
+    });
+  });
+});
+
+ipcMain.handle("blackhole:install", async () => {
+  if (process.platform !== "darwin") return { ok: false, error: "macOS only" };
+  try {
+    // Try Homebrew first
+    exec("which brew", (err) => {
+      if (!err) {
+        exec("brew install blackhole-2ch", (brewErr) => {
+          if (brewErr) {
+            // Fallback: open download page
+            shell.openExternal("https://existential.audio/blackhole/");
+          }
+        });
+      } else {
+        shell.openExternal("https://existential.audio/blackhole/");
+      }
+    });
+    return { ok: true };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message || e) };
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 9: PHONE MIRROR MODE
+// WebSocket server that mobile PWA connects to for live data
+// ═══════════════════════════════════════════════════════════
+let mirrorServer: ReturnType<typeof createServer> | null = null;
+let mirrorWss: WebSocketServer | null = null;
+let mirrorClients: Set<WsSocket> = new Set();
+const MIRROR_PORT = 8765;
+
+function broadcastToMirror(data: any) {
+  const msg = JSON.stringify(data);
+  for (const client of mirrorClients) {
+    if (client.readyState === WsSocket.OPEN) {
+      try { client.send(msg); } catch {}
+    }
+  }
+}
+
+ipcMain.handle("mirror:start", async () => {
+  if (mirrorServer) return { ok: true, port: MIRROR_PORT, message: "already running" };
+  try {
+    mirrorServer = createServer();
+    mirrorWss = new WebSocketServer({ server: mirrorServer });
+    mirrorWss.on("connection", (ws: WsSocket) => {
+      mirrorClients.add(ws);
+      log("mirror client connected, total:", String(mirrorClients.size));
+      ws.on("close", () => {
+        mirrorClients.delete(ws);
+        log("mirror client disconnected, total:", String(mirrorClients.size));
+      });
+      // Send current state snapshot
+      ws.send(JSON.stringify({ type: "snapshot", personas: store.get("personas"), activePersona: store.get("activePersona") }));
+    });
+    mirrorServer.listen(MIRROR_PORT, "0.0.0.0");
+    log("mirror server started on port", String(MIRROR_PORT));
+    return { ok: true, port: MIRROR_PORT };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message || e) };
+  }
+});
+
+ipcMain.handle("mirror:stop", async () => {
+  for (const c of mirrorClients) try { c.close(); } catch {}
+  mirrorClients.clear();
+  mirrorWss?.close();
+  mirrorServer?.close();
+  mirrorWss = null;
+  mirrorServer = null;
+  log("mirror server stopped");
+  return { ok: true };
+});
+
+ipcMain.handle("mirror:getStatus", async () => {
+  return { running: !!mirrorServer, port: MIRROR_PORT, clients: mirrorClients.size };
+});
+
+ipcMain.handle("mirror:broadcast", async (_event, data: any) => {
+  broadcastToMirror(data);
+  return { ok: true };
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 10: OFFLINE LOCAL AI (Ollama)
+// Check if Ollama is running, pull models, generate responses
+// ═══════════════════════════════════════════════════════════
+ipcMain.handle("ollama:check", async () => {
+  try {
+    const { net } = require("electron");
+    const request = net.request("http://localhost:11434/api/tags");
+    return new Promise<{ available: boolean; models: string[] }>((resolve) => {
+      let body = "";
+      request.on("response", (response: any) => {
+        response.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+        response.on("end", () => {
+          try {
+            const data = JSON.parse(body);
+            const models = (data?.models || []).map((m: any) => m.name);
+            resolve({ available: true, models });
+          } catch {
+            resolve({ available: true, models: [] });
+          }
+        });
+      });
+      request.on("error", () => resolve({ available: false, models: [] }));
+      request.end();
+    });
+  } catch {
+    return { available: false, models: [] };
+  }
+});
+
+ipcMain.handle("ollama:pull", async (_event, model: string) => {
+  return new Promise<{ ok: boolean; error?: string }>((resolve) => {
+    exec(`ollama pull ${model}`, { timeout: 300000 }, (err) => {
+      resolve(err ? { ok: false, error: String(err.message) } : { ok: true });
+    });
+  });
+});
+
+ipcMain.handle("ollama:generate", async (_event, payload: { model: string; prompt: string; system?: string }) => {
+  try {
+    const { net } = require("electron");
+    const request = net.request({
+      method: "POST",
+      url: "http://localhost:11434/api/generate",
+    });
+    return new Promise<{ ok: boolean; text?: string; error?: string }>((resolve) => {
+      let body = "";
+      request.on("response", (response: any) => {
+        response.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+        response.on("end", () => {
+          try {
+            // Ollama streams NDJSON; extract all response fields
+            const lines = body.split("\n").filter(Boolean);
+            const texts = lines.map(l => { try { return JSON.parse(l).response || ""; } catch { return ""; } });
+            resolve({ ok: true, text: texts.join("") });
+          } catch {
+            resolve({ ok: false, error: "parse error" });
+          }
+        });
+      });
+      request.on("error", (e: Error) => resolve({ ok: false, error: e.message }));
+      request.write(JSON.stringify({
+        model: payload.model || "phi4-mini",
+        prompt: payload.prompt,
+        system: payload.system || "",
+        stream: false,
+      }));
+      request.end();
+    });
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message || e) };
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 12: KEYSTROKE GHOST MODE
+// Simulates typing with human-speed delays using OS-native input
+// ═══════════════════════════════════════════════════════════
+ipcMain.handle("ghost:typeText", async (_event, payload: { text: string; wpm?: number }) => {
+  const text = String(payload.text || "");
+  const wpm = Math.max(20, Math.min(200, payload.wpm || 85));
+  const charDelayMs = Math.round(60000 / (wpm * 5)); // avg 5 chars per word
+
+  if (process.platform === "win32") {
+    // Windows: Use PowerShell SendKeys with human-speed delays
+    const escaped = text.replace(/'/g, "''").replace(/[+^%~(){}[\]]/g, "{$&}");
+    const psScript = `
+      Add-Type -AssemblyName System.Windows.Forms
+      $text = '${escaped}'
+      foreach ($char in $text.ToCharArray()) {
+        [System.Windows.Forms.SendKeys]::SendWait($char.ToString())
+        Start-Sleep -Milliseconds ${charDelayMs}
+        # Add random jitter (±30ms) for human-like feel
+        Start-Sleep -Milliseconds (Get-Random -Minimum 0 -Maximum 60)
+      }
+    `;
+    return new Promise<{ ok: boolean; error?: string }>((resolve) => {
+      exec(`powershell -NoProfile -Command "${psScript.replace(/"/g, '\\"')}"`, { timeout: text.length * (charDelayMs + 100) + 5000 }, (err) => {
+        resolve(err ? { ok: false, error: String(err.message) } : { ok: true });
+      });
+    });
+  } else if (process.platform === "darwin") {
+    // macOS: Use AppleScript
+    const escaped = text.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    const script = `
+      tell application "System Events"
+        set theText to "${escaped}"
+        repeat with i from 1 to count of characters of theText
+          keystroke (character i of theText)
+          delay ${(charDelayMs / 1000).toFixed(3)}
+        end repeat
+      end tell
+    `;
+    return new Promise<{ ok: boolean; error?: string }>((resolve) => {
+      exec(`osascript -e '${script.replace(/'/g, "'\"'\"'")}'`, { timeout: text.length * (charDelayMs + 100) + 5000 }, (err) => {
+        resolve(err ? { ok: false, error: String(err.message) } : { ok: true });
+      });
+    });
+  } else {
+    // Linux: Use xdotool
+    const escaped = text.replace(/'/g, "'\"'\"'");
+    return new Promise<{ ok: boolean; error?: string }>((resolve) => {
+      exec(`xdotool type --delay ${charDelayMs} '${escaped}'`, { timeout: text.length * (charDelayMs + 100) + 5000 }, (err) => {
+        resolve(err ? { ok: false, error: String(err.message) } : { ok: true });
+      });
+    });
+  }
+});
+
+ipcMain.handle("ghost:typeStop", async () => {
+  // Kill any running PowerShell/AppleScript/xdotool typing process
+  if (process.platform === "win32") {
+    exec("taskkill /F /IM powershell.exe /FI \"WINDOWTITLE eq ghost*\"", () => {});
+  }
+  return { ok: true };
+});
+
 function createAppWindow() {
   appWindow = new BrowserWindow({
     width: 1280,
@@ -233,11 +882,10 @@ function createOverlayWindow() {
     width: 420,
     height: 680,
     show: false,
-    alwaysOnTop: true,
-    resizable: true,
-    transparent: false,
-    backgroundColor: "#0d1420",
     frame: false,
+    resizable: true,
+    transparent: true,
+    backgroundColor: '#00000000',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -245,42 +893,33 @@ function createOverlayWindow() {
     },
   });
 
-  const htmlPath = path.join(__dirname, "renderer", "index.html");
+  // Keep above other windows but at a level that allows input
+  overlayWindow.setAlwaysOnTop(true, "floating");
 
-  // Start recording detection polling for overlay privacy
-  startRecordingDetection();
-
-  // Optional privacy hardening. When enabled, Windows screen capture / some recording tools
-  // may show a black window. Keep OFF by default for "practice overlay" usability.
-  if (OVERLAY_CONTENT_PROTECTION) {
-    try {
-      overlayWindow.setContentProtection(true);
-      overlayContentProtectionEnabled = true;
-      log("overlay content protection enabled");
-    } catch (e) {
-      log("overlay content protection failed", String((e as any)?.message || e));
-    }
-  }
+  // Phase 4: Alt-Tab invisibility + taskbar hiding + content protection
+  overlayWindow.setSkipTaskbar(true);
+  overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  overlayWindow.setContentProtection(true);
+  log("overlay stealth hardening applied (skipTaskbar, allWorkspaces, contentProtection)");
 
   overlayWindow.on("ready-to-show", () => {
     overlayWindow?.show();
+    overlayWindow?.focus(); // Ensure window gets input focus on Windows
     if (OPEN_DEVTOOLS) overlayWindow?.webContents.openDevTools({ mode: "detach" });
   });
 
   overlayWindow.webContents.on("did-fail-load", (_ev, code, desc, url) => {
     log("overlay did-fail-load", code, desc, url);
+    // Fallback: if frontend is unavailable, load the standalone HTML
+    const htmlPath = path.join(__dirname, "renderer", "index.html");
+    log("falling back to standalone overlay HTML", htmlPath);
+    void overlayWindow?.loadFile(htmlPath);
   });
 
-  log("loading overlay HTML", htmlPath);
-  void overlayWindow.loadFile(htmlPath);
-
-  // Start with overlay fully interactive (not click-through).
-  // Stealth mode can enable click-through later.
-  try {
-    overlayWindow.setOpacity(overlayOpacity);
-    overlayWindow.setIgnoreMouseEvents(false);
-  } catch {
-  }
+  // Load the Next.js /overlay route (same React components as the web app)
+  const overlayUrl = `${DEFAULT_FRONTEND_URL.replace(/\/+$/g, "")}/overlay`;
+  log("loading overlay URL", overlayUrl);
+  void overlayWindow.loadURL(overlayUrl);
 }
 
 function toggleOverlay() {
@@ -289,25 +928,156 @@ function toggleOverlay() {
   else overlayWindow.show();
 }
 
+function nudgeOverlay(dx: number, dy: number) {
+  if (!overlayWindow) return;
+  const [x, y] = overlayWindow.getPosition();
+  overlayWindow.setPosition(x + dx, y + dy);
+}
+
+function toggleMic() {
+  micMuted = !micMuted;
+  if (overlayWindow) {
+    overlayWindow.webContents.send("control:micMuted", micMuted);
+  }
+  log("mic", micMuted ? "muted" : "unmuted");
+}
+
+function toggleAi() {
+  aiPaused = !aiPaused;
+  if (overlayWindow) {
+    overlayWindow.webContents.send("control:aiPaused", aiPaused);
+  }
+  log("ai", aiPaused ? "paused" : "resumed");
+}
+
+function toggleClickThrough() {
+  overlayInteractive = !overlayInteractive;
+  if (!overlayWindow) return;
+  if (overlayInteractive) {
+    overlayWindow.setIgnoreMouseEvents(false);
+    log("overlay interactive (mouse enabled)");
+  } else {
+    // Click-through: mouse passes to app behind, forward: true sends hover events
+    overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+    log("overlay click-through (mouse passthrough)");
+  }
+  overlayWindow.webContents.send("control:clickThrough", !overlayInteractive);
+}
+
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
+// ═══════════════════════════════════════════════════════════
+// CONFIGURABLE HOTKEYS — loaded from electron-store
+// ═══════════════════════════════════════════════════════════
+function triggerCapture() {
+  if (overlayWindow) {
+    overlayWindow.webContents.send("capture:enterRegionSelect");
+    overlayWindow.setIgnoreMouseEvents(false);
+    overlayWindow.setFocusable(true);
+    overlayWindow.focus();
+  }
+}
+
+function reregisterHotkeys(bindings?: StoreSchema["hotkeys"]) {
+  globalShortcut.unregisterAll();
+  const hk = bindings || store.get("hotkeys");
+
+  const tryRegister = (accel: string, fn: () => void) => {
+    try {
+      if (accel) globalShortcut.register(accel, fn);
+    } catch (e) {
+      log("hotkey register failed", accel, String((e as any)?.message || e));
+    }
+  };
+
+  tryRegister(hk.toggleOverlay, toggleOverlay);
+  tryRegister(hk.captureScreen, triggerCapture);
+  tryRegister(hk.toggleMic, toggleMic);
+  tryRegister(hk.toggleAi, toggleAi);
+  tryRegister(hk.toggleClickThrough, toggleClickThrough);
+  tryRegister(hk.quit, () => { log("quit hotkey"); app.quit(); });
+
+  // Arrow key nudge — always hardcoded (not user-configurable)
+  tryRegister("CommandOrControl+Shift+Up", () => nudgeOverlay(0, -5));
+  tryRegister("CommandOrControl+Shift+Down", () => nudgeOverlay(0, 5));
+  tryRegister("CommandOrControl+Shift+Left", () => nudgeOverlay(-5, 0));
+  tryRegister("CommandOrControl+Shift+Right", () => nudgeOverlay(5, 0));
+
+  // Legacy alias
+  tryRegister("Control+Shift+I", toggleOverlay);
+
+  log("hotkeys registered");
+}
+
 app.whenReady().then(() => {
   log("app.whenReady", "packaged=", app.isPackaged, "electron=", process.versions.electron);
+
+  // ═══════════════════════════════════════════════════════════
+  // STEALTH: macOS — hide from Dock (no icon visible)
+  // ═══════════════════════════════════════════════════════════
+  if (process.platform === "darwin") {
+    try {
+      app.dock?.hide();
+      log("macOS dock icon hidden");
+    } catch (e) {
+      log("dock.hide failed", String((e as any)?.message || e));
+    }
+  }
+
   createAppWindow();
   createOverlayWindow();
 
-  // Ctrl+Shift+I toggles overlay (practice-friendly; visible UI)
-  globalShortcut.register("Control+Shift+I", toggleOverlay);
+  // Apply anti-detection header sanitization
+  antiDetectionEngine.applyHeaderSanitization();
 
-  // Frameless overlay has no window chrome; provide a clear quit hotkey.
-  globalShortcut.register("Control+Shift+Q", () => {
-    log("quit hotkey");
-    app.quit();
+  // Phase 4: Inject full anti-detection countermeasures into overlay webContents
+  if (overlayWindow) {
+    antiDetectionEngine.applyToWindow(overlayWindow);
+    log("anti-detection injected into overlay window");
+  }
+
+  // Register hotkeys from stored config
+  reregisterHotkeys();
+
+  // ═══════════════════════════════════════════════════════════
+  // FEATURE 3: AUTO-ROUTE OVERLAY TO SECONDARY DISPLAY
+  // If multiple displays detected, move overlay to secondary
+  // ═══════════════════════════════════════════════════════════
+  const displays = screen.getAllDisplays();
+  if (displays.length > 1 && overlayWindow) {
+    const primary = screen.getPrimaryDisplay();
+    const secondary = displays.find(d => d.id !== primary.id);
+    if (secondary) {
+      overlayWindow.setPosition(secondary.bounds.x + 20, secondary.bounds.y + 20);
+      log("auto-routed overlay to secondary display");
+    }
+  }
+
+  // Relay overlay WS messages to phone mirror clients
+  if (overlayWindow) {
+    overlayWindow.webContents.on("ipc-message", (_event, channel, ...args) => {
+      if (channel === "mirror:relay" && mirrorClients.size > 0) {
+        broadcastToMirror(args[0]);
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RELAY: App Window → Overlay Window (WebSocket data)
+  // The app window's interview page sends WS messages via IPC;
+  // we forward them to the overlay renderer so PhantomOverlay
+  // stays in sync without its own WebSocket connection.
+  // ═══════════════════════════════════════════════════════════
+  ipcMain.on("ws:relayToOverlay", (_event, msg: { type: string; data: any }) => {
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.webContents.send("ws:message", msg);
+    }
   });
 });
 
 app.on("will-quit", () => {
   globalShortcut.unregisterAll();
+  stealthEngine.shutdown();
 });

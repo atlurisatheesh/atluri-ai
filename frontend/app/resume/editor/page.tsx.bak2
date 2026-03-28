@@ -1,0 +1,851 @@
+"use client";
+
+import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Plus, ArrowUpDown, LayoutTemplate, Palette, Sparkles,
+  CheckCircle, Download, Share2, History, Undo2, Redo2,
+  X, GripVertical, Trash2, Type, Briefcase,
+  GraduationCap, Award, Code, User, Mail, Phone, MapPin,
+  Linkedin, Globe, Save, FileText, Eye, EyeOff, Loader2,
+  ArrowLeft, AlertTriangle, Check, MoveUp, MoveDown,
+  Wand2, Upload,
+} from "lucide-react";
+import { TemplatePreview, TEMPLATE_REGISTRY, TEMPLATE_CATEGORIES } from "@/components/resume/TemplatePreview";
+
+const PreviewContext = React.createContext(false);
+
+/* ═══════════════════════════════════════════════════════
+   SUSPENSE WRAPPER
+   ═══════════════════════════════════════════════════════ */
+export default function ResumeEditorWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-8 h-8 text-brand-cyan animate-spin" />
+      </div>
+    }>
+      <ResumeEditorPage />
+    </Suspense>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   TYPES
+   ═══════════════════════════════════════════════════════ */
+interface ResumeSection {
+  id: string;
+  type: "contact" | "summary" | "experience" | "education" | "skills" | "certifications" | "projects";
+  title: string;
+  visible: boolean;
+}
+interface ExperienceEntry {
+  company: string;
+  role: string;
+  dateRange: string;
+  location: string;
+  bullets: string[];
+}
+interface EducationEntry {
+  school: string;
+  degree: string;
+  year: string;
+}
+interface ResumeData {
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+  website: string;
+  summary: string;
+  experience: ExperienceEntry[];
+  education: EducationEntry[];
+  skills: string[];
+  certifications: string[];
+  projects: { name: string; description: string; tech: string }[];
+}
+
+/* ═══════════════════════════════════════════════════════
+   DEFAULTS
+   ═══════════════════════════════════════════════════════ */
+const DEFAULT_RESUME: ResumeData = {
+  name: "Your Full Name",
+  title: "Professional Title",
+  email: "email@example.com",
+  phone: "(555) 123-4567",
+  location: "City, State",
+  linkedin: "linkedin.com/in/yourprofile",
+  website: "",
+  summary:
+    "Results-driven professional with X+ years of experience in your industry. Proven track record of delivering impactful results. Expertise in key skills relevant to your target role.",
+  experience: [
+    {
+      company: "Company Name",
+      role: "Job Title",
+      dateRange: "MM/YYYY – Present",
+      location: "City, State",
+      bullets: [
+        "Led cross-functional team of 8 to deliver product launch 2 weeks ahead of schedule",
+        "Increased revenue by 32% through implementation of data-driven strategy",
+        "Managed $2.4M annual budget while reducing costs by 18%",
+      ],
+    },
+    {
+      company: "Previous Company",
+      role: "Previous Role",
+      dateRange: "MM/YYYY – MM/YYYY",
+      location: "City, State",
+      bullets: [
+        "Developed solutions serving 50K+ users across 12 regions",
+        "Reduced customer churn by 24% through onboarding redesign",
+      ],
+    },
+  ],
+  education: [{ school: "University Name", degree: "Bachelor of Science in Computer Science", year: "2020" }],
+  skills: ["JavaScript", "React", "Node.js", "Python", "SQL", "AWS", "Docker", "Agile"],
+  certifications: ["AWS Solutions Architect", "PMP Certified"],
+  projects: [{ name: "Project Name", description: "Built a full-stack platform serving 10K users", tech: "React, Node.js, AWS" }],
+};
+
+const DEFAULT_SECTIONS: ResumeSection[] = [
+  { id: "contact", type: "contact", title: "Contact", visible: true },
+  { id: "summary", type: "summary", title: "Summary", visible: true },
+  { id: "experience", type: "experience", title: "Experience", visible: true },
+  { id: "education", type: "education", title: "Education", visible: true },
+  { id: "skills", type: "skills", title: "Skills", visible: true },
+  { id: "certifications", type: "certifications", title: "Certifications", visible: true },
+  { id: "projects", type: "projects", title: "Projects", visible: true },
+];
+
+const SECTION_ICONS: Record<string, React.ReactNode> = {
+  contact: <User className="w-3.5 h-3.5" />,
+  summary: <FileText className="w-3.5 h-3.5" />,
+  experience: <Briefcase className="w-3.5 h-3.5" />,
+  education: <GraduationCap className="w-3.5 h-3.5" />,
+  skills: <Code className="w-3.5 h-3.5" />,
+  certifications: <Award className="w-3.5 h-3.5" />,
+  projects: <Globe className="w-3.5 h-3.5" />,
+};
+
+const FONT_OPTIONS = [
+  { label: "Inter", value: "Inter, sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Merriweather", value: "'Merriweather', serif" },
+  { label: "Roboto", value: "'Roboto', sans-serif" },
+  { label: "Playfair", value: "'Playfair Display', serif" },
+  { label: "Lato", value: "'Lato', sans-serif" },
+  { label: "Monospace", value: "'Courier New', monospace" },
+];
+const FONT_SIZES = [
+  { label: "Small", value: "13px" },
+  { label: "Medium", value: "15px" },
+  { label: "Large", value: "17px" },
+];
+const ACCENT_COLORS = [
+  { label: "Cyan", value: "#00D4FF" },
+  { label: "Purple", value: "#7B61FF" },
+  { label: "Blue", value: "#3B82F6" },
+  { label: "Teal", value: "#14B8A6" },
+  { label: "Green", value: "#10B981" },
+  { label: "Orange", value: "#F59E0B" },
+  { label: "Red", value: "#EF4444" },
+  { label: "Pink", value: "#EC4899" },
+];
+
+/* ═══════════════════════════════════════════════════════
+   TEMPLATE STYLE MAP — each template applies a unique font + accent
+   ═══════════════════════════════════════════════════════ */
+const TEMPLATE_STYLE_MAP: Record<number, { font: string; accent: string }> = {};
+TEMPLATE_REGISTRY.forEach((t, idx) => {
+  const fonts = FONT_OPTIONS.map((f) => f.value);
+  const accents = ACCENT_COLORS.map((a) => a.value);
+  TEMPLATE_STYLE_MAP[t.id] = {
+    font: fonts[idx % fonts.length],
+    accent: accents[idx % accents.length],
+  };
+});
+
+/* ═══════════════════════════════════════════════════════
+   SIDEBAR TOOL BUTTON
+   ═══════════════════════════════════════════════════════ */
+function ToolButton({ icon, label, active, badge, onClick }: {
+  icon: React.ReactNode; label: string; active?: boolean; badge?: number; onClick?: () => void;
+}) {
+  return (
+    <button onClick={onClick} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+      active ? "bg-brand-cyan/10 text-brand-cyan" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+    }`}>
+      {icon}
+      <span>{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="ml-auto bg-brand-green/15 text-brand-green text-[10px] font-bold px-1.5 py-0.5 rounded-full">{badge}</span>
+      )}
+    </button>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   INLINE EDITABLE TEXT — click-to-edit field that looks
+   like printed text. On focus it shows a subtle underline.
+   ═══════════════════════════════════════════════════════ */
+function InlineEdit({ value, onChange, className = "", multiline = false, placeholder = "", style }: {
+  value: string; onChange: (v: string) => void; className?: string; multiline?: boolean; placeholder?: string; style?: React.CSSProperties;
+}) {
+  const isPreview = React.useContext(PreviewContext);
+  if (isPreview) {
+    return multiline
+      ? <p className={className} style={style}>{value || <span className="text-gray-400 italic">{placeholder}</span>}</p>
+      : <span className={`inline-block ${className}`} style={style}>{value || <span className="text-gray-400 italic">{placeholder}</span>}</span>;
+  }
+  if (multiline) {
+    return (
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={3}
+        style={style}
+        className={`bg-transparent outline-none resize-none w-full border-b border-transparent hover:border-gray-300 focus:border-brand-cyan transition ${className}`}
+      />
+    );
+  }
+  return (
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={style}
+      className={`bg-transparent outline-none w-full border-b border-transparent hover:border-gray-300 focus:border-brand-cyan transition ${className}`}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESUME QUALITY CHECK LOGIC
+   ═══════════════════════════════════════════════════════ */
+function runResumeChecks(resume: ResumeData) {
+  const checks: { label: string; pass: boolean; tip: string }[] = [];
+  checks.push({ label: "Full name provided", pass: resume.name.length > 0 && resume.name !== "Your Full Name", tip: "Add your real name." });
+  checks.push({ label: "Professional title", pass: resume.title.length > 0 && resume.title !== "Professional Title", tip: "Set a professional title." });
+  checks.push({ label: "Email address", pass: resume.email.includes("@") && resume.email !== "email@example.com", tip: "Add a valid email." });
+  checks.push({ label: "Phone number", pass: resume.phone.length >= 7 && resume.phone !== "(555) 123-4567", tip: "Add your real phone number." });
+  checks.push({ label: "Summary (50+ chars)", pass: resume.summary.length >= 50 && !resume.summary.includes("[industry"), tip: "Write a compelling summary." });
+  checks.push({ label: "At least 1 experience", pass: resume.experience.length >= 1 && resume.experience[0].company !== "Company Name", tip: "Add work experience." });
+  checks.push({ label: "Bullets with metrics", pass: resume.experience.some((e) => e.bullets.some((b) => /\d+/.test(b) && b.length > 20)), tip: "Add quantified bullet points." });
+  checks.push({ label: "5+ skills listed", pass: resume.skills.filter((s) => s.length > 0).length >= 5, tip: "List at least 5 skills." });
+  checks.push({ label: "Education included", pass: resume.education.length >= 1 && resume.education[0].school !== "University Name", tip: "Add education." });
+  checks.push({ label: "LinkedIn profile", pass: resume.linkedin.includes("linkedin.com/in/") && resume.linkedin !== "linkedin.com/in/yourprofile", tip: "Add LinkedIn URL." });
+  const score = Math.round((checks.filter((c) => c.pass).length / checks.length) * 100);
+  return { checks, score };
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN EDITOR PAGE
+   ═══════════════════════════════════════════════════════ */
+function ResumeEditorPage() {
+  const searchParams = useSearchParams();
+  const templateParam = searchParams.get("template");
+  const templateId = templateParam ? parseInt(templateParam, 10) : 1;
+
+  /* ── State ─────────────────────────────────────────── */
+  const [activeTemplateId, setActiveTemplateId] = useState(templateId);
+  const [resume, setResume] = useState<ResumeData>({ ...DEFAULT_RESUME });
+  const [sections, setSections] = useState<ResumeSection[]>([...DEFAULT_SECTIONS]);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [templateCategory, setTemplateCategory] = useState("All");
+  const [undoStack, setUndoStack] = useState<ResumeData[]>([]);
+  const [redoStack, setRedoStack] = useState<ResumeData[]>([]);
+  const [undoTimestamps, setUndoTimestamps] = useState<number[]>([]);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [designFont, setDesignFont] = useState(FONT_OPTIONS[0].value);
+  const [designFontSize, setDesignFontSize] = useState(FONT_SIZES[1].value);
+  const [designAccent, setDesignAccent] = useState(ACCENT_COLORS[0].value);
+  const [previewMode, setPreviewMode] = useState(false);
+  const uploadRef = useRef<HTMLInputElement>(null);
+
+  const templateInfo = TEMPLATE_REGISTRY.find((t) => t.id === activeTemplateId) || TEMPLATE_REGISTRY[0];
+
+  /* ── Update w/ undo ────────────────────────────────── */
+  const updateResume = useCallback((updater: (prev: ResumeData) => ResumeData) => {
+    setResume((prev) => {
+      setUndoStack((s) => [...s.slice(-30), prev]);
+      setRedoStack([]);
+      setUndoTimestamps((ts) => [...ts.slice(-30), Date.now()]);
+      return updater(prev);
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    setUndoStack((stack) => {
+      if (stack.length === 0) return stack;
+      const prev = stack[stack.length - 1];
+      setResume((cur) => { setRedoStack((rs) => [...rs, cur]); return prev; });
+      return stack.slice(0, -1);
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    setRedoStack((stack) => {
+      if (stack.length === 0) return stack;
+      const next = stack[stack.length - 1];
+      setResume((cur) => { setUndoStack((us) => [...us, cur]); return next; });
+      return stack.slice(0, -1);
+    });
+  }, []);
+
+  /* ── Keyboard shortcuts ────────────────────────────── */
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && e.shiftKey) { e.preventDefault(); redo(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); handleSave(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [undo, redo]);
+
+  /* ── Save ──────────────────────────────────────────── */
+  const handleSave = useCallback(() => {
+    setSaving(true);
+    localStorage.setItem(`resume-draft-${activeTemplateId}`, JSON.stringify(resume));
+    setTimeout(() => { setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000); }, 400);
+  }, [resume, activeTemplateId]);
+
+  /* ── Load draft ────────────────────────────────────── */
+  useEffect(() => {
+    const d = localStorage.getItem(`resume-draft-${activeTemplateId}`);
+    if (d) { try { setResume(JSON.parse(d)); } catch { /* ignore */ } }
+  }, [activeTemplateId]);
+
+  /* ── Section management ────────────────────────────── */
+  const moveSection = (idx: number, dir: "up" | "down") => {
+    setSections((prev) => {
+      const arr = [...prev]; const sw = dir === "up" ? idx - 1 : idx + 1;
+      if (sw < 0 || sw >= arr.length) return prev;
+      [arr[idx], arr[sw]] = [arr[sw], arr[idx]]; return arr;
+    });
+  };
+  const toggleSection = (id: string) => { setSections((p) => p.map((s) => s.id === id ? { ...s, visible: !s.visible } : s)); };
+
+  /* ── Export / Share ─────────────────────────────────── */
+  const handleExportPDF = useCallback(() => { window.print(); }, []);
+  const handleShare = useCallback(() => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000);
+    });
+  }, []);
+
+  /* ── Upload Resume ──────────────────────────────────── */
+  const handleUploadResume = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      if (file.name.endsWith('.json')) {
+        try {
+          const data = JSON.parse(text) as Partial<ResumeData>;
+          updateResume((prev) => ({ ...prev, ...data }));
+        } catch { alert('Invalid JSON file. Please upload a valid resume JSON.'); }
+      } else {
+        const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+        const nameMatch = lines[0] || '';
+        const emailLine = lines.find((l) => /\S+@\S+\.\S+/.test(l)) || '';
+        const emailMatch = emailLine.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || '';
+        const phoneLine = lines.find((l) => /[\d\-()\+\s]{7,}/.test(l) && !/@/.test(l)) || '';
+        const phoneMatch = phoneLine.match(/[\d\-()\+\s]{7,}/)?.[0]?.trim() || '';
+        const linkedinLine = lines.find((l) => /linkedin/i.test(l)) || '';
+        const otherLines = lines.filter((l) => l !== nameMatch && l !== emailLine && l !== phoneLine && l !== linkedinLine);
+        const summary = otherLines.slice(0, 3).join('. ');
+        const skills = otherLines.slice(3, 13).filter((l) => l.length < 40);
+        updateResume((prev) => ({
+          ...prev,
+          name: nameMatch || prev.name,
+          email: emailMatch || prev.email,
+          phone: phoneMatch || prev.phone,
+          linkedin: linkedinLine || prev.linkedin,
+          summary: summary || prev.summary,
+          skills: skills.length > 0 ? skills : prev.skills,
+        }));
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, [updateResume]);
+
+  /* ── Template select ───────────────────────────────── */
+  const selectTemplate = useCallback((id: number) => {
+    setActiveTemplateId(id);
+    const style = TEMPLATE_STYLE_MAP[id];
+    if (style) { setDesignFont(style.font); setDesignAccent(style.accent); }
+  }, []);
+  const filteredTemplates = TEMPLATE_REGISTRY.filter(
+    (t) => templateCategory === "All" || t.category === templateCategory
+  );
+
+  /* ── Check ─────────────────────────────────────────── */
+  const { checks, score } = runResumeChecks(resume);
+
+  /* ── Tool toggle ───────────────────────────────────── */
+  const toggleTool = (t: string) => { setActiveTool((p) => p === t ? null : t); setShowTemplates(false); };
+  const closeTool = () => setActiveTool(null);
+
+  /* ═════════════════════════════════════════════════════
+     RENDER
+     ═════════════════════════════════════════════════════ */
+  return (
+    <div className="h-screen flex flex-col bg-gray-100 text-gray-900 overflow-hidden print:bg-white">
+
+      {/* ── Top Bar ──────────────────────────────────── */}
+      <header className="flex items-center justify-between h-13 px-5 bg-white border-b border-gray-200 flex-shrink-0 shadow-sm print:hidden">
+        <div className="flex items-center gap-3">
+          <button onClick={() => window.close()} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+          <div className="w-px h-5 bg-gray-200" />
+          <div className="flex items-center gap-0.5">
+            <button onClick={undo} disabled={undoStack.length === 0} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 disabled:opacity-30" title="Undo"><Undo2 className="w-4 h-4" /></button>
+            <button onClick={redo} disabled={redoStack.length === 0} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 disabled:opacity-30" title="Redo"><Redo2 className="w-4 h-4" /></button>
+          </div>
+          <div className="w-px h-5 bg-gray-200" />
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-gradient-to-br from-brand-cyan to-brand-purple flex items-center justify-center">
+              <FileText className="w-3 h-3 text-white" />
+            </div>
+            <span className="text-sm font-semibold text-gray-800">{templateInfo.name}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+              {saved ? "Saved" : saving ? "Saving…" : "Draft"}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={handleSave} disabled={saving} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save
+          </button>
+          <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-brand-cyan text-white hover:bg-brand-cyan/90 shadow-lg shadow-brand-cyan/20">
+            <Download className="w-4 h-4" /> Export PDF
+          </button>
+        </div>
+      </header>
+
+      {/* ── Main ─────────────────────────────────────── */}
+      <div className="flex flex-1 overflow-hidden print:block">
+
+        {/* ── Left Sidebar ───────────────────────────── */}
+        <aside className="w-[190px] flex-shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-y-auto print:hidden">
+          <div className="p-2.5 space-y-0.5 flex-1">
+            <ToolButton icon={<ArrowUpDown className="w-4 h-4" />} label="Rearrange" active={activeTool === "rearrange"} onClick={() => toggleTool("rearrange")} />
+            <ToolButton icon={<LayoutTemplate className="w-4 h-4" />} label="Templates" active={showTemplates} onClick={() => { setShowTemplates(!showTemplates); setActiveTool(null); }} />
+            <ToolButton icon={<Palette className="w-4 h-4" />} label="Design & Font" active={activeTool === "design"} onClick={() => toggleTool("design")} />
+            <div className="border-t border-gray-100 my-1.5" />
+            <ToolButton icon={<Sparkles className="w-4 h-4" />} label="AI Improve" badge={resume.experience.reduce((a, e) => a + e.bullets.length, 0)} active={activeTool === "ai"} onClick={() => toggleTool("ai")} />
+            <ToolButton icon={<CheckCircle className="w-4 h-4" />} label="Check" active={activeTool === "check"} onClick={() => toggleTool("check")} />
+            <div className="border-t border-gray-100 my-1.5" />
+            <ToolButton icon={<Download className="w-4 h-4" />} label="Download" onClick={handleExportPDF} />
+            <ToolButton icon={<Share2 className="w-4 h-4" />} label={copiedLink ? "Copied!" : "Share"} onClick={handleShare} />
+            <div className="border-t border-gray-100 my-1.5" />
+            <ToolButton icon={<Upload className="w-4 h-4" />} label="Upload Resume" onClick={() => uploadRef.current?.click()} />
+            <input ref={uploadRef} type="file" accept=".txt,.json" className="hidden" onChange={handleUploadResume} />
+            <ToolButton icon={<Eye className="w-4 h-4" />} label={previewMode ? "Edit Mode" : "Preview"} active={previewMode} onClick={() => setPreviewMode(!previewMode)} />
+            <div className="border-t border-gray-100 my-1.5" />
+            <ToolButton icon={<History className="w-4 h-4" />} label="History" active={activeTool === "history"} onClick={() => toggleTool("history")} />
+          </div>
+
+          {/* Section nav */}
+          <div className="border-t border-gray-200 p-2.5">
+            <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold px-2.5 mb-1.5">Sections</p>
+            {sections.map((s) => (
+              <div key={s.id}
+                onClick={() => { setActiveSection(s.id); document.getElementById(`sec-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+                className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs cursor-pointer transition ${
+                  activeSection === s.id ? "bg-brand-cyan/10 text-brand-cyan font-medium" : s.visible ? "text-gray-600 hover:bg-gray-50" : "text-gray-400 line-through hover:bg-gray-50"
+                }`}>
+                {SECTION_ICONS[s.type]}
+                <span className="truncate">{s.title}</span>
+                <span role="button" onClick={(e) => { e.stopPropagation(); toggleSection(s.id); }} className="ml-auto opacity-0 group-hover:opacity-100">
+                  {s.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                </span>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* ── Template Picker ────────────────────────── */}
+        {showTemplates && (
+          <div className="w-[260px] flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto p-3 space-y-3 print:hidden">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-700">Templates</h3>
+              <button onClick={() => setShowTemplates(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {TEMPLATE_CATEGORIES.map((cat) => (
+                <button key={cat} onClick={() => setTemplateCategory(cat)}
+                  className={`px-2 py-0.5 rounded text-xs font-medium transition ${templateCategory === cat ? "bg-brand-cyan/10 text-brand-cyan" : "text-gray-500 hover:bg-gray-100"}`}>
+                  {cat}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {filteredTemplates.map((t) => (
+                <button key={t.id} onClick={() => selectTemplate(t.id)}
+                  className={`group relative rounded-lg overflow-hidden border transition-all ${t.id === activeTemplateId ? "border-brand-cyan ring-2 ring-brand-cyan/30" : "border-gray-200 hover:border-gray-400"}`}>
+                  <TemplatePreview id={t.id} />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <span className="text-xs font-semibold text-white bg-black/60 px-2 py-0.5 rounded">Use</span>
+                  </div>
+                  {t.id === activeTemplateId && (
+                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-brand-cyan flex items-center justify-center"><CheckCircle className="w-3 h-3 text-white" /></div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Tool Panels ────────────────────────────── */}
+        {activeTool && !showTemplates && (
+          <div className="w-[280px] flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto print:hidden">
+
+            {/* Rearrange */}
+            {activeTool === "rearrange" && (
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-gray-700">Rearrange</h3><button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button></div>
+                <p className="text-xs text-gray-500">Move sections up/down.</p>
+                {sections.map((s, idx) => (
+                  <div key={s.id} className="flex items-center gap-2 p-2.5 rounded-lg border border-gray-200 bg-gray-50">
+                    <GripVertical className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-700 flex-1 font-medium">{s.title}</span>
+                    <button onClick={() => moveSection(idx, "up")} disabled={idx === 0} className="p-1 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"><MoveUp className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => moveSection(idx, "down")} disabled={idx === sections.length - 1} className="p-1 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"><MoveDown className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => toggleSection(s.id)} className="p-1 rounded hover:bg-gray-200 text-gray-500">
+                      {s.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Design & Font */}
+            {activeTool === "design" && (
+              <div className="p-4 space-y-5">
+                <div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-gray-700">Design & Font</h3><button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button></div>
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Font</label>
+                  <div className="mt-1.5 space-y-1">
+                    {FONT_OPTIONS.map((f) => (
+                      <button key={f.value} onClick={() => setDesignFont(f.value)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${designFont === f.value ? "bg-brand-cyan/10 text-brand-cyan font-medium border border-brand-cyan/30" : "text-gray-700 hover:bg-gray-100 border border-transparent"}`}
+                        style={{ fontFamily: f.value }}>{f.label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Size</label>
+                  <div className="mt-1.5 grid grid-cols-3 gap-1">
+                    {FONT_SIZES.map((s) => (
+                      <button key={s.value} onClick={() => setDesignFontSize(s.value)}
+                        className={`px-2 py-2 rounded-lg text-sm text-center transition ${designFontSize === s.value ? "bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/30" : "text-gray-700 hover:bg-gray-100 border border-gray-200"}`}>{s.label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Accent</label>
+                  <div className="mt-1.5 grid grid-cols-4 gap-2">
+                    {ACCENT_COLORS.map((c) => (
+                      <button key={c.value} onClick={() => setDesignAccent(c.value)}
+                        className={`flex flex-col items-center gap-1 p-1.5 rounded-lg transition ${designAccent === c.value ? "bg-gray-100 ring-2 ring-brand-cyan/40" : "hover:bg-gray-50"}`}>
+                        <div className="w-7 h-7 rounded-full border-2 border-white shadow" style={{ backgroundColor: c.value }} />
+                        <span className="text-[9px] text-gray-500">{c.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AI Improve */}
+            {activeTool === "ai" && (
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-gray-700">AI Improve</h3><button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button></div>
+                <div className="bg-gradient-to-br from-purple-50 to-cyan-50 rounded-lg p-3 border border-purple-100">
+                  <div className="flex items-center gap-2 mb-1"><Wand2 className="w-4 h-4 text-brand-purple" /><span className="text-xs font-semibold text-gray-800">AI Enhancement</span></div>
+                  <p className="text-[11px] text-gray-600 leading-relaxed">Strengthen bullets with metrics, action verbs & impact.</p>
+                </div>
+                {resume.experience.map((exp, eIdx) => (
+                  <div key={eIdx} className="space-y-1.5">
+                    <p className="text-xs font-medium text-gray-700">{exp.role} – {exp.company}</p>
+                    {exp.bullets.map((bullet, bIdx) => {
+                      const hasMetrics = /\d+/.test(bullet);
+                      const hasVerb = /^(Led|Managed|Developed|Implemented|Created|Built|Reduced|Increased|Improved|Launched|Drove|Delivered|Optimized|Designed|Grew)/i.test(bullet);
+                      const weak = bullet.length < 25 || (!hasMetrics && !hasVerb);
+                      return (
+                        <div key={bIdx} className={`p-2.5 rounded-lg border text-xs ${weak ? "border-amber-200 bg-amber-50" : "border-green-200 bg-green-50"}`}>
+                          <div className="flex items-start gap-2">
+                            {weak ? <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" /> : <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />}
+                            <div className="flex-1">
+                              <p className="text-gray-700">{bullet || "(empty)"}</p>
+                              {weak && <div className="mt-1 space-y-0.5 text-amber-600">
+                                {!hasVerb && <p>→ Start with action verb</p>}
+                                {!hasMetrics && <p>→ Add numbers / metrics</p>}
+                              </div>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Check */}
+            {activeTool === "check" && (
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-gray-700">Resume Check</h3><button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button></div>
+                <div className="text-center py-3">
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 ${score >= 80 ? "border-green-400" : score >= 50 ? "border-amber-400" : "border-red-400"}`}>
+                    <span className={`text-xl font-bold ${score >= 80 ? "text-green-600" : score >= 50 ? "text-amber-600" : "text-red-600"}`}>{score}%</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{score >= 80 ? "Great!" : score >= 50 ? "Needs work" : "Needs attention"}</p>
+                </div>
+                {checks.map((c, i) => (
+                  <div key={i} className={`flex items-start gap-2.5 p-2.5 rounded-lg ${c.pass ? "bg-green-50" : "bg-red-50"}`}>
+                    {c.pass ? <Check className="w-4 h-4 text-green-500 mt-0.5" /> : <X className="w-4 h-4 text-red-500 mt-0.5" />}
+                    <div><p className={`text-sm font-medium ${c.pass ? "text-green-700" : "text-red-700"}`}>{c.label}</p>{!c.pass && <p className="text-xs text-gray-500 mt-0.5">{c.tip}</p>}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* History */}
+            {activeTool === "history" && (
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-gray-700">Edit History</h3><button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button></div>
+                {undoStack.length === 0 ? (
+                  <div className="text-center py-6"><History className="w-8 h-8 text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-500">No history yet</p></div>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-brand-cyan/5 border border-brand-cyan/20">
+                      <div className="w-2 h-2 rounded-full bg-brand-cyan" /><p className="text-xs font-medium text-brand-cyan flex-1">Current</p>
+                    </div>
+                    {[...undoStack].reverse().map((_, idx) => {
+                      const ts = undoTimestamps[undoStack.length - 1 - idx];
+                      return (
+                        <button key={idx} onClick={() => { for (let i = 0; i <= idx; i++) undo(); }}
+                          className="w-full flex items-center gap-2.5 p-2.5 rounded-lg hover:bg-gray-100 text-left">
+                          <div className="w-2 h-2 rounded-full bg-gray-300" />
+                          <div className="flex-1"><p className="text-xs font-medium text-gray-700">Edit #{undoStack.length - idx}</p>
+                          <p className="text-[10px] text-gray-400">{ts ? new Date(ts).toLocaleTimeString() : ""}</p></div>
+                          <Undo2 className="w-3 h-3 text-gray-400" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════
+           CENTER — PAPER DOCUMENT (editable preview)
+           ═══════════════════════════════════════════════ */}
+        <div className="flex-1 overflow-y-auto flex justify-center py-8 px-4 print:p-0 print:block">
+          {previewMode && <style>{`#resume-paper .print\\:hidden { display: none !important; }`}</style>}
+          <PreviewContext.Provider value={previewMode}>
+          <div
+            id="resume-paper"
+            className="w-[800px] min-h-[1050px] bg-white shadow-2xl rounded-sm print:shadow-none print:rounded-none print:w-full relative"
+            style={{ fontFamily: designFont, fontSize: designFontSize }}
+          >
+            {previewMode && (
+              <div className="absolute top-3 right-3 bg-brand-cyan text-white text-[10px] font-bold px-2 py-0.5 rounded z-10 print:hidden">PREVIEW</div>
+            )}
+            {/* ── Header / Contact ──────────────────── */}
+            {sections.find((s) => s.id === "contact")?.visible && (
+              <div
+                id="sec-contact"
+                onClick={() => setActiveSection("contact")}
+                className={`px-12 pt-10 pb-6 border-b-2 transition cursor-text ${activeSection === "contact" ? "bg-gray-50/50" : ""}`}
+                style={{ borderColor: designAccent }}
+              >
+                <InlineEdit
+                  value={resume.name}
+                  onChange={(v) => updateResume((r) => ({ ...r, name: v }))}
+                  placeholder="Your Full Name"
+                  className="text-3xl font-bold tracking-tight text-gray-900 w-full"
+                />
+                <InlineEdit
+                  value={resume.title}
+                  onChange={(v) => updateResume((r) => ({ ...r, title: v }))}
+                  placeholder="Professional Title"
+                  className="text-lg mt-1"
+                  style={{ color: designAccent }}
+                />
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-gray-600" style={{ fontSize: "0.85em" }}>
+                  <div className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" style={{ color: designAccent }} />
+                    <InlineEdit value={resume.email} onChange={(v) => updateResume((r) => ({ ...r, email: v }))} placeholder="email" className="text-gray-700" />
+                  </div>
+                  <span className="text-gray-300">|</span>
+                  <div className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" style={{ color: designAccent }} />
+                    <InlineEdit value={resume.phone} onChange={(v) => updateResume((r) => ({ ...r, phone: v }))} placeholder="phone" className="text-gray-700" />
+                  </div>
+                  <span className="text-gray-300">|</span>
+                  <div className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" style={{ color: designAccent }} />
+                    <InlineEdit value={resume.location} onChange={(v) => updateResume((r) => ({ ...r, location: v }))} placeholder="City, State" className="text-gray-700" />
+                  </div>
+                  <span className="text-gray-300">|</span>
+                  <div className="flex items-center gap-1"><Linkedin className="w-3.5 h-3.5" style={{ color: designAccent }} />
+                    <InlineEdit value={resume.linkedin} onChange={(v) => updateResume((r) => ({ ...r, linkedin: v }))} placeholder="LinkedIn" className="text-gray-700" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Dynamic sections in order ──────────── */}
+            <div className="px-12 py-6 space-y-6">
+              {sections.filter((s) => s.id !== "contact" && s.visible).map((sec) => (
+                <div key={sec.id} id={`sec-${sec.id}`} onClick={() => setActiveSection(sec.id)}
+                  className={`group transition rounded-md ${activeSection === sec.id ? "bg-gray-50/50 -mx-3 px-3 py-2" : ""}`}>
+
+                  {/* ── Section heading ─── */}
+                  <h2 className="text-sm font-bold uppercase tracking-[0.15em] pb-1.5 mb-3 border-b-[1.5px]"
+                    style={{ color: designAccent, borderColor: designAccent + "40" }}>
+                    {sec.title}
+                  </h2>
+
+                  {/* ── SUMMARY ─── */}
+                  {sec.type === "summary" && (
+                    <InlineEdit value={resume.summary} onChange={(v) => updateResume((r) => ({ ...r, summary: v }))} multiline placeholder="Write your professional summary…" className="text-gray-700 leading-relaxed" />
+                  )}
+
+                  {/* ── EXPERIENCE ─── */}
+                  {sec.type === "experience" && (
+                    <div className="space-y-5">
+                      {resume.experience.map((exp, idx) => (
+                        <div key={idx} className="group/exp relative">
+                          {/* delete btn */}
+                          <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, experience: r.experience.filter((_, i) => i !== idx) })); }}
+                            className="absolute -right-1 top-0 opacity-0 group-hover/exp:opacity-100 p-1 rounded text-gray-400 hover:text-red-500 transition print:hidden">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <div className="flex items-baseline justify-between gap-4">
+                            <InlineEdit value={exp.role} onChange={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((x, i) => i === idx ? { ...x, role: v } : x) }))} className="font-semibold text-gray-900" placeholder="Job Title" />
+                            <InlineEdit value={exp.dateRange} onChange={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((x, i) => i === idx ? { ...x, dateRange: v } : x) }))} className="text-gray-500 text-right whitespace-nowrap flex-shrink-0 w-[180px]" placeholder="Date range" />
+                          </div>
+                          <div className="flex items-baseline gap-3">
+                            <InlineEdit value={exp.company} onChange={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((x, i) => i === idx ? { ...x, company: v } : x) }))} className="text-gray-600 italic" placeholder="Company" />
+                            <span className="text-gray-300">|</span>
+                            <InlineEdit value={exp.location} onChange={(v) => updateResume((r) => ({ ...r, experience: r.experience.map((x, i) => i === idx ? { ...x, location: v } : x) }))} className="text-gray-500" placeholder="Location" />
+                          </div>
+                          <ul className="mt-1.5 space-y-0.5 list-none">
+                            {exp.bullets.map((b, bIdx) => (
+                              <li key={bIdx} className="flex items-start gap-2 group/b">
+                                <span className="mt-[6px] w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: designAccent }} />
+                                <InlineEdit value={b}
+                                  onChange={(v) => updateResume((r) => ({
+                                    ...r,
+                                    experience: r.experience.map((x, i) => i === idx ? { ...x, bullets: x.bullets.map((bb, bi) => bi === bIdx ? v : bb) } : x)
+                                  }))}
+                                  className="text-gray-700 flex-1" placeholder="Describe achievement…" />
+                                <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, experience: r.experience.map((x, i) => i === idx ? { ...x, bullets: x.bullets.filter((_, bi) => bi !== bIdx) } : x) })); }}
+                                  className="opacity-0 group-hover/b:opacity-100 p-0.5 text-gray-400 hover:text-red-500 print:hidden"><X className="w-3 h-3" /></button>
+                              </li>
+                            ))}
+                          </ul>
+                          <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, experience: r.experience.map((x, i) => i === idx ? { ...x, bullets: [...x.bullets, ""] } : x) })); }}
+                            className="flex items-center gap-1 text-xs mt-1 ml-3.5 text-gray-400 hover:text-brand-cyan transition print:hidden"><Plus className="w-3 h-3" /> bullet</button>
+                        </div>
+                      ))}
+                      <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, experience: [...r.experience, { company: "", role: "", dateRange: "", location: "", bullets: [""] }] })); }}
+                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-brand-cyan transition print:hidden"><Plus className="w-3.5 h-3.5" /> Add position</button>
+                    </div>
+                  )}
+
+                  {/* ── EDUCATION ─── */}
+                  {sec.type === "education" && (
+                    <div className="space-y-3">
+                      {resume.education.map((edu, idx) => (
+                        <div key={idx} className="group/edu relative">
+                          <div className="flex justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <InlineEdit value={edu.degree} onChange={(v) => updateResume((r) => ({ ...r, education: r.education.map((x, i) => i === idx ? { ...x, degree: v } : x) }))} className="font-semibold text-gray-900" placeholder="Degree" />
+                              <InlineEdit value={edu.school} onChange={(v) => updateResume((r) => ({ ...r, education: r.education.map((x, i) => i === idx ? { ...x, school: v } : x) }))} className="text-gray-600 italic" placeholder="School" />
+                            </div>
+                            <InlineEdit value={edu.year} onChange={(v) => updateResume((r) => ({ ...r, education: r.education.map((x, i) => i === idx ? { ...x, year: v } : x) }))} className="text-gray-500 text-right w-[80px] flex-shrink-0" placeholder="Year" />
+                          </div>
+                          <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, education: r.education.filter((_, i) => i !== idx) })); }}
+                            className="absolute -right-1 top-0 opacity-0 group-hover/edu:opacity-100 p-1 text-gray-400 hover:text-red-500 print:hidden"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ))}
+                      <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, education: [...r.education, { school: "", degree: "", year: "" }] })); }}
+                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-brand-cyan transition print:hidden"><Plus className="w-3.5 h-3.5" /> Add education</button>
+                    </div>
+                  )}
+
+                  {/* ── SKILLS ─── */}
+                  {sec.type === "skills" && (
+                    <div className="flex flex-wrap gap-2">
+                      {resume.skills.map((sk, idx) => (
+                        <div key={idx} className="group/sk flex items-center gap-1 rounded-md px-2.5 py-1 border border-gray-200 bg-gray-50/50 hover:border-gray-300 transition">
+                          <InlineEdit value={sk} onChange={(v) => updateResume((r) => ({ ...r, skills: r.skills.map((s, i) => i === idx ? v : s) }))} className="text-gray-700 w-24 focus:w-36 transition-all" placeholder="Skill" />
+                          <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, skills: r.skills.filter((_, i) => i !== idx) })); }}
+                            className="opacity-0 group-hover/sk:opacity-100 text-gray-400 hover:text-red-500 print:hidden"><X className="w-3 h-3" /></button>
+                        </div>
+                      ))}
+                      <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, skills: [...r.skills, ""] })); }}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-dashed border-gray-300 text-xs text-gray-400 hover:text-brand-cyan hover:border-brand-cyan transition print:hidden"><Plus className="w-3 h-3" /> Add</button>
+                    </div>
+                  )}
+
+                  {/* ── CERTIFICATIONS ─── */}
+                  {sec.type === "certifications" && (
+                    <div className="space-y-1.5">
+                      {resume.certifications.map((cert, idx) => (
+                        <div key={idx} className="group/cert flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: designAccent }} />
+                          <InlineEdit value={cert} onChange={(v) => updateResume((r) => ({ ...r, certifications: r.certifications.map((c, i) => i === idx ? v : c) }))} className="text-gray-700 flex-1" placeholder="Certification" />
+                          <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, certifications: r.certifications.filter((_, i) => i !== idx) })); }}
+                            className="opacity-0 group-hover/cert:opacity-100 text-gray-400 hover:text-red-500 print:hidden"><X className="w-3 h-3" /></button>
+                        </div>
+                      ))}
+                      <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, certifications: [...r.certifications, ""] })); }}
+                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-brand-cyan transition print:hidden"><Plus className="w-3.5 h-3.5" /> Add</button>
+                    </div>
+                  )}
+
+                  {/* ── PROJECTS ─── */}
+                  {sec.type === "projects" && (
+                    <div className="space-y-4">
+                      {resume.projects.map((proj, idx) => (
+                        <div key={idx} className="group/proj relative">
+                          <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, projects: r.projects.filter((_, i) => i !== idx) })); }}
+                            className="absolute -right-1 top-0 opacity-0 group-hover/proj:opacity-100 p-1 text-gray-400 hover:text-red-500 print:hidden"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <div className="flex items-baseline gap-3">
+                            <InlineEdit value={proj.name} onChange={(v) => updateResume((r) => ({ ...r, projects: r.projects.map((p, i) => i === idx ? { ...p, name: v } : p) }))} className="font-semibold text-gray-900" placeholder="Project Name" />
+                            <span className="text-gray-300">|</span>
+                            <InlineEdit value={proj.tech} onChange={(v) => updateResume((r) => ({ ...r, projects: r.projects.map((p, i) => i === idx ? { ...p, tech: v } : p) }))} className="text-gray-500 italic" placeholder="Technologies" />
+                          </div>
+                          <InlineEdit value={proj.description} onChange={(v) => updateResume((r) => ({ ...r, projects: r.projects.map((p, i) => i === idx ? { ...p, description: v } : p) }))} className="text-gray-700" placeholder="Description…" />
+                        </div>
+                      ))}
+                      <button onClick={(e) => { e.stopPropagation(); updateResume((r) => ({ ...r, projects: [...r.projects, { name: "", description: "", tech: "" }] })); }}
+                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-brand-cyan transition print:hidden"><Plus className="w-3.5 h-3.5" /> Add project</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          </PreviewContext.Provider>
+        </div>
+      </div>
+    </div>
+  );
+}

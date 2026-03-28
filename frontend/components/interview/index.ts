@@ -28,3 +28,7 @@ export {
   RecoveryOverlay,
   type FailureState,
 } from './FailureStates';
+
+// Interview Intelligence Components
+export { default as IntelligencePanel } from './IntelligencePanel';
+export { default as CompetencyRadar } from './CompetencyRadar';

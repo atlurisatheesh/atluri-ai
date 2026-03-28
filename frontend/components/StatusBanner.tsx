@@ -2,6 +2,12 @@
 
 type BannerType = "error" | "success" | "info";
 
+const bannerClasses: Record<BannerType, string> = {
+  error: "bg-[#fef2f2] border-[#fecaca] text-[#991b1b]",
+  success: "bg-[#ecfdf5] border-[#a7f3d0] text-[#065f46]",
+  info: "bg-[#eff6ff] border-[#bfdbfe] text-[#1d4ed8]",
+};
+
 export default function StatusBanner({
   type,
   message,
@@ -15,55 +21,15 @@ export default function StatusBanner({
 }) {
   if (!message) return null;
 
-  const palette =
-    type === "error"
-      ? {
-          background: "#fef2f2",
-          border: "#fecaca",
-          color: "#991b1b",
-        }
-      : type === "success"
-      ? {
-          background: "#ecfdf5",
-          border: "#a7f3d0",
-          color: "#065f46",
-        }
-      : {
-          background: "#eff6ff",
-          border: "#bfdbfe",
-          color: "#1d4ed8",
-        };
-
   return (
     <div
-      style={{
-        marginTop: 12,
-        borderRadius: 10,
-        border: `1px solid ${palette.border}`,
-        background: palette.background,
-        color: palette.color,
-        padding: "10px 12px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 10,
-      }}
+      className={`mt-3 rounded-[10px] border py-2.5 px-3 flex items-center justify-between gap-2.5 ${bannerClasses[type]}`}
     >
-      <span style={{ fontSize: 13, lineHeight: 1.4 }}>{message}</span>
+      <span className="text-[13px] leading-[1.4]">{message}</span>
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          style={{
-            border: "1px solid currentColor",
-            background: "transparent",
-            color: "inherit",
-            borderRadius: 8,
-            padding: "6px 10px",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: 12,
-            whiteSpace: "nowrap",
-          }}
+          className="border border-current bg-transparent text-inherit rounded-lg py-1.5 px-2.5 cursor-pointer font-semibold text-xs whitespace-nowrap"
         >
           {actionLabel}
         </button>

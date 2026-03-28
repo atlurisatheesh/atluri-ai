@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import { apiRequest, apiRequestRaw } from "../lib/api";
 import { getAccessTokenOrThrow } from "../lib/auth";
@@ -106,38 +106,38 @@ export default function ChatBox() {
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.container}>
-        <div style={styles.headerWrap}>
-          <div style={styles.header}>Interview Copilot</div>
-          <div style={styles.headerSub}>Live guidance grounded in your resume, job target, and performance context.</div>
+    <div className="w-full max-w-[900px] flex justify-center items-stretch">
+      <div className="w-full min-h-[calc(100vh-48px)] bg-[color-mix(in_srgb,var(--bg)_84%,transparent)] rounded-[14px] flex flex-col border border-[var(--border-subtle)] shadow-[0_14px_34px_color-mix(in_srgb,var(--bg)_45%,transparent)]">
+        <div className="px-[18px] py-3.5 border-b border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]">
+          <div className="text-[17px] font-extrabold text-[var(--text-primary)]">Interview Copilot</div>
+          <div className="mt-1 text-xs text-[var(--text-muted)]">Live guidance grounded in your resume, job target, and performance context.</div>
         </div>
 
-        <div style={styles.chat}>
-          {loadingHistory && <div style={styles.loadingText}>Loading history...</div>}
+        <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
+          {loadingHistory && <div className="text-[var(--text-muted)] text-[13px]">Loading history...</div>}
           {!loadingHistory && messages.length === 0 && (
-            <div style={styles.emptyState}>Ask your first question to start simulation coaching.</div>
+            <div className="rounded-[10px] border border-dashed border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--bg)_58%,transparent)] py-2.5 px-3 text-xs text-[var(--text-muted)]">Ask your first question to start simulation coaching.</div>
           )}
           {messages.map((m, i) => (
-            <div key={i} style={m.role === "user" ? styles.user : styles.ai}>
+            <div key={i} className={m.role === "user" ? "self-end bg-[var(--accent)] text-[var(--bg)] py-2.5 px-3.5 rounded-xl max-w-[75%] leading-[1.45] whitespace-pre-wrap" : "self-start bg-[var(--surface-2)] text-[var(--text-primary)] py-2.5 px-3.5 rounded-xl max-w-[75%] leading-[1.45] whitespace-pre-wrap"}>
               {m.text}
             </div>
           ))}
         </div>
 
-        <div style={styles.inputBox}>
+        <div className="flex p-3 border-t border-[var(--border-subtle)] gap-2.5">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask something..."
-            style={styles.input}
+            className="flex-1 py-2.5 px-3 rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-primary)] outline-none"
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
-          <button onClick={sendMessage} style={styles.button}>
+          <button onClick={sendMessage} className="bg-[var(--accent)] text-[var(--bg)] border border-[var(--border-subtle)] px-[18px] rounded-[10px] cursor-pointer font-extrabold">
             {sending ? "Sending..." : "Send"}
           </button>
         </div>
-        <div style={{ padding: "0 12px 12px" }}>
+        <div className="px-3 pb-3">
           <StatusBanner
             type={status.type}
             message={status.message}
@@ -151,101 +151,3 @@ export default function ChatBox() {
 }
 
 // ---------- Styles (UNCHANGED) ----------
-const styles: any = {
-  page: {
-    width: "100%",
-    maxWidth: 900,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "stretch",
-  },
-  container: {
-    width: "100%",
-    minHeight: "calc(100vh - 48px)",
-    background: "color-mix(in srgb, var(--bg) 84%, transparent)",
-    borderRadius: 14,
-    display: "flex",
-    flexDirection: "column",
-    border: "1px solid var(--border-subtle)",
-    boxShadow: "0 14px 34px color-mix(in srgb, var(--bg) 45%, transparent)",
-  },
-  headerWrap: {
-    padding: "14px 18px",
-    borderBottom: "1px solid var(--border-subtle)",
-    background: "color-mix(in srgb, var(--accent) 10%, transparent)",
-  },
-  header: {
-    fontSize: 17,
-    fontWeight: 800,
-    color: "var(--text-primary)",
-  },
-  headerSub: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "var(--text-muted)",
-  },
-  chat: {
-    flex: 1,
-    padding: 16,
-    overflowY: "auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  emptyState: {
-    borderRadius: 10,
-    border: "1px dashed var(--border-subtle)",
-    background: "color-mix(in srgb, var(--bg) 58%, transparent)",
-    padding: "10px 12px",
-    fontSize: 12,
-    color: "var(--text-muted)",
-  },
-  loadingText: {
-    color: "var(--text-muted)",
-    fontSize: 13,
-  },
-  user: {
-    alignSelf: "flex-end",
-    background: "var(--accent)",
-    color: "var(--bg)",
-    padding: "10px 14px",
-    borderRadius: 12,
-    maxWidth: "75%",
-    lineHeight: 1.45,
-    whiteSpace: "pre-wrap",
-  },
-  ai: {
-    alignSelf: "flex-start",
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    padding: "10px 14px",
-    borderRadius: 12,
-    maxWidth: "75%",
-    lineHeight: 1.45,
-    whiteSpace: "pre-wrap",
-  },
-  inputBox: {
-    display: "flex",
-    padding: 12,
-    borderTop: "1px solid var(--border-subtle)",
-    gap: 10,
-  },
-  input: {
-    flex: 1,
-    padding: "10px 12px",
-    borderRadius: 10,
-    border: "1px solid var(--border-subtle)",
-    background: "var(--surface-1)",
-    color: "var(--text-primary)",
-    outline: "none",
-  },
-  button: {
-    background: "var(--accent)",
-    color: "var(--bg)",
-    border: "1px solid var(--border-subtle)",
-    padding: "0 18px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 800,
-  },
-};

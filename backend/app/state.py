@@ -15,6 +15,12 @@ def _empty_context() -> Dict[str, Any]:
         "resume_text": "",
         "job_description": "",
         "company_mode": "general",
+        "company": "",
+        "position": "",
+        "objective": "",
+        "industry": "default",
+        "experience": "mid",
+        "company_research": "",
         "assist": {
             "intensity": 2,
         },

@@ -9,10 +9,12 @@ from sqlalchemy.orm import DeclarativeBase
 
 logger = logging.getLogger("app.db.database")
 
-DATABASE_URL = os.getenv(
+_raw_url = os.getenv(
     "DATABASE_URL",
     "postgresql+asyncpg://postgres:localdev123@127.0.0.1:5432/linkedin_ai",
 )
+# Render.com provides postgres:// but asyncpg needs postgresql+asyncpg://
+DATABASE_URL = _raw_url.replace("postgres://", "postgresql+asyncpg://", 1) if _raw_url.startswith("postgres://") else _raw_url
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -47,6 +49,7 @@ async def init_db() -> None:
     from app.db.models import (  # noqa: F401 – ensure models are registered
         User, InterviewSession, AIResponse, Document, MockResult,
         Question, UserQuestionProgress, CreditTransaction, MentorSession,
+        ResumeAnalysis,
     )
 
     async with engine.begin() as conn:

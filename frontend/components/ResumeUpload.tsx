@@ -50,13 +50,14 @@ export default function ResumeUpload() {
   };
 
   return (
-    <div style={styles.box}>
-      <h2 style={styles.title}>Upload Resume</h2>
-      <p style={styles.subtitle}>Upload your PDF or DOCX resume to personalize responses.</p>
+    <div className="w-full max-w-[900px] p-6 bg-white rounded-[14px] border border-[#e4e7ec] shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+      <h2 className="m-0 text-xl text-[#0a66c2]">Upload Resume</h2>
+      <p className="mt-2 mb-4 text-[#4b5563] text-sm">Upload your PDF or DOCX resume to personalize responses.</p>
       <input
         type="file"
         accept=".pdf,.docx"
-        style={styles.file}
+        title="Upload resume file"
+        className="block w-full py-3 px-2.5 border border-[#d0d7de] rounded-[10px] bg-white"
         disabled={uploading}
         onChange={(e) => {
           const file = e.target.files?.[0];
@@ -75,33 +76,3 @@ export default function ResumeUpload() {
   );
 }
 
-const styles: any = {
-  box: {
-    width: "100%",
-    maxWidth: 900,
-    padding: 24,
-    background: "#fff",
-    borderRadius: 14,
-    border: "1px solid #e4e7ec",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.08)",
-  },
-  title: {
-    margin: 0,
-    fontSize: 20,
-    color: "#0a66c2",
-  },
-  subtitle: {
-    marginTop: 8,
-    marginBottom: 16,
-    color: "#4b5563",
-    fontSize: 14,
-  },
-  file: {
-    display: "block",
-    width: "100%",
-    padding: "12px 10px",
-    border: "1px solid #d0d7de",
-    borderRadius: 10,
-    background: "#fff",
-  },
-};

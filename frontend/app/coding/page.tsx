@@ -96,7 +96,7 @@ export default function CodingPage() {
           <GlassCard className="lg:col-span-5 p-0 overflow-hidden">
             {/* Editor toolbar */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02]">
-              <select value={language} onChange={(e) => setLanguage(e.target.value)} className="text-xs bg-transparent text-textSecondary outline-none cursor-pointer">
+              <select title="Programming language" value={language} onChange={(e) => setLanguage(e.target.value)} className="text-xs bg-transparent text-textSecondary outline-none cursor-pointer">
                 {["python", "javascript", "typescript", "java", "cpp", "go"].map((l) => (
                   <option key={l} value={l} className="bg-canvas">{l.charAt(0).toUpperCase() + l.slice(1)}</option>
                 ))}

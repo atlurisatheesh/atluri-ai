@@ -8,7 +8,7 @@ import {
   Home, Zap, Code2, Theater, Users, EyeOff, FileText,
   BookOpen, BarChart3, Settings, CreditCard, HelpCircle,
   ChevronLeft, ChevronRight, LogOut, MessageSquare,
-  Brain, Target, Shield, Database,
+  Brain, Target, Shield, Database, Search, DollarSign, Linkedin, Map,
 } from "lucide-react";
 
 /* ── Sidebar collapsed context ────────────────────────── */
@@ -30,6 +30,11 @@ const navItems: NavItem[] = [
   { icon: <Database className="w-5 h-5" />, label: "Documents", path: "/documents" },
   { icon: <BookOpen className="w-5 h-5" />, label: "Question Bank", path: "/questions" },
   { icon: <BarChart3 className="w-5 h-5" />, label: "Analytics", path: "/analytics" },
+  { divider: true },
+  { icon: <Map className="w-5 h-5" />, label: "Context Map", path: "/context-map" },
+  { icon: <Search className="w-5 h-5" />, label: "JD Analyzer", path: "/jd-analyzer" },
+  { icon: <DollarSign className="w-5 h-5" />, label: "Negotiation", path: "/negotiation" },
+  { icon: <Linkedin className="w-5 h-5" />, label: "LinkedIn Optimizer", path: "/linkedin-optimizer" },
   { divider: true },
   { icon: <Settings className="w-5 h-5" />, label: "Settings", path: "/settings" },
   { icon: <CreditCard className="w-5 h-5" />, label: "Billing & Credits", path: "/billing" },

@@ -108,7 +108,7 @@ export default function DocumentsPage() {
           onDrop={(e: React.DragEvent) => { e.preventDefault(); setDragOver(false); handleUpload(); }}
           onClick={() => fileRef.current?.click()}
         >
-          <input ref={fileRef} type="file" multiple accept=".pdf,.docx,.txt" className="hidden" onChange={handleUpload} />
+          <input ref={fileRef} type="file" multiple accept=".pdf,.docx,.txt" title="Upload documents" className="hidden" onChange={handleUpload} />
           <Upload className="w-8 h-8 mx-auto text-textMuted mb-2" />
           <p className="text-sm text-textPrimary">Drop files here or click to upload</p>
           <p className="text-xs text-textMuted mt-1">PDF, DOCX, TXT — max 10 MB each — up to 20 documents (Pro)</p>

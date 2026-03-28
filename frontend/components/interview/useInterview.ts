@@ -29,6 +29,41 @@ interface Suggestion {
 
 type ConnectionStatus = 'connected' | 'reconnecting' | 'disconnected';
 
+// ── Interview Intelligence Types ──
+interface QuestionIntelligence {
+  questionType: string;
+  difficulty: string;
+  framework: string;
+  frameworkInstructions: Record<string, string>;
+  maxAnswerSeconds: number;
+  coachingNote: string;
+}
+
+interface KeyPhrase {
+  keyPhrase: string;
+  followWith: string;
+}
+
+interface FollowUpPrediction {
+  question: string;
+  likelihood: number;
+  skeleton: string;
+  framework: string;
+}
+
+interface SpeechCoaching {
+  chips: string[];
+  wpm: number;
+  elapsedSeconds: number;
+}
+
+interface RecoveryAssist {
+  trigger: string;
+  bridgePhrase: string;
+  redirect: string;
+  buyTime: string;
+}
+
 interface InterviewState {
   transcript: TranscriptEntry[];
   currentSuggestion: Suggestion | null;
@@ -37,6 +72,12 @@ interface InterviewState {
   isThinking: boolean;
   latencyMs: number | null;
   error: string | null;
+  // ── Intelligence state ──
+  questionIntelligence: QuestionIntelligence | null;
+  keyPhrase: KeyPhrase | null;
+  followUpPredictions: FollowUpPrediction[];
+  speechCoaching: SpeechCoaching | null;
+  recoveryAssist: RecoveryAssist | null;
 }
 
 interface UseInterviewOptions {
@@ -68,6 +109,11 @@ export function useInterview({ sessionId, token, onError }: UseInterviewOptions)
     isThinking: false,
     latencyMs: null,
     error: null,
+    questionIntelligence: null,
+    keyPhrase: null,
+    followUpPredictions: [],
+    speechCoaching: null,
+    recoveryAssist: null,
   });
 
   // Refs for WebSocket management
@@ -164,6 +210,69 @@ export function useInterview({ sessionId, token, onError }: UseInterviewOptions)
           
         case 'error':
           handleServerError(msg);
+          break;
+          
+        // ── Interview Intelligence messages ──
+        case 'question_intelligence':
+          setState(prev => ({
+            ...prev,
+            questionIntelligence: {
+              questionType: msg.question_type,
+              difficulty: msg.difficulty,
+              framework: msg.framework,
+              frameworkInstructions: msg.framework_instructions || {},
+              maxAnswerSeconds: msg.max_answer_seconds || 120,
+              coachingNote: msg.coaching_note || '',
+            },
+            keyPhrase: null,
+            followUpPredictions: [],
+            recoveryAssist: null,
+          }));
+          break;
+          
+        case 'key_phrase':
+          setState(prev => ({
+            ...prev,
+            keyPhrase: {
+              keyPhrase: msg.key_phrase,
+              followWith: msg.follow_with || '',
+            },
+          }));
+          break;
+          
+        case 'followup_predictions':
+          setState(prev => ({
+            ...prev,
+            followUpPredictions: (msg.predictions?.predictions || []).map((p: any) => ({
+              question: p.question,
+              likelihood: p.likelihood,
+              skeleton: p.skeleton,
+              framework: p.framework,
+            })),
+          }));
+          break;
+          
+        case 'speech_coaching':
+          setState(prev => ({
+            ...prev,
+            speechCoaching: {
+              chips: msg.chips || [],
+              wpm: msg.wpm || 0,
+              elapsedSeconds: msg.elapsed_seconds || 0,
+            },
+          }));
+          break;
+          
+        case 'recovery_assist':
+          setState(prev => ({
+            ...prev,
+            recoveryAssist: {
+              trigger: msg.trigger,
+              bridgePhrase: msg.bridge_phrase,
+              redirect: msg.redirect,
+              buyTime: msg.buy_time,
+            },
+          }));
           break;
           
         default:

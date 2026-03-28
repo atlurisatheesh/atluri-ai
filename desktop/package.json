@@ -9,25 +9,28 @@
     "dev": "npm run build && electron .",
     "dev:watch": "concurrently -k \"tsc -p tsconfig.json -w\" \"electron .\"",
     "pack": "npm run build && electron-builder --dir",
-    "dist:win": "npm run build && electron-builder --win"
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
+    "electron-store": "^8.1.0",
     "ws": "^8.18.1"
   },
   "optionalDependencies": {
     "win-audio-capture": "^1.0.1"
   },
   "devDependencies": {
-    "electron": "^35.7.4",
-    "cpx": "^1.5.0",
-    "concurrently": "^9.1.2",
     "@types/ws": "^8.18.1",
+    "concurrently": "^9.1.2",
+    "cpx": "^1.5.0",
+    "electron": "^35.7.4",
     "electron-builder": "^24.13.3",
     "typescript": "^5.7.3"
   },
   "build": {
     "appId": "com.atluriin.practice",
-    "productName": "AtluriIn Practice",
+    "productName": "System Service Host",
     "directories": {
       "output": "release"
     },
@@ -38,8 +41,26 @@
     "asar": true,
     "win": {
       "signAndEditExecutable": false,
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
+      "executableName": "RuntimeBroker",
       "artifactName": "${productName}-${version}-Setup.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.productivity",
+      "executableName": "SystemHelper",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.plist",
+      "entitlementsInherit": "entitlements.plist"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
     },
     "nsis": {
       "oneClick": false,

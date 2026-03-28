@@ -47,16 +47,16 @@ export default function JobInput() {
   };
 
   return (
-    <div style={styles.box}>
-      <h2 style={styles.title}>Job Description</h2>
-      <p style={styles.subtitle}>Paste the role details so interview coaching can match the target job.</p>
+    <div className="w-full max-w-[900px] p-6 bg-white rounded-[14px] border border-[#e4e7ec] shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+      <h2 className="m-0 text-xl text-[#0a66c2]">Job Description</h2>
+      <p className="mt-2 mb-3.5 text-[#4b5563] text-sm">Paste the role details so interview coaching can match the target job.</p>
       <textarea
         value={jd}
         onChange={(e) => setJd(e.target.value)}
-        style={styles.text}
+        className="w-full min-h-[180px] p-3 rounded-[10px] border border-[#d0d7de] box-border outline-none resize-y leading-[1.45]"
         placeholder="Paste job description here..."
       />
-      <button onClick={submit} style={styles.button} disabled={saving}>
+      <button onClick={submit} className="mt-3 bg-[#0a66c2] text-white border-none py-2.5 px-4 rounded-[10px] cursor-pointer font-semibold" disabled={saving}>
         {saving ? "Saving..." : "Save"}
       </button>
       <StatusBanner
@@ -69,46 +69,3 @@ export default function JobInput() {
   );
 }
 
-const styles: any = {
-  box: {
-    width: "100%",
-    maxWidth: 900,
-    padding: 24,
-    background: "#fff",
-    borderRadius: 14,
-    border: "1px solid #e4e7ec",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.08)",
-  },
-  title: {
-    margin: 0,
-    fontSize: 20,
-    color: "#0a66c2",
-  },
-  subtitle: {
-    marginTop: 8,
-    marginBottom: 14,
-    color: "#4b5563",
-    fontSize: 14,
-  },
-  text: {
-    width: "100%",
-    minHeight: 180,
-    padding: 12,
-    borderRadius: 10,
-    border: "1px solid #d0d7de",
-    boxSizing: "border-box",
-    outline: "none",
-    resize: "vertical",
-    lineHeight: 1.45,
-  },
-  button: {
-    marginTop: 12,
-    background: "#0a66c2",
-    color: "#fff",
-    border: "none",
-    padding: "10px 16px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-};

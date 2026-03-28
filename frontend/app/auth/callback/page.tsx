@@ -76,18 +76,17 @@ function CallbackContent() {
   }, [router, next, searchParams]);
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg, #0a0a0a)", color: "var(--text-primary, #e0e0e0)" }}>
-      <div style={{ textAlign: "center" }}>
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg,#0a0a0a)] text-[var(--text-primary,#e0e0e0)]">
+      <div className="text-center">
         {error ? (
           <>
-            <p style={{ color: "var(--danger, #ff4444)", fontSize: 14 }}>{error}</p>
-            <p style={{ color: "var(--text-muted, #888)", fontSize: 13, marginTop: 8 }}>Redirecting to login...</p>
+            <p className="text-[var(--danger,#ff4444)] text-sm">{error}</p>
+            <p className="text-[var(--text-muted,#888)] text-[13px] mt-2">Redirecting to login...</p>
           </>
         ) : (
           <>
-            <div style={{ fontSize: 14, marginBottom: 8 }}>Completing sign in...</div>
-            <div style={{ width: 24, height: 24, border: "2px solid var(--text-muted, #888)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <div className="text-sm mb-2">Completing sign in...</div>
+            <div className="w-6 h-6 border-2 border-[var(--text-muted,#888)] border-t-transparent rounded-full animate-spin mx-auto" />
           </>
         )}
       </div>
@@ -98,8 +97,8 @@ function CallbackContent() {
 export default function AuthCallbackPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg, #0a0a0a)", color: "var(--text-primary, #e0e0e0)" }}>
-        <div style={{ fontSize: 14 }}>Completing sign in...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg,#0a0a0a)] text-[var(--text-primary,#e0e0e0)]">
+        <div className="text-sm">Completing sign in...</div>
       </div>
     }>
       <CallbackContent />

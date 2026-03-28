@@ -5,69 +5,82 @@ import Link from "next/link";
 
 const footerLinks = {
   Product: [
-    { label: "Features", href: "#features" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "Stealth Mode", href: "#" },
-    { label: "Company Modes", href: "#" },
+    { label: "Features", href: "/features" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Stealth Mode", href: "/stealth" },
+    { label: "Company Modes", href: "/features#company-modes" },
   ],
   Resources: [
-    { label: "Documentation", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Changelog", href: "#" },
-    { label: "Status Page", href: "#" },
+    { label: "Documentation", href: "/docs" },
+    { label: "Blog", href: "/blog" },
+    { label: "Changelog", href: "/changelog" },
+    { label: "Status Page", href: "/status" },
   ],
   Company: [
-    { label: "About", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Contact", href: "#" },
-    { label: "Press Kit", href: "#" },
+    { label: "About", href: "/about" },
+    { label: "Careers", href: "/careers" },
+    { label: "Contact", href: "/contact" },
+    { label: "Press Kit", href: "/press" },
   ],
   Legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy", href: "#" },
-    { label: "GDPR", href: "#" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Cookie Policy", href: "/cookies" },
+    { label: "GDPR", href: "/gdpr" },
   ],
 };
 
 const socials = [
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Github, href: "#", label: "GitHub" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Mail, href: "#", label: "Email" },
+  { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
+  { icon: Github, href: "https://github.com", label: "GitHub" },
+  { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
+  { icon: Mail, href: "mailto:support@atluriin.com", label: "Email" },
 ];
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/[0.06] bg-canvas/50">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-          {/* brand col */}
+    <footer className="relative border-t border-white/10 bg-black/40">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:38px_38px]" />
+      <div className="relative mx-auto max-w-7xl px-6 py-14">
+        <div className="mb-10 rounded-2xl border border-white/15 bg-white/[0.03] p-4">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-brand-green">Signal Footer</p>
+          <p className="mt-2 text-sm text-textSecondary">Interview infrastructure for candidates who want operator-grade execution, not generic prep scripts.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-cyan to-brand-purple flex items-center justify-center">
-                <Zap className="w-4 h-4 text-white" />
+            <Link href="/" className="mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-green via-brand-cyan to-brand-purple">
+                <Zap className="h-4 w-4 text-white" />
               </div>
               <span className="text-lg font-semibold text-textPrimary">AtluriIn</span>
             </Link>
-            <p className="text-sm text-textMuted leading-relaxed mb-4">AI-powered interview coaching that's 100% undetectable and built for results.</p>
+            <p className="mb-4 text-sm leading-relaxed text-textMuted">Built for high-stakes interviews where timing, signal, and confidence decide outcomes.</p>
             <div className="flex gap-3">
               {socials.map((s) => (
-                <a key={s.label} href={s.href} aria-label={s.label} className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-textMuted hover:text-brand-cyan hover:border-brand-cyan/30 transition-all">
-                  <s.icon className="w-4 h-4" />
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-black/40 text-textMuted transition hover:border-brand-cyan/40 hover:text-brand-cyan"
+                >
+                  <s.icon className="h-4 w-4" />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* link columns */}
           {Object.entries(footerLinks).map(([heading, links]) => (
             <div key={heading}>
-              <h4 className="text-sm font-semibold text-textPrimary mb-4">{heading}</h4>
+              <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-brand-cyan">{heading}</h4>
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-sm text-textMuted hover:text-textPrimary transition-colors">{link.label}</a>
+                    <Link href={link.href} className="text-sm text-textMuted transition-colors hover:text-textPrimary">
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -75,10 +88,9 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* bottom bar */}
-        <div className="border-t border-white/[0.06] pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-7 md:flex-row">
           <p className="text-sm text-textMuted">&copy; {new Date().getFullYear()} AtluriIn. All rights reserved.</p>
-          <p className="text-xs text-textMuted">Built with care for job seekers everywhere.</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-textMuted">Signal. Stealth. Execution.</p>
         </div>
       </div>
     </footer>

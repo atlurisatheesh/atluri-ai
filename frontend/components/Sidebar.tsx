@@ -181,28 +181,36 @@ export default function Sidebar({ setMode, activeMode }: { setMode: (m: string) 
   ];
 
   return (
-    <div style={styles.sidebar}>
-      <div style={styles.logoWrap}>
-        <div style={styles.logo}>AtluriIn AI</div>
-        <div style={styles.logoSub}>Interview Performance OS</div>
+    <div className="w-[268px] bg-gradient-to-b from-[#071021] via-[#0a1530] to-[#0d1f3c] text-[#dbeafe] flex flex-col p-[18px] gap-2.5 border-r border-[rgba(125,211,252,0.2)] shadow-[8px_0_30px_rgba(2,6,23,0.45)]">
+      <div className="mb-2">
+        <div className="text-[26px] font-extrabold text-[#f8fafc] tracking-[0.2px]">AtluriIn AI</div>
+        <div className="mt-1 text-xs text-[#93c5fd] font-semibold">Interview Performance OS</div>
       </div>
 
       {primaryNavItems.map((item) => (
         <button
           key={item.mode}
-          style={activeMode === item.mode ? styles.itemActive : styles.item}
+          className={`p-3 px-3.5 rounded-[10px] cursor-pointer font-bold text-left ${
+            activeMode === item.mode
+              ? "bg-gradient-to-b from-[rgba(37,99,235,0.32)] to-[rgba(14,116,144,0.3)] border border-[rgba(125,211,252,0.6)] font-extrabold text-[#e0f2fe] shadow-[0_0_0_1px_rgba(125,211,252,0.3),0_6px_20px_rgba(14,165,233,0.18)]"
+              : "bg-[rgba(15,23,42,0.5)] border border-[rgba(125,211,252,0.18)] text-[#cbd5e1]"
+          }`}
           onClick={() => setMode(item.mode)}
         >
           {item.label}
         </button>
       ))}
 
-      <div style={styles.groupLabel}>Setup</div>
-      <div style={styles.setupGrid}>
+      <div className="mt-0.5 text-[11px] text-[#93c5fd] font-extrabold tracking-[0.6px] uppercase">Setup</div>
+      <div className="grid gap-1.5">
         {setupNavItems.map((item) => (
           <button
             key={item.mode}
-            style={activeMode === item.mode ? styles.setupItemActive : styles.setupItem}
+            className={`py-2.5 px-[11px] rounded-[9px] cursor-pointer font-bold text-left text-xs ${
+              activeMode === item.mode
+                ? "bg-gradient-to-b from-[rgba(37,99,235,0.26)] to-[rgba(14,116,144,0.24)] border border-[rgba(125,211,252,0.45)] font-extrabold text-[#e0f2fe]"
+                : "bg-[rgba(15,23,42,0.42)] border border-[rgba(125,211,252,0.14)] text-[#cbd5e1]"
+            }`}
             onClick={() => setMode(item.mode)}
           >
             {item.label}
@@ -210,39 +218,40 @@ export default function Sidebar({ setMode, activeMode }: { setMode: (m: string) 
         ))}
       </div>
 
-      <Link href="/demo" style={styles.itemLink}>🎬 Demo</Link>
+      <Link href="/demo" className="block p-3 px-3.5 rounded-[10px] cursor-pointer bg-[rgba(15,23,42,0.5)] border border-[rgba(125,211,252,0.18)] font-bold text-[#cbd5e1] no-underline text-left">🎬 Demo</Link>
 
-      <div style={styles.statusCard}>
-        <div style={styles.statusHeaderRow}>
-          <div style={styles.statusTitle}>Session Status</div>
-          <button style={styles.diagToggle} onClick={() => setShowDiagnostics((v) => !v)}>
+      <div className="mt-3 p-3 rounded-[10px] bg-[rgba(15,23,42,0.56)] border border-[rgba(125,211,252,0.25)] text-xs leading-[1.4]">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="font-extrabold mb-2 text-[#e0f2fe]">Session Status</div>
+          <button className="rounded-full border border-[rgba(125,211,252,0.35)] bg-[rgba(15,23,42,0.72)] text-[#bae6fd] text-[11px] font-bold py-1 px-2.5 cursor-pointer" onClick={() => setShowDiagnostics((v) => !v)}>
             {showDiagnostics ? "Hide" : "Show"}
           </button>
         </div>
-        <div style={styles.statusLine}>Interview: {snapshot.interview.active ? "Active" : snapshot.interview.done ? "Completed" : "Not started"}</div>
-        <div style={styles.statusLine}>Credibility: {snapshot.credibility.has_snapshot ? "Available" : "Unavailable"}</div>
-        <div style={styles.statusLine}>Company: {selectedCompany?.label || "General"}</div>
+        <div className="opacity-95 mb-0.5 text-[#cbd5e1]">Interview: {snapshot.interview.active ? "Active" : snapshot.interview.done ? "Completed" : "Not started"}</div>
+        <div className="opacity-95 mb-0.5 text-[#cbd5e1]">Credibility: {snapshot.credibility.has_snapshot ? "Available" : "Unavailable"}</div>
+        <div className="opacity-95 mb-0.5 text-[#cbd5e1]">Company: {selectedCompany?.label || "General"}</div>
 
         {showDiagnostics && (
           <>
-            <div style={styles.separator} />
-            <div style={styles.statusTitle}>Diagnostics</div>
-            <div style={styles.statusLine}>
+            <div className="mt-2 mb-2 border-t border-[rgba(125,211,252,0.2)]" />
+            <div className="font-extrabold mb-2 text-[#e0f2fe]">Diagnostics</div>
+            <div className="opacity-95 mb-0.5 text-[#cbd5e1]">
               Resume: {contextStatus.resume_loaded ? `Loaded (${contextStatus.resume_chars} chars)` : "Not loaded"}
             </div>
-            <div style={styles.statusLine}>
+            <div className="opacity-95 mb-0.5 text-[#cbd5e1]">
               JD: {contextStatus.job_loaded ? `Loaded (${contextStatus.job_chars} chars)` : "Not loaded"}
             </div>
-            <div style={styles.statusLine}>Role: {snapshot.interview.role || "—"}</div>
-            <div style={styles.statusSubLine}>Company Mode</div>
+            <div className="opacity-95 mb-0.5 text-[#cbd5e1]">Role: {snapshot.interview.role || "—"}</div>
+            <div className="opacity-85 mt-0.5 mb-0.5 text-[11px] text-[#93c5fd]">Company Mode</div>
             <input
-              style={styles.searchInput}
+              className="w-full mt-0.5 mb-1 rounded-lg border border-[rgba(125,211,252,0.3)] bg-[rgba(2,6,23,0.65)] text-[#e2e8f0] py-1.5 px-2 text-xs outline-none"
               value={companyModeQuery}
               onChange={(e) => setCompanyModeQuery(e.target.value)}
               placeholder="Search company"
             />
             <select
-              style={styles.select}
+              title="Company mode"
+              className="w-full mt-0.5 mb-1 rounded-lg border border-[rgba(125,211,252,0.3)] bg-[rgba(2,6,23,0.65)] text-[#e2e8f0] py-1.5 px-2 text-xs outline-none"
               value={companyMode}
               onChange={(e) => onCompanyModeChange(e.target.value)}
             >
@@ -251,19 +260,19 @@ export default function Sidebar({ setMode, activeMode }: { setMode: (m: string) 
               ))}
             </select>
             {filteredCompanyModes.length === 0 && (
-              <div style={styles.modeHint}>No companies match your search.</div>
+              <div className="mt-1 mb-1 text-[11px] opacity-90 leading-[1.35]">No companies match your search.</div>
             )}
             {selectedCompany?.interview_focus && (
-              <div style={styles.modeHint}>Focus: {selectedCompany.interview_focus}</div>
+              <div className="mt-1 mb-1 text-[11px] opacity-90 leading-[1.35]">Focus: {selectedCompany.interview_focus}</div>
             )}
             {!companyModesLoadedFromApi && (
-              <div style={styles.modeHint}>Showing fallback list (4). Sign in and check API connectivity to load all companies.</div>
+              <div className="mt-1 mb-1 text-[11px] opacity-90 leading-[1.35]">Showing fallback list (4). Sign in and check API connectivity to load all companies.</div>
             )}
-            <div style={styles.statusSubLine}>
+            <div className="opacity-85 mt-0.5 mb-0.5 text-[11px] text-[#93c5fd]">
               Updated: {snapshot.interview.updated_at ? new Date(snapshot.interview.updated_at * 1000).toLocaleString() : "—"}
             </div>
 
-            <button style={styles.resetButton} onClick={resetContext} disabled={resetting}>
+            <button className="mt-2.5 w-full bg-gradient-to-b from-[#0f172a] to-[#111827] text-[#e0f2fe] border border-[rgba(125,211,252,0.4)] rounded-lg py-[7px] px-2.5 cursor-pointer text-xs font-bold" onClick={resetContext} disabled={resetting}>
               {resetting ? "Resetting..." : "Reset Context"}
             </button>
           </>
@@ -276,220 +285,10 @@ export default function Sidebar({ setMode, activeMode }: { setMode: (m: string) 
         />
       </div>
 
-      <div style={styles.profileDock}>
-        <div style={styles.profileLine}>Tier</div>
-        <div style={styles.tierBadge}>Free</div>
+      <div className="mt-auto rounded-[10px] border border-[rgba(125,211,252,0.25)] bg-[rgba(15,23,42,0.56)] py-2.5 px-3 flex items-center justify-between">
+        <div className="text-xs text-[#93c5fd] font-semibold">Tier</div>
+        <div className="rounded-full border border-[rgba(125,211,252,0.45)] py-1 px-2.5 text-[11px] text-[#e0f2fe] font-extrabold bg-[rgba(2,132,199,0.2)]">Free</div>
       </div>
     </div>
   );
 }
-
-const styles: any = {
-  sidebar: {
-    width: 268,
-    background: "linear-gradient(180deg, #071021 0%, #0a1530 55%, #0d1f3c 100%)",
-    color: "#dbeafe",
-    display: "flex",
-    flexDirection: "column",
-    padding: 18,
-    gap: 10,
-    borderRight: "1px solid rgba(125, 211, 252, 0.2)",
-    boxShadow: "8px 0 30px rgba(2, 6, 23, 0.45)",
-  },
-  logoWrap: {
-    marginBottom: 8,
-  },
-  logo: {
-    fontSize: 26,
-    fontWeight: 800,
-    color: "#f8fafc",
-    letterSpacing: 0.2,
-  },
-  logoSub: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "#93c5fd",
-    fontWeight: 600,
-  },
-  item: {
-    padding: "12px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    background: "rgba(15, 23, 42, 0.5)",
-    border: "1px solid rgba(125, 211, 252, 0.18)",
-    fontWeight: 700,
-    color: "#cbd5e1",
-    textAlign: "left",
-  },
-  itemActive: {
-    padding: "12px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    background: "linear-gradient(180deg, rgba(37, 99, 235, 0.32) 0%, rgba(14, 116, 144, 0.3) 100%)",
-    border: "1px solid rgba(125, 211, 252, 0.6)",
-    fontWeight: 800,
-    color: "#e0f2fe",
-    textAlign: "left",
-    boxShadow: "0 0 0 1px rgba(125, 211, 252, 0.3), 0 6px 20px rgba(14, 165, 233, 0.18)",
-  },
-  itemLink: {
-    display: "block",
-    padding: "12px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    background: "rgba(15, 23, 42, 0.5)",
-    border: "1px solid rgba(125, 211, 252, 0.18)",
-    fontWeight: 700,
-    color: "#cbd5e1",
-    textDecoration: "none",
-    textAlign: "left",
-  },
-  groupLabel: {
-    marginTop: 2,
-    fontSize: 11,
-    color: "#93c5fd",
-    fontWeight: 800,
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-  },
-  setupGrid: {
-    display: "grid",
-    gap: 6,
-  },
-  setupItem: {
-    padding: "9px 11px",
-    borderRadius: 9,
-    cursor: "pointer",
-    background: "rgba(15, 23, 42, 0.42)",
-    border: "1px solid rgba(125, 211, 252, 0.14)",
-    fontWeight: 700,
-    color: "#cbd5e1",
-    textAlign: "left",
-    fontSize: 12,
-  },
-  setupItemActive: {
-    padding: "9px 11px",
-    borderRadius: 9,
-    cursor: "pointer",
-    background: "linear-gradient(180deg, rgba(37, 99, 235, 0.26) 0%, rgba(14, 116, 144, 0.24) 100%)",
-    border: "1px solid rgba(125, 211, 252, 0.45)",
-    fontWeight: 800,
-    color: "#e0f2fe",
-    textAlign: "left",
-    fontSize: 12,
-  },
-  statusCard: {
-    marginTop: 12,
-    padding: "12px 12px",
-    borderRadius: 10,
-    background: "rgba(15, 23, 42, 0.56)",
-    border: "1px solid rgba(125, 211, 252, 0.25)",
-    fontSize: 12,
-    lineHeight: 1.4,
-  },
-  statusTitle: {
-    fontWeight: 800,
-    marginBottom: 8,
-    color: "#e0f2fe",
-  },
-  statusHeaderRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  diagToggle: {
-    borderRadius: 999,
-    border: "1px solid rgba(125, 211, 252, 0.35)",
-    background: "rgba(15, 23, 42, 0.72)",
-    color: "#bae6fd",
-    fontSize: 11,
-    fontWeight: 700,
-    padding: "4px 9px",
-    cursor: "pointer",
-  },
-  statusLine: {
-    opacity: 0.96,
-    marginBottom: 2,
-    color: "#cbd5e1",
-  },
-  statusSubLine: {
-    opacity: 0.86,
-    marginTop: 2,
-    marginBottom: 2,
-    fontSize: 11,
-    color: "#93c5fd",
-  },
-  separator: {
-    marginTop: 8,
-    marginBottom: 8,
-    borderTop: "1px solid rgba(125, 211, 252, 0.2)",
-  },
-  select: {
-    width: "100%",
-    marginTop: 2,
-    marginBottom: 4,
-    borderRadius: 8,
-    border: "1px solid rgba(125, 211, 252, 0.3)",
-    background: "rgba(2, 6, 23, 0.65)",
-    color: "#e2e8f0",
-    padding: "6px 8px",
-    fontSize: 12,
-    outline: "none",
-  },
-  searchInput: {
-    width: "100%",
-    marginTop: 2,
-    marginBottom: 4,
-    borderRadius: 8,
-    border: "1px solid rgba(125, 211, 252, 0.3)",
-    background: "rgba(2, 6, 23, 0.65)",
-    color: "#e2e8f0",
-    padding: "6px 8px",
-    fontSize: 12,
-    outline: "none",
-  },
-  modeHint: {
-    marginTop: 4,
-    marginBottom: 4,
-    fontSize: 11,
-    opacity: 0.9,
-    lineHeight: 1.35,
-  },
-  resetButton: {
-    marginTop: 10,
-    width: "100%",
-    background: "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
-    color: "#e0f2fe",
-    border: "1px solid rgba(125, 211, 252, 0.4)",
-    borderRadius: 8,
-    padding: "7px 10px",
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  profileDock: {
-    marginTop: "auto",
-    borderRadius: 10,
-    border: "1px solid rgba(125, 211, 252, 0.25)",
-    background: "rgba(15, 23, 42, 0.56)",
-    padding: "10px 12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  profileLine: {
-    fontSize: 12,
-    color: "#93c5fd",
-    fontWeight: 600,
-  },
-  tierBadge: {
-    borderRadius: 999,
-    border: "1px solid rgba(125, 211, 252, 0.45)",
-    padding: "4px 10px",
-    fontSize: 11,
-    color: "#e0f2fe",
-    fontWeight: 800,
-    background: "rgba(2, 132, 199, 0.2)",
-  },
-};

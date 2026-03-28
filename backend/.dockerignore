@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+.env
+.env.example
+.git
+.gitignore
+*.md
+tests/
+qa/
+docs/
+tmp_*.py
+test_*.py
+ws_test_client.py
+.pytest_cache
+.mypy_cache

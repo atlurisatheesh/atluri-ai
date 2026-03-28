@@ -1,9 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import AuthGate from "../../../../components/AuthGate";
+import SessionCard from "../../../../components/report/SessionCard";
 import { apiRequest } from "../../../../lib/api";
 import { getAccessTokenOrThrow } from "../../../../lib/auth";
 
@@ -82,13 +82,13 @@ function SessionReportContent() {
   }, [sessionId]);
 
   if (loading) {
-    return <div style={styles.state}>Loading report...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--text-primary)]">Loading report...</div>;
   }
   if (error) {
-    return <div style={styles.state}>Error: {error}</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--text-primary)]">Error: {error}</div>;
   }
   if (!analytics) {
-    return <div style={styles.state}>No report found.</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--text-primary)]">No report found.</div>;
   }
 
   const snapshot = analytics.offer_probability_snapshot || {};
@@ -130,7 +130,7 @@ function SessionReportContent() {
   const confidenceMethodTag = "confidence_envelope_v1";
 
   return (
-    <div style={styles.page} className="report-root">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] p-7 px-[clamp(16px,2.8vw,40px)] pb-10 report-root">
       <style>{`@media print {
         .report-root { background: #ffffff !important; color: #111111 !important; padding: 0 !important; }
         .report-wrap { max-width: 100% !important; gap: 12px !important; }
@@ -139,50 +139,69 @@ function SessionReportContent() {
         .report-cta { display: none !important; }
         .report-metric { font-size: 72px !important; }
       }`}</style>
-      <div style={styles.wrap} className="report-wrap">
-        <section style={styles.verdictBlock} className="report-section">
-          <div style={styles.kicker}>Executive Audit</div>
-          <div style={styles.verdictValue} className="report-metric">{probability}%</div>
-          <div style={styles.verdictLabel}>{verdict}</div>
-          <div style={styles.band}>Confidence band {low}%–{high}%</div>
-          <div style={styles.meta} className="report-muted">Role {analytics.role || "—"}</div>
+      <div className="max-w-[920px] mx-auto flex flex-col gap-[22px] report-wrap">
+        <section className="text-center flex flex-col gap-1 items-center pt-8 pb-5 report-section">
+          <div className="text-xs uppercase tracking-[0.1em] text-[var(--text-muted)] opacity-85">Executive Audit</div>
+          <div className="text-[clamp(64px,10vw,118px)] leading-[0.95] tracking-[-1.5px] font-bold report-metric">{probability}%</div>
+          <div className="text-sm uppercase tracking-[0.08em] text-[var(--text-muted)]">{verdict}</div>
+          <div className="text-[13px] text-[var(--text-muted)]">Confidence band {low}%–{high}%</div>
+          <div className="text-xs text-[var(--text-muted)] report-muted">Role {analytics.role || "—"}</div>
         </section>
 
-        <section style={styles.strip} className="report-strip">
-          <span style={styles.stripItem}>Trajectory {trajectory}</span>
-          <span style={styles.stripItem}>Metric {Math.round((Number(summary.metric_usage_score || 0) / 5) * 100)}%</span>
-          <span style={styles.stripItem}>Ownership {Math.round((Number(summary.ownership_clarity_score || 0) / 5) * 100)}%</span>
-          <span style={styles.stripItem}>Trade-off {Math.round((Number(summary.tradeoff_depth_score || 0) / 5) * 100)}%</span>
+        <section className="border-t border-b border-[var(--border-subtle)] py-2 flex gap-3.5 flex-wrap report-strip">
+          <span className="text-[11px] uppercase tracking-[0.04em] text-[var(--text-muted)] opacity-75">Trajectory {trajectory}</span>
+          <span className="text-[11px] uppercase tracking-[0.04em] text-[var(--text-muted)] opacity-75">Metric {Math.round((Number(summary.metric_usage_score || 0) / 5) * 100)}%</span>
+          <span className="text-[11px] uppercase tracking-[0.04em] text-[var(--text-muted)] opacity-75">Ownership {Math.round((Number(summary.ownership_clarity_score || 0) / 5) * 100)}%</span>
+          <span className="text-[11px] uppercase tracking-[0.04em] text-[var(--text-muted)] opacity-75">Trade-off {Math.round((Number(summary.tradeoff_depth_score || 0) / 5) * 100)}%</span>
         </section>
 
-        <section style={styles.sections}>
-          <article style={styles.section} className="report-section">
-            <h2 style={styles.sectionTitle}>Why</h2>
+        <section className="flex flex-col">
+          <article className="border-t border-[var(--border-subtle)] py-3 report-section">
+            <h2 className="m-0 text-xs uppercase tracking-[0.08em] text-[var(--text-muted)]">Why</h2>
             {why.map((item) => (
-              <div key={item} style={styles.line}>• {item}</div>
+              <div key={item} className="mt-1.5 text-xs leading-[1.4] text-[var(--text-muted)]">• {item}</div>
             ))}
           </article>
-          <article style={styles.section} className="report-section">
-            <h2 style={styles.sectionTitle}>What Changed</h2>
+          <article className="border-t border-[var(--border-subtle)] py-3 report-section">
+            <h2 className="m-0 text-xs uppercase tracking-[0.08em] text-[var(--text-muted)]">What Changed</h2>
             {changed.map((item) => (
-              <div key={item} style={styles.line}>• {item}</div>
+              <div key={item} className="mt-1.5 text-xs leading-[1.4] text-[var(--text-muted)]">• {item}</div>
             ))}
           </article>
-          <article style={styles.section} className="report-section">
-            <h2 style={styles.sectionTitle}>Next Move</h2>
+          <article className="border-t border-[var(--border-subtle)] py-3 report-section">
+            <h2 className="m-0 text-xs uppercase tracking-[0.08em] text-[var(--text-muted)]">Next Move</h2>
             {nextMove.map((item) => (
-              <div key={item} style={styles.line}>• {item}</div>
+              <div key={item} className="mt-1.5 text-xs leading-[1.4] text-[var(--text-muted)]">• {item}</div>
             ))}
           </article>
         </section>
 
-        <section style={styles.footerMeta} className="report-footer">
-          <div style={styles.footerMetaLine}>Session {analytics.session_id}</div>
-          <div style={styles.footerMetaLine}>Generated {generatedLabel}</div>
-          <div style={styles.footerMetaLine}>Method {confidenceMethodTag}</div>
+        <section className="border-t border-[var(--border-subtle)] pt-2.5 flex flex-col gap-1 report-footer">
+          <div className="text-[11px] text-[var(--text-muted)] tracking-[0.02em]">Session {analytics.session_id}</div>
+          <div className="text-[11px] text-[var(--text-muted)] tracking-[0.02em]">Generated {generatedLabel}</div>
+          <div className="text-[11px] text-[var(--text-muted)] tracking-[0.02em]">Method {confidenceMethodTag}</div>
         </section>
 
-        <button style={styles.cta} className="report-cta" onClick={() => (window.location.href = "/interview")}>Run Next Session</button>
+        <button className="border-0 rounded-md bg-[var(--surface-2)] text-[var(--text-primary)] py-3 px-3.5 text-[13px] font-semibold cursor-pointer self-start report-cta" onClick={() => (window.location.href = "/interview")}>Run Next Session</button>
+
+        {/* Shareable Session Card */}
+        <section className="border-t border-[var(--border-subtle)] pt-6 pb-4">
+          <h2 className="text-xs uppercase tracking-[0.08em] text-[var(--text-muted)] mb-4 text-center">Share Your Result</h2>
+          <SessionCard
+            sessionId={analytics.session_id}
+            score={Math.round(Number(summary.score || probability || 0))}
+            role={analytics.role || "Interview"}
+            strengths={(summary.risk_flags?.length === 0 ? ["Strong Performance"] : []).concat(
+              (Number(summary.metric_usage_score || 0) >= 55 ? ["Metric-backed storytelling"] : []),
+              (Number(summary.ownership_clarity_score || 0) >= 55 ? ["Strong ownership framing"] : []),
+              (Number(summary.tradeoff_depth_score || 0) >= 55 ? ["Trade-off reasoning"] : []),
+            )}
+            questionsAnswered={0}
+            duration="—"
+            decision={String(summary.decision || verdict)}
+            date={generatedAtTs > 0 ? new Date(generatedAtTs * 1000).toLocaleDateString() : undefined}
+          />
+        </section>
       </div>
     </div>
   );
@@ -196,123 +215,3 @@ export default function SessionReportPage() {
   );
 }
 
-const styles: Record<string, CSSProperties> = {
-  state: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "var(--bg)",
-    color: "var(--text-primary)",
-  },
-  page: {
-    minHeight: "100vh",
-    background: "var(--bg)",
-    color: "var(--text-primary)",
-    padding: "28px clamp(16px, 2.8vw, 40px) 40px",
-  },
-  wrap: {
-    maxWidth: 920,
-    margin: "0 auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: 22,
-  },
-  verdictBlock: {
-    textAlign: "center",
-    background: "transparent",
-    borderRadius: 0,
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    alignItems: "center",
-    padding: "32px 0 20px",
-  },
-  kicker: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: "0.1em",
-    color: "var(--text-muted)",
-    opacity: 0.85,
-  },
-  verdictValue: {
-    fontSize: "clamp(64px, 10vw, 118px)",
-    lineHeight: 0.95,
-    letterSpacing: -1.5,
-    fontWeight: 700,
-  },
-  verdictLabel: {
-    fontSize: 14,
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    color: "var(--text-muted)",
-  },
-  band: {
-    fontSize: 13,
-    color: "var(--text-muted)",
-  },
-  meta: {
-    fontSize: 12,
-    color: "var(--text-muted)",
-  },
-  strip: {
-    borderTop: "1px solid var(--border-subtle)",
-    borderBottom: "1px solid var(--border-subtle)",
-    padding: "8px 0",
-    display: "flex",
-    gap: 14,
-    flexWrap: "wrap",
-  },
-  stripItem: {
-    fontSize: 11,
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-    color: "var(--text-muted)",
-    opacity: 0.74,
-  },
-  sections: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 0,
-  },
-  section: {
-    borderTop: "1px solid var(--border-subtle)",
-    padding: "12px 0",
-  },
-  sectionTitle: {
-    margin: 0,
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    color: "var(--text-muted)",
-  },
-  line: {
-    marginTop: 6,
-    fontSize: 12,
-    lineHeight: 1.4,
-    color: "var(--text-muted)",
-  },
-  footerMeta: {
-    borderTop: "1px solid var(--border-subtle)",
-    paddingTop: 10,
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-  },
-  footerMetaLine: {
-    fontSize: 11,
-    color: "var(--text-muted)",
-    letterSpacing: "0.02em",
-  },
-  cta: {
-    border: 0,
-    borderRadius: 6,
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    padding: "12px 14px",
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: "pointer",
-    alignSelf: "flex-start",
-  },
-};

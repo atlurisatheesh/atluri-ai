@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { supabase } from "../../lib/supabase";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -63,43 +62,43 @@ function LoginContent() {
   }, [nextPath, router]);
 
   return (
-    <div style={styles.page}>
-      <div style={styles.wrap}>
-        <section style={styles.hero}>
-          <div style={styles.kicker}>Intelligence Terminal</div>
-          <h1 style={styles.title}>Resume your decision loop.</h1>
-          <p style={styles.subtitle}>Run calibration. Read the verdict. Execute next move.</p>
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] p-7 px-[clamp(16px,2.8vw,40px)]">
+      <div className="max-w-[980px] mx-auto grid grid-cols-[1.2fr_1fr] gap-[22px] items-start">
+        <section className="flex flex-col gap-2 pt-2">
+          <div className="text-xs uppercase tracking-[0.1em] text-[var(--text-muted)]">Intelligence Terminal</div>
+          <h1 className="m-0 text-[clamp(36px,6vw,62px)] leading-[1.03] tracking-[-1px]">Resume your decision loop.</h1>
+          <p className="m-0 text-[15px] text-[var(--text-muted)]">Run calibration. Read the verdict. Execute next move.</p>
         </section>
 
-        <section style={styles.formSurface}>
+        <section className="bg-[var(--surface-1)] rounded-xl p-4">
           <button
             onClick={() => { supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: nextPath } }); }}
-            style={styles.oauthButton}
+            className="w-full border-0 rounded-[9px] py-2.5 px-3 bg-[var(--surface-2)] text-[var(--text-primary)] font-semibold cursor-pointer flex items-center justify-center text-sm"
           >
-            <svg width="18" height="18" viewBox="0 0 48 48" style={{ marginRight: 8, verticalAlign: "middle" }}><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 48 48" className="mr-2 align-middle"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
             Continue with Google
           </button>
 
           <button
             onClick={() => { supabase.auth.signInWithOAuth({ provider: "github", options: { redirectTo: nextPath } }); }}
-            style={{ ...styles.oauthButton, marginTop: 8 }}
+            className="w-full border-0 rounded-[9px] py-2.5 px-3 bg-[var(--surface-2)] text-[var(--text-primary)] font-semibold cursor-pointer flex items-center justify-center text-sm mt-2"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 8, verticalAlign: "middle" }}><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2 align-middle"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
             Continue with GitHub
           </button>
 
           <button
             onClick={() => { supabase.auth.signInWithOAuth({ provider: "microsoft", options: { redirectTo: nextPath } }); }}
-            style={{ ...styles.oauthButton, marginTop: 8 }}
+            className="w-full border-0 rounded-[9px] py-2.5 px-3 bg-[var(--surface-2)] text-[var(--text-primary)] font-semibold cursor-pointer flex items-center justify-center text-sm mt-2"
           >
-            <svg width="18" height="18" viewBox="0 0 21 21" style={{ marginRight: 8, verticalAlign: "middle" }}><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+            <svg width="18" height="18" viewBox="0 0 21 21" className="mr-2 align-middle"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
             Continue with Microsoft
           </button>
 
-          <div style={styles.oauthDivider}>
-            <span style={styles.oauthDividerLine} />
-            <span style={styles.oauthDividerText}>or</span>
-            <span style={styles.oauthDividerLine} />
+          <div className="flex items-center gap-3 my-3.5 mb-1">
+            <span className="flex-1 h-px bg-[var(--surface-2)]" />
+            <span className="text-xs text-[var(--text-muted)] uppercase tracking-[0.08em]">or</span>
+            <span className="flex-1 h-px bg-[var(--surface-2)]" />
           </div>
 
           <form
@@ -134,14 +133,14 @@ function LoginContent() {
                 setSubmitting(false);
               });
             }}
-            style={styles.form}
+            className="mt-2.5 flex flex-col gap-2.5"
           >
-            <input name="email" placeholder="Email" style={styles.input} />
-            <input name="password" type="password" placeholder="Password" style={styles.input} />
+            <input name="email" placeholder="Email" className="w-full border-0 rounded-[9px] py-2.5 px-3 bg-[var(--surface-2)] text-[var(--text-primary)] text-sm outline-none" />
+            <input name="password" type="password" placeholder="Password" className="w-full border-0 rounded-[9px] py-2.5 px-3 bg-[var(--surface-2)] text-[var(--text-primary)] text-sm outline-none" />
 
-            {formError ? <p style={styles.error}>{formError}</p> : null}
+            {formError ? <p className="m-0 text-[13px] text-[var(--danger)]">{formError}</p> : null}
 
-            <button disabled={submitting} style={styles.primaryButton}>
+            <button disabled={submitting} className="w-full border-0 rounded-[9px] py-2.5 px-3 bg-[var(--surface-2)] text-[var(--text-primary)] font-semibold cursor-pointer">
               {submitting ? "Please wait..." : "Login"}
             </button>
           </form>
@@ -152,14 +151,14 @@ function LoginContent() {
                 enableLocalDevSession();
                 router.replace(nextPath);
               }}
-              style={styles.devBypass}
+              className="w-full mt-2.5 border border-dashed border-[var(--text-muted)] rounded-[9px] py-2 px-3 bg-transparent text-[var(--text-muted)] text-xs cursor-pointer opacity-60"
             >
               Dev mode: Skip login
             </button>
           ) : null}
 
-          <p style={styles.footerText}>
-            New here? <Link href={`/signup?next=${encodeURIComponent(nextPath)}`} style={styles.footerLink}>Create account</Link>
+          <p className="mt-3 mb-0 text-[var(--text-muted)] text-[13px]">
+            New here? <Link href={`/signup?next=${encodeURIComponent(nextPath)}`} className="text-[var(--text-primary)] no-underline">Create account</Link>
           </p>
         </section>
       </div>
@@ -175,151 +174,3 @@ export default function Login() {
   );
 }
 
-const styles: Record<string, CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    background: "var(--bg)",
-    color: "var(--text-primary)",
-    padding: "28px clamp(16px, 2.8vw, 40px)",
-  },
-  wrap: {
-    maxWidth: 980,
-    margin: "0 auto",
-    display: "grid",
-    gridTemplateColumns: "1.2fr 1fr",
-    gap: 22,
-    alignItems: "start",
-  },
-  hero: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    paddingTop: 8,
-  },
-  kicker: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: "0.1em",
-    color: "var(--text-muted)",
-  },
-  title: {
-    margin: 0,
-    fontSize: "clamp(36px, 6vw, 62px)",
-    lineHeight: 1.03,
-    letterSpacing: -1,
-  },
-  subtitle: {
-    margin: 0,
-    fontSize: 15,
-    color: "var(--text-muted)",
-  },
-  formSurface: {
-    background: "var(--surface-1)",
-    borderRadius: 12,
-    padding: "16px 16px",
-  },
-  googleButton: {
-    width: "100%",
-    border: 0,
-    borderRadius: 9,
-    padding: "10px 12px",
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  oauthButton: {
-    width: "100%",
-    border: 0,
-    borderRadius: 9,
-    padding: "10px 12px",
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    fontWeight: 600,
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 14,
-  },
-  oauthDivider: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    margin: "14px 0 4px",
-  },
-  oauthDividerLine: {
-    flex: 1,
-    height: 1,
-    background: "var(--surface-2)",
-  },
-  oauthDividerText: {
-    fontSize: 12,
-    color: "var(--text-muted)",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.08em",
-  },
-  form: {
-    marginTop: 10,
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  input: {
-    width: "100%",
-    border: 0,
-    borderRadius: 9,
-    padding: "10px 12px",
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    fontSize: 14,
-    outline: "none",
-  },
-  error: {
-    margin: 0,
-    fontSize: 13,
-    color: "var(--danger)",
-  },
-  primaryButton: {
-    width: "100%",
-    border: 0,
-    borderRadius: 9,
-    padding: "10px 12px",
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  footerText: {
-    marginTop: 12,
-    marginBottom: 0,
-    color: "var(--text-muted)",
-    fontSize: 13,
-  },
-  footerLink: {
-    color: "var(--text-primary)",
-    textDecoration: "none",
-  },
-  devBypass: {
-    width: "100%",
-    marginTop: 10,
-    border: "1px dashed var(--text-muted)",
-    borderRadius: 9,
-    padding: "8px 12px",
-    background: "transparent",
-    color: "var(--text-muted)",
-    fontSize: 12,
-    cursor: "pointer",
-    opacity: 0.6,
-  },
-  warningBanner: {
-    background: "rgba(255, 170, 0, 0.1)",
-    border: "1px solid rgba(255, 170, 0, 0.3)",
-    borderRadius: 9,
-    padding: "10px 12px",
-    marginBottom: 10,
-    fontSize: 13,
-    lineHeight: 1.5,
-    color: "#ffaa00",
-  },
-};

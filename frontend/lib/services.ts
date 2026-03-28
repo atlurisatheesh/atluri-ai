@@ -190,6 +190,339 @@ export const resumeService = {
     authedPost<{ original: string; improved: string }>("/api/resume/rewrite-bullet", data),
 };
 
+// ARIA Intelligence
+export type AriaIntakeInput = {
+  resume_text: string;
+  job_description?: string;
+  target_company?: string;
+  current_title?: string;
+  years_experience?: number;
+  career_situation?: "standard" | "pivot" | "promotion" | "gap" | "executive" | "entry";
+  company_culture?: string;
+  tone_mode?: "corporate" | "conversational" | "technical" | "narrative";
+  skills_and_tools?: string;
+  education?: string;
+  certifications?: string;
+};
+
+export type AriaIntakeResult = {
+  analysis_id: string;
+  intake: {
+    job_signals: Record<string, unknown>;
+    candidate_signals: Record<string, unknown>;
+    gap_intelligence: Record<string, unknown>;
+    format_intelligence: Record<string, unknown>;
+    personality_layer: Record<string, unknown>;
+  };
+  status: string;
+};
+
+export type AriaScoreCard = {
+  ats_score: number;
+  ats_max: number;
+  content_score: number;
+  content_max: number;
+  total_score: number;
+  total_max: number;
+  grade: string;
+  meets_threshold: boolean;
+  ats_checks: Array<{ id: string; name: string; passed: boolean; score: number; detail: string; fix: string | null }>;
+  content_checks: Array<{ id: string; name: string; passed: boolean; score: number; detail: string; fix: string | null }>;
+  failed_checks: Array<{ id: string; name: string; detail: string; fix: string | null }>;
+  summary: string;
+};
+
+export type AriaKeywordMatrix = {
+  matrix: Array<{ keyword: string; tier: number; locations: string[]; frequency: number; status: string }>;
+  overall_match_pct: number;
+  missing_critical: string[];
+  suggestions: string[];
+};
+
+export type AriaGenerateResult = {
+  analysis_id: string;
+  resume: Record<string, unknown>;
+  score_card: AriaScoreCard;
+  keyword_matrix: AriaKeywordMatrix;
+  gap_brief: Record<string, unknown>;
+  precision_edits: Array<{
+    priority: number; section: string; current_text: string;
+    suggested_text: string; rationale: string; expected_impact: string;
+  }>;
+  status: string;
+};
+
+export type AriaBulletRewrite = {
+  rewritten: string;
+  context_component: string;
+  action_component: string;
+  magnitude_component: string;
+  metric_prompt: string | null;
+  improvement_notes: string;
+};
+
+export type AriaAnalysisSummary = {
+  id: string;
+  target_company: string | null;
+  current_title: string | null;
+  career_situation: string;
+  ats_score: number | null;
+  content_score: number | null;
+  total_score: number | null;
+  is_latest: boolean;
+  version: number;
+  created_at: string | null;
+};
+
+export const ariaService = {
+  intake: (data: AriaIntakeInput) =>
+    authedPost<AriaIntakeResult>("/api/resume/aria/intake", data),
+
+  generate: (data: { analysis_id: string; tone_mode?: string }) =>
+    authedPost<AriaGenerateResult>("/api/resume/aria/generate", data),
+
+  score: (data: { analysis_id?: string; resume_json?: Record<string, unknown>; job_signals?: Record<string, unknown> }) =>
+    authedPost<{ score_card: AriaScoreCard }>("/api/resume/aria/score", data),
+
+  rewriteBullet: (data: { bullet: string; job_context?: Record<string, unknown> }) =>
+    authedPost<AriaBulletRewrite>("/api/resume/aria/rewrite", data),
+
+  keywords: (data: { analysis_id: string }) =>
+    authedPost<{ keyword_matrix: AriaKeywordMatrix }>("/api/resume/aria/keywords", data),
+
+  gaps: (data: { analysis_id: string }) =>
+    authedPost<{ gap_brief: Record<string, unknown> }>("/api/resume/aria/gaps", data),
+
+  edits: (data: { analysis_id: string }) =>
+    authedPost<{ precision_edits: AriaGenerateResult["precision_edits"] }>("/api/resume/aria/edits", data),
+
+  history: () =>
+    authedGet<{ analyses: AriaAnalysisSummary[] }>("/api/resume/aria/history"),
+
+  detail: (analysisId: string) =>
+    authedGet<Record<string, unknown>>(`/api/resume/aria/${analysisId}`),
+};
+
+// ═══════════════════════════════════════════════════════════
+// ARIA v2 — Cover Letters, ATS Platforms, Page Anatomy,
+//            Tone Matrix, Bullet Variants, PDF Export
+// ═══════════════════════════════════════════════════════════
+
+/* ── v2 Types ─────────────────────────────────────────── */
+
+// Cover Letter
+export type CoverLetterVariant = {
+  variant: "traditional" | "story" | "cold_email";
+  content: string;
+  word_count: number;
+  tone: string;
+  key_evidence: string[];
+};
+
+export type CoverLetterResult = {
+  analysis_id: string;
+  variants: CoverLetterVariant[];
+  generation_notes: string;
+};
+
+// ATS Platform Simulation
+export type ATSPlatformScore = {
+  platform: string;
+  display_name: string;
+  score: number;
+  max_score: number;
+  grade: string;
+  pass: boolean;
+  warnings: string[];
+  optimization_tips: string[];
+  category_scores: Record<string, number>;
+};
+
+export type ATSPlatformResult = {
+  analysis_id: string;
+  platforms: ATSPlatformScore[];
+  best_platform: string;
+  worst_platform: string;
+  average_score: number;
+  universal_issues: string[];
+};
+
+export type ATSPlatformInfo = {
+  id: string;
+  name: string;
+  description: string;
+  strictness: string;
+  market_share: string;
+};
+
+// Page Anatomy
+export type AttentionZone = {
+  zone: string;
+  label: string;
+  weight: number;
+  description: string;
+  optimal_content: string[];
+  current_content: string[];
+  impact_score: number;
+};
+
+export type PageAnatomyResult = {
+  analysis_id: string;
+  zones: AttentionZone[];
+  pattern: "f_pattern" | "z_pattern";
+  overall_placement_score: number;
+  recommendations: string[];
+  section_order: string[];
+};
+
+export type PageAnatomyZoneInfo = {
+  zone: string;
+  label: string;
+  weight: number;
+  description: string;
+};
+
+// Tone Matrix
+export type IndustryToneProfile = {
+  id: string;
+  label: string;
+  base_tone: string;
+  formality: number;
+  preferred_vocabulary: string[];
+  avoid_vocabulary: string[];
+  proof_style: string;
+  proof_priorities: string[];
+  culture_keywords: string[];
+};
+
+export type ToneMatrixResult = {
+  analysis_id: string;
+  selected_industry: string;
+  profile: IndustryToneProfile;
+  tone_adjustments: Array<{
+    section: string;
+    original_tone: string;
+    suggested_tone: string;
+    example: string;
+  }>;
+  vocabulary_swaps: Array<{
+    original: string;
+    replacement: string;
+    reason: string;
+  }>;
+};
+
+// Bullet Variants
+export type BulletFrameworkInfo = {
+  id: string;
+  name: string;
+  structure: string;
+  example: string;
+  best_for: string;
+};
+
+export type BulletVariantResult = {
+  original: string;
+  variants: Array<{
+    framework: string;
+    framework_name: string;
+    rewritten: string;
+    components: Record<string, string>;
+    front_loaded: boolean;
+    word_count: number;
+  }>;
+  recommendation: string;
+};
+
+export type BulletVariantsResponse = {
+  analysis_id?: string;
+  results: BulletVariantResult[];
+};
+
+// PDF Export
+export type PDFExportInput = {
+  analysis_id?: string;
+  resume_json?: Record<string, unknown>;
+  style?: "classic" | "modern" | "minimal" | "executive" | "tech";
+  include_sections?: string[];
+};
+
+/* ── v2 Service Methods ───────────────────────────────── */
+export const ariaV2Service = {
+  // Cover Letters
+  generateCoverLetters: (data: {
+    analysis_id?: string;
+    resume_text?: string;
+    job_description?: string;
+    company_name?: string;
+    hiring_manager?: string;
+    variants?: ("traditional" | "story" | "cold_email")[];
+  }) => authedPost<CoverLetterResult>("/api/resume/v2/cover-letter", data),
+
+  // ATS Platform Simulation
+  simulateATSPlatforms: (data: {
+    analysis_id?: string;
+    resume_json?: Record<string, unknown>;
+    job_signals?: Record<string, unknown>;
+    platforms?: string[];
+  }) => authedPost<ATSPlatformResult>("/api/resume/v2/ats-platforms", data),
+
+  listATSPlatforms: () =>
+    authedGet<{ platforms: ATSPlatformInfo[] }>("/api/resume/v2/ats-platforms/list"),
+
+  // Page Anatomy
+  analyzePageAnatomy: (data: {
+    analysis_id?: string;
+    resume_json?: Record<string, unknown>;
+    career_situation?: string;
+  }) => authedPost<PageAnatomyResult>("/api/resume/v2/page-anatomy", data),
+
+  getPageAnatomyZones: () =>
+    authedGet<{ zones: PageAnatomyZoneInfo[] }>("/api/resume/v2/page-anatomy/zones"),
+
+  // Tone Matrix
+  analyzeToneMatrix: (data: {
+    analysis_id?: string;
+    industry: string;
+    resume_text?: string;
+  }) => authedPost<ToneMatrixResult>("/api/resume/v2/tone-matrix", data),
+
+  listIndustries: () =>
+    authedGet<{ industries: IndustryToneProfile[] }>("/api/resume/v2/tone-matrix/industries"),
+
+  // Bullet Variants
+  generateBulletVariants: (data: {
+    analysis_id?: string;
+    bullets: string[];
+    frameworks?: string[];
+    job_context?: Record<string, unknown>;
+  }) => authedPost<BulletVariantsResponse>("/api/resume/v2/bullet-variants", data),
+
+  listBulletFrameworks: () =>
+    authedGet<{ frameworks: BulletFrameworkInfo[] }>("/api/resume/v2/bullet-variants/frameworks"),
+
+  // PDF Export
+  exportPDF: async (data: PDFExportInput): Promise<Blob> => {
+    const authToken = await getAccessTokenOrThrow();
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:9010"}/api/resume/v2/export/pdf`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    if (!res.ok) throw new Error(`PDF export failed: ${res.status}`);
+    return res.blob();
+  },
+
+  exportHTML: (data: PDFExportInput) =>
+    authedPost<{ html: string }>("/api/resume/v2/export/html", data),
+};
+
 // Duo
 export const duoService = {
   create: (data?: { session_type?: string }) => authedPost<DuoSession>("/api/duo/create", data),

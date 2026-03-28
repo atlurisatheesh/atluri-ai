@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Click Test</title>
+<style>
+body { background: #0a0a0c; color: white; font-family: sans-serif; padding: 20px; }
+button { padding: 20px 40px; font-size: 24px; cursor: pointer; margin: 10px; background: #10b981; color: white; border: none; border-radius: 8px; }
+button:hover { background: #0ea572; }
+button:active { background: #059669; }
+input { padding: 10px; font-size: 16px; margin: 10px; width: 300px; }
+select { padding: 10px; font-size: 16px; margin: 10px; }
+#output { margin-top: 20px; padding: 20px; background: #1a1a1f; border-radius: 8px; min-height: 100px; font-size: 14px; }
+</style>
+</head>
+<body>
+<h1>PhantomVeil Click Test</h1>
+<p>If you can click these buttons, the window is interactive:</p>
+
+<button onclick="addLog('Button 1 clicked!')">CLICK ME 1</button>
+<button onclick="addLog('Button 2 clicked!')">CLICK ME 2</button>
+<button id="closeBtn" onclick="addLog('Close clicked!'); if(window.atluriinDesktop) window.atluriinDesktop.closeOverlay();">CLOSE APP</button>
+
+<br>
+<input type="text" placeholder="Type here to test input..." oninput="addLog('Typing: ' + this.value)">
+<br>
+<select onchange="addLog('Selected: ' + this.value)" title="Test select">
+  <option>Option 1</option>
+  <option>Option 2</option>
+  <option>Option 3</option>
+</select>
+
+<div id="output">Click log will appear here...</div>
+
+<script>
+function addLog(msg) {
+  const el = document.getElementById('output');
+  el.innerHTML = new Date().toLocaleTimeString() + ' - ' + msg + '<br>' + el.innerHTML;
+}
+addLog('Page loaded! Try clicking buttons above.');
+addLog('window.atluriinDesktop = ' + (typeof window.atluriinDesktop));
+</script>
+</body>
+</html>

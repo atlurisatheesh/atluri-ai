@@ -16,6 +16,7 @@ import { getAccessTokenOrThrow } from "../../lib/auth";
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
+      title="Toggle"
       onClick={() => onChange(!checked)}
       className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${
         checked ? "bg-brand-cyan" : "bg-white/[0.1]"
@@ -131,6 +132,7 @@ export default function SettingsPage() {
               type="email"
               value={email}
               disabled
+              title="Email address"
               className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-2.5 text-sm text-textMuted cursor-not-allowed"
             />
           </div>
@@ -149,6 +151,7 @@ export default function SettingsPage() {
         <GlassCard className="p-6">
           <SettingRow label="Default Company Mode" description="Sets the interview style for new sessions.">
             <select
+              title="Company mode"
               value={companyMode}
               onChange={(e) => setCompanyMode(e.target.value)}
               className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none"
@@ -163,6 +166,7 @@ export default function SettingsPage() {
           </SettingRow>
           <SettingRow label="Difficulty Level" description="Controls question complexity.">
             <select
+              title="Difficulty level"
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value)}
               className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none"
@@ -180,7 +184,7 @@ export default function SettingsPage() {
             <Toggle checked={showScore} onChange={setShowScore} />
           </SettingRow>
           <SettingRow label="Response Tone" description="Adjust AI response style.">
-            <select value={responseTone} onChange={(e) => setResponseTone(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
+            <select title="Response tone" value={responseTone} onChange={(e) => setResponseTone(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
               <option value="professional">Professional</option>
               <option value="casual">Casual</option>
               <option value="technical">Technical</option>
@@ -188,14 +192,14 @@ export default function SettingsPage() {
             </select>
           </SettingRow>
           <SettingRow label="Response Length" description="How detailed AI answers should be.">
-            <select value={responseLength} onChange={(e) => setResponseLength(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
+            <select title="Response length" value={responseLength} onChange={(e) => setResponseLength(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
               <option value="brief">Brief (1-2 sentences)</option>
               <option value="balanced">Balanced</option>
               <option value="detailed">Detailed</option>
             </select>
           </SettingRow>
           <SettingRow label="Language" description="Primary language for AI responses.">
-            <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
+            <select title="Language" value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-textPrimary cursor-pointer outline-none">
               <option value="en">English</option>
               <option value="es">Spanish</option>
               <option value="fr">French</option>

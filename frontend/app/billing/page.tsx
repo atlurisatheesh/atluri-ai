@@ -257,7 +257,7 @@ export default function BillingPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-textPrimary">{inv.amount}</span>
                     <StatusBadge variant="green">{inv.status}</StatusBadge>
-                    <button className="p-1.5 rounded-lg hover:bg-white/5 text-textMuted hover:text-brand-cyan transition"><Download className="w-4 h-4" /></button>
+                    <button title="Download invoice" className="p-1.5 rounded-lg hover:bg-white/5 text-textMuted hover:text-brand-cyan transition"><Download className="w-4 h-4" /></button>
                   </div>
                 </div>
               ))}

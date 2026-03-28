@@ -59,13 +59,13 @@ function CategoryPie({ data }: { data: { label: string; value: number; color: st
   let cum = 0;
   return (
     <div className="flex items-center gap-6">
-      <div className="relative w-24 h-24 rounded-full" style={{ background: `conic-gradient(${data.map((d) => { const start = cum; cum += (d.value / total) * 360; return `${d.color} ${start}deg ${cum}deg`; }).join(", ")})` }}>
+      <div className="relative w-24 h-24 rounded-full" ref={(el) => { if (el) el.style.background = `conic-gradient(${data.map((d) => { const start = cum; cum += (d.value / total) * 360; return `${d.color} ${start}deg ${cum}deg`; }).join(", ")})`; }}>
         <div className="absolute inset-2 rounded-full bg-canvas" />
       </div>
       <div className="space-y-1.5">
         {data.map((d) => (
-          <div key={d.label} className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full" style={{ background: d.color }} />
+          <div key={d.label} className="flex items-center gap-2. ">
+            <div className="w-2 h-2 rounded-full" ref={(el) => { if (el) el.style.background = d.color; }} />
             <span className="text-xs text-textSecondary">{d.label}</span>
             <span className="text-xs text-textMuted ml-auto">{d.value}</span>
           </div>

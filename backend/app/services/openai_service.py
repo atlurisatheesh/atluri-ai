@@ -416,6 +416,14 @@ async def stream_answer_live(
     resume_loaded: bool = False,
     jd_loaded: bool = False,
     answer_language: str = "english",
+    company: str = "",
+    position: str = "",
+    industry: str = "",
+    experience: str = "",
+    objective: str = "",
+    company_research: str = "",
+    coach_style: str = "",
+    voice_signature: str = "",
 ):
     """
     TRUE streaming answer generation - yields tokens as OpenAI generates them.
@@ -455,11 +463,42 @@ async def stream_answer_live(
         f"Job description loaded: {jd_loaded}"
     )
     
+    # Inject session context from desktop setup wizard (company, position, industry, etc.)
+    session_context_parts = []
+    if company:
+        session_context_parts.append(f"Target Company: {company}")
+    if position:
+        session_context_parts.append(f"Target Position: {position}")
+    if industry and industry != "default":
+        session_context_parts.append(f"Industry: {industry}")
+    if experience and experience != "mid":
+        session_context_parts.append(f"Experience Level: {experience}")
+    if objective:
+        session_context_parts.append(f"Interview Objective: {objective[:400]}")
+    if coach_style and coach_style != "balanced":
+        style_map = {
+            "aggressive": "Be direct, assertive. Emphasize leadership and impact.",
+            "supportive": "Be warm and collaborative. Highlight teamwork.",
+            "behavioral": "Emphasize STAR format. Lead with situation/context.",
+            "technical": "Be precise and technical. Lead with architecture/implementation details.",
+            "coding": "Focus on algorithmic thinking, time/space complexity, trade-offs.",
+        }
+        session_context_parts.append(f"Coaching Style: {style_map.get(coach_style, coach_style)}")
+    
+    if session_context_parts:
+        system_prompt += "\n\n--- SESSION CONTEXT ---\n" + "\n".join(session_context_parts)
+    
+    # Voice personalization injection
+    if voice_signature:
+        system_prompt += "\n\n--- VOICE PERSONALIZATION ---\n" + voice_signature
+    
     context_block = ""
     if context.get('resume_text'):
         context_block += f"\nRESUME:\n{context.get('resume_text','')[:2000]}\n"
     if context.get('job_description'):
         context_block += f"\nJOB DESCRIPTION:\n{context.get('job_description','')[:2000]}\n"
+    if company_research:
+        context_block += f"\nCOMPANY RESEARCH:\n{company_research[:1500]}\n"
     
     messages = [
         {"role": "system", "content": system_prompt},

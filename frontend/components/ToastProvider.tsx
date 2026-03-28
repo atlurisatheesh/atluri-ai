@@ -71,23 +71,29 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
     dismissTestimonialPrompt();
   };
 
+  const toneClasses: Record<ToastType, string> = {
+    success: "text-[#065f46] border-[#a7f3d0] bg-[#ecfdf5]",
+    error: "text-[#991b1b] border-[#fecaca] bg-[#fef2f2]",
+    info: "text-[#1d4ed8] border-[#bfdbfe] bg-[#eff6ff]",
+  };
+
   return (
     <>
       {children}
-      <div style={styles.stack}>
+      <div className="fixed top-3.5 right-3.5 z-[9999] flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => (
-          <div key={toast.id} style={{ ...styles.item, ...toneStyles[toast.type] }}>
+          <div key={toast.id} className={`min-w-[240px] max-w-[360px] rounded-[10px] border py-2.5 px-3 text-[13px] font-semibold leading-[1.35] shadow-[0_6px_18px_rgba(15,23,42,0.12)] ${toneClasses[toast.type]}`}>
             {toast.message}
           </div>
         ))}
       </div>
       {testimonialPrompt ? (
-        <div style={styles.promptWrap}>
-          <div style={styles.promptTitle}>Share your improvement</div>
-          <div style={styles.promptBody}>{testimonialPrompt.message}</div>
-          <div style={styles.promptActions}>
-            <button style={styles.promptGhostButton} onClick={dismissTestimonialPrompt}>Later</button>
-            <button style={styles.promptPrimaryButton} onClick={shareTestimonial}>I’ll share</button>
+        <div className="fixed right-3.5 bottom-3.5 w-80 rounded-xl border border-[#a7f3d0] bg-[#ecfdf5] shadow-[0_12px_26px_rgba(15,23,42,0.18)] p-3 z-[9999]">
+          <div className="text-[#065f46] font-extrabold text-[13px]">Share your improvement</div>
+          <div className="mt-1.5 text-[#065f46] text-xs leading-[1.45] font-semibold">{testimonialPrompt.message}</div>
+          <div className="mt-2.5 flex justify-end gap-2">
+            <button className="border border-[#86efac] bg-transparent text-[#166534] rounded-lg py-1.5 px-2.5 text-xs font-bold cursor-pointer" onClick={dismissTestimonialPrompt}>Later</button>
+            <button className="border border-[#059669] bg-[#059669] text-[#ecfdf5] rounded-lg py-1.5 px-2.5 text-xs font-bold cursor-pointer" onClick={shareTestimonial}>I&apos;ll share</button>
           </div>
         </div>
       ) : null}
@@ -95,95 +101,3 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
   );
 }
 
-const styles: any = {
-  stack: {
-    position: "fixed",
-    top: 14,
-    right: 14,
-    zIndex: 9999,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    pointerEvents: "none",
-  },
-  item: {
-    minWidth: 240,
-    maxWidth: 360,
-    borderRadius: 10,
-    border: "1px solid",
-    padding: "10px 12px",
-    fontSize: 13,
-    fontWeight: 600,
-    lineHeight: 1.35,
-    boxShadow: "0 6px 18px rgba(15,23,42,0.12)",
-    background: "#fff",
-  },
-  promptWrap: {
-    position: "fixed",
-    right: 14,
-    bottom: 14,
-    width: 320,
-    borderRadius: 12,
-    border: "1px solid #a7f3d0",
-    background: "#ecfdf5",
-    boxShadow: "0 12px 26px rgba(15, 23, 42, 0.18)",
-    padding: "12px 12px",
-    zIndex: 9999,
-  },
-  promptTitle: {
-    color: "#065f46",
-    fontWeight: 800,
-    fontSize: 13,
-  },
-  promptBody: {
-    marginTop: 6,
-    color: "#065f46",
-    fontSize: 12,
-    lineHeight: 1.45,
-    fontWeight: 600,
-  },
-  promptActions: {
-    marginTop: 10,
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: 8,
-  },
-  promptGhostButton: {
-    border: "1px solid #86efac",
-    background: "transparent",
-    color: "#166534",
-    borderRadius: 8,
-    padding: "6px 9px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  promptPrimaryButton: {
-    border: "1px solid #059669",
-    background: "#059669",
-    color: "#ecfdf5",
-    borderRadius: 8,
-    padding: "6px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-};
-
-const toneStyles: Record<ToastType, any> = {
-  success: {
-    color: "#065f46",
-    borderColor: "#a7f3d0",
-    background: "#ecfdf5",
-  },
-  error: {
-    color: "#991b1b",
-    borderColor: "#fecaca",
-    background: "#fef2f2",
-  },
-  info: {
-    color: "#1d4ed8",
-    borderColor: "#bfdbfe",
-    background: "#eff6ff",
-  },
-};

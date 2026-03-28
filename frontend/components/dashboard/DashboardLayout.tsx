@@ -11,7 +11,7 @@ function DashboardInner({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-canvas flex">
       <Sidebar />
-      <div className="flex-1 transition-all" style={{ marginLeft: collapsed ? 64 : 260 }}>
+      <div className={`flex-1 transition-all ${collapsed ? "ml-16" : "ml-[260px]"}`}>
         <TopBar />
         <main className="p-6 max-w-7xl mx-auto">
           {children}

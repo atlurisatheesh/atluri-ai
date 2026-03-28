@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { apiRequest } from "../lib/api";
@@ -108,10 +108,10 @@ export default function CodingInterviewLite({ strategyTrack = "launch" }: { stra
   const advancedActions: CoachActionExtended[] = ["edge_cases", "test_cases", "optimal_code", ...(isEnterprise ? ["rubric" as const] : [])];
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.title}>Coding Copilot</div>
-        <div style={styles.subtitle}>
+    <div className="w-full max-w-[980px]">
+      <div className="w-full min-h-[520px] bg-[color-mix(in_srgb,var(--bg)_84%,transparent)] rounded-[14px] border border-[var(--border-subtle)] shadow-[0_14px_34px_color-mix(in_srgb,var(--bg)_45%,transparent)] p-[22px] flex flex-col gap-3">
+        <div className="text-[22px] font-black text-[var(--text-primary)]">Coding Copilot</div>
+        <div className="-mt-1 text-[13px] text-[var(--text-muted)]">
           {isStealth
             ? "Rapid coding assist with compact guidance for high-pressure rounds."
             : isEnterprise
@@ -119,45 +119,45 @@ export default function CodingInterviewLite({ strategyTrack = "launch" }: { stra
             : "Problem prompt + complexity analysis + trade-off coaching + structured feedback."}
         </div>
 
-        {isEnterprise && <div style={styles.enterpriseTag}>Enterprise mode includes hiring rubric output for reviewer alignment.</div>}
+        {isEnterprise && <div className="border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-[var(--text-primary)] rounded-[10px] py-2 px-2.5 text-xs font-bold">Enterprise mode includes hiring rubric output for reviewer alignment.</div>}
 
-        <div style={styles.label}>Problem Prompt</div>
-        <div style={styles.row}>
+        <div className="mt-0.5 -mb-1 text-xs font-bold text-[var(--text-muted)]">Problem Prompt</div>
+        <div className="grid grid-cols-[minmax(0,1fr)_160px_120px] gap-2.5">
           <input
             value={problem}
             onChange={(e) => setProblem(e.target.value)}
             placeholder="Problem prompt (e.g., Two Sum with constraints)"
-            style={styles.problemInput}
+            className="border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3 text-sm outline-none bg-[var(--surface-1)] text-[var(--text-primary)]"
           />
-          <select value={language} onChange={(e) => setLanguage(e.target.value)} style={styles.select}>
+          <select value={language} onChange={(e) => setLanguage(e.target.value)} title="Programming language" className="border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3 text-sm outline-none bg-[var(--surface-1)] text-[var(--text-primary)]">
             <option value="python">Python</option>
             <option value="javascript">JavaScript</option>
             <option value="java">Java</option>
             <option value="cpp">C++</option>
             <option value="go">Go</option>
           </select>
-          <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} style={styles.select}>
+          <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} title="Difficulty level" className="border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3 text-sm outline-none bg-[var(--surface-1)] text-[var(--text-primary)]">
             <option value="easy">Easy</option>
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
           </select>
         </div>
 
-        <div style={styles.label}>Your Draft (Optional)</div>
+        <div className="mt-0.5 -mb-1 text-xs font-bold text-[var(--text-muted)]">Your Draft (Optional)</div>
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Optional: your draft approach or code"
-          style={styles.draftInput}
+          className="min-h-[170px] border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3 text-[13px] outline-none resize-y bg-[var(--surface-1)] text-[var(--text-primary)]"
         />
 
-        <div style={styles.actions}>
+        <div className="flex flex-wrap gap-2">
           {coreActions.map((action) => (
             <button
               key={action}
               onClick={() => runCoach(action)}
               disabled={Boolean(loading)}
-              style={loading === action ? styles.actionButtonActive : styles.actionButton}
+              className={loading === action ? "border border-[var(--border-subtle)] bg-[var(--accent)] text-[var(--bg)] rounded-full py-[7px] px-3 text-xs font-bold cursor-pointer shadow-[0_8px_20px_color-mix(in_srgb,var(--accent)_24%,transparent)]" : "border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-primary)] rounded-full py-[7px] px-3 text-xs font-bold cursor-pointer"}
             >
               {loading === action ? "Working..." : labels[action]}
             </button>
@@ -165,19 +165,19 @@ export default function CodingInterviewLite({ strategyTrack = "launch" }: { stra
         </div>
 
         {!isStealth && (
-          <button style={styles.advancedToggle} onClick={() => setShowAdvancedActions((v) => !v)}>
+          <button className="-mt-0.5 w-fit border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] rounded-full py-1.5 px-[11px] text-xs font-bold cursor-pointer" onClick={() => setShowAdvancedActions((v) => !v)}>
             {showAdvancedActions ? "Hide Advanced Coding Actions" : "Show Advanced Coding Actions"}
           </button>
         )}
 
         {showAdvancedActions && !isStealth && (
-          <div style={styles.actions}>
+          <div className="flex flex-wrap gap-2">
             {advancedActions.map((action) => (
               <button
                 key={action}
                 onClick={() => runCoach(action)}
                 disabled={Boolean(loading)}
-                style={loading === action ? styles.actionButtonActive : styles.actionButton}
+                className={loading === action ? "border border-[var(--border-subtle)] bg-[var(--accent)] text-[var(--bg)] rounded-full py-[7px] px-3 text-xs font-bold cursor-pointer shadow-[0_8px_20px_color-mix(in_srgb,var(--accent)_24%,transparent)]" : "border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-primary)] rounded-full py-[7px] px-3 text-xs font-bold cursor-pointer"}
               >
                 {loading === action ? "Working..." : labels[action]}
               </button>
@@ -186,9 +186,9 @@ export default function CodingInterviewLite({ strategyTrack = "launch" }: { stra
         )}
 
         {result && (
-          <div style={styles.resultCard}>
-            <div style={styles.resultTitle}>Coach Output</div>
-            <pre style={styles.resultText}>{result}</pre>
+          <div className="border border-[var(--border-subtle)] rounded-[10px] bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] py-[11px] px-3">
+            <div className="text-xs font-extrabold text-[var(--text-muted)] mb-1.5">Coach Output</div>
+            <pre className="m-0 whitespace-pre-wrap break-words leading-[1.5] text-[13px] text-[var(--text-primary)]">{result}</pre>
           </div>
         )}
 
@@ -198,139 +198,3 @@ export default function CodingInterviewLite({ strategyTrack = "launch" }: { stra
   );
 }
 
-const styles: any = {
-  page: {
-    width: "100%",
-    maxWidth: 980,
-  },
-  card: {
-    width: "100%",
-    minHeight: 520,
-    background: "color-mix(in srgb, var(--bg) 84%, transparent)",
-    borderRadius: 14,
-    border: "1px solid var(--border-subtle)",
-    boxShadow: "0 14px 34px color-mix(in srgb, var(--bg) 45%, transparent)",
-    padding: 22,
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 900,
-    color: "var(--text-primary)",
-  },
-  subtitle: {
-    marginTop: -4,
-    fontSize: 13,
-    color: "var(--text-muted)",
-  },
-  enterpriseTag: {
-    border: "1px solid var(--border-subtle)",
-    background: "color-mix(in srgb, var(--accent) 12%, transparent)",
-    color: "var(--text-primary)",
-    borderRadius: 10,
-    padding: "8px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  label: {
-    marginTop: 2,
-    marginBottom: -4,
-    fontSize: 12,
-    fontWeight: 700,
-    color: "var(--text-muted)",
-  },
-  row: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) 160px 120px",
-    gap: 10,
-  },
-  problemInput: {
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontSize: 14,
-    outline: "none",
-    background: "var(--surface-1)",
-    color: "var(--text-primary)",
-  },
-  select: {
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontSize: 14,
-    outline: "none",
-    background: "var(--surface-1)",
-    color: "var(--text-primary)",
-  },
-  draftInput: {
-    minHeight: 170,
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontSize: 13,
-    outline: "none",
-    resize: "vertical" as const,
-    background: "var(--surface-1)",
-    color: "var(--text-primary)",
-  },
-  actions: {
-    display: "flex",
-    flexWrap: "wrap" as const,
-    gap: 8,
-  },
-  actionButton: {
-    border: "1px solid var(--border-subtle)",
-    background: "var(--surface-1)",
-    color: "var(--text-primary)",
-    borderRadius: 999,
-    padding: "7px 12px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  actionButtonActive: {
-    border: "1px solid var(--border-subtle)",
-    background: "var(--accent)",
-    color: "var(--bg)",
-    borderRadius: 999,
-    padding: "7px 12px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-    boxShadow: "0 8px 20px color-mix(in srgb, var(--accent) 24%, transparent)",
-  },
-  advancedToggle: {
-    marginTop: -2,
-    width: "fit-content",
-    border: "1px solid var(--border-subtle)",
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    borderRadius: 999,
-    padding: "6px 11px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  resultCard: {
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 10,
-    background: "color-mix(in srgb, var(--accent) 12%, transparent)",
-    padding: "11px 12px",
-  },
-  resultTitle: {
-    fontSize: 12,
-    fontWeight: 800,
-    color: "var(--text-muted)",
-    marginBottom: 6,
-  },
-  resultText: {
-    margin: 0,
-    whiteSpace: "pre-wrap" as const,
-    wordBreak: "break-word" as const,
-    lineHeight: 1.5,
-    fontSize: 13,
-    color: "var(--text-primary)",
-  },
-};

@@ -1,4 +1,4 @@
-// This file has been renamed to InterviewLegacy.tsx to resolve casing/module conflict.
+﻿// This file has been renamed to InterviewLegacy.tsx to resolve casing/module conflict.
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -351,19 +351,19 @@ export default function Interview({ strategyTrack = "launch", autoStartNonce = 0
   const queuedMetricCommentaryCount = Math.max(0, computedMetricCommentary.length - metricCommentary.length);
 
   return (
-    <div style={styles.shell}>
-      <div style={styles.stage}>
-        <div style={styles.topRow}>
+    <div className="w-full max-w-[1060px] grid grid-cols-[1fr_320px] gap-3.5">
+      <div className="p-5 bg-[rgba(2,6,23,0.94)] rounded-xl border border-[rgba(51,65,85,0.92)] shadow-[0_10px_28px_rgba(2,6,23,0.52)]">
+        <div className="flex justify-between items-start gap-2.5">
           <div>
-            <h2 style={styles.title}>Live Pressure Round</h2>
-            <p style={styles.subtitle}>
+            <h2 className="m-0 text-2xl text-[#f8fafc] font-black">Live Pressure Round</h2>
+            <p className="mt-2 mb-3 text-[#94a3b8] text-sm">
               {isStealth
                 ? "Run realistic rounds with compact, low-friction prompts that keep you conversion-ready."
                 : isEnterprise
                 ? "Run realistic rounds with governed signals and audit-ready checkpoints for accountable outcomes."
                 : "Run realistic rounds while your interviewer-perception signals update in real time."}
             </p>
-            <div style={styles.trackBadge}>
+            <div className="inline-flex rounded-full border border-[rgba(125,211,252,0.35)] bg-[rgba(2,132,199,0.14)] text-[#bae6fd] px-2.5 py-1 text-[11px] font-bold mb-1">
               {strategyTrack === "stealth"
                 ? "Stealth Track: low-friction copilot prompts"
                 : strategyTrack === "enterprise"
@@ -373,46 +373,46 @@ export default function Interview({ strategyTrack = "launch", autoStartNonce = 0
                 : "Launch Track: polished simulation flow"}
             </div>
           </div>
-          <button onClick={() => router.push("/interview")} style={styles.liveButton}>Open Voice Simulation</button>
+          <button onClick={() => router.push("/interview")} className="mb-3 bg-[rgba(15,23,42,0.72)] text-[#bae6fd] border border-[rgba(125,211,252,0.35)] px-3.5 py-2.5 rounded-[10px] cursor-pointer font-bold">Open Voice Simulation</button>
         </div>
 
         {!question && (
-          <button onClick={start} style={styles.primaryButton} disabled={loading}>
+          <button onClick={start} className="bg-[linear-gradient(180deg,#0ea5e9_0%,#2563eb_100%)] text-[#f8fafc] border border-[rgba(125,211,252,0.62)] px-3.5 py-2.5 rounded-[10px] cursor-pointer font-extrabold shadow-[0_8px_20px_rgba(14,165,233,0.25)]" disabled={loading}>
             {loading ? "Starting..." : "Start Live Pressure Round"}
           </button>
         )}
 
         {question && (
           <>
-            <div style={styles.questionCard}>
-              <div style={styles.questionLabel}>Current Question</div>
-              <div style={styles.questionText}>{question}</div>
+            <div className="mt-1 mb-2.5 p-3.5 rounded-[10px] bg-[rgba(2,132,199,0.14)] border border-[rgba(125,211,252,0.3)]">
+              <div className="text-xs text-[#93c5fd] font-bold mb-1">Current Question</div>
+              <div className="font-bold text-[#f8fafc] leading-[1.45]">{question}</div>
             </div>
 
             <textarea
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              style={styles.text}
+              className="w-full min-h-[132px] p-3 rounded-[10px] border border-[rgba(125,211,252,0.35)] text-[#e2e8f0] bg-[rgba(15,23,42,0.72)] mb-2.5 resize-y leading-[1.45] outline-none"
               placeholder="Type your answer with structure: context, action, impact, reflection..."
             />
 
-            <div style={styles.actionRow}>
-              <button onClick={submit} style={styles.primaryButton} disabled={loading}>{loading ? "Submitting..." : "Submit Answer"}</button>
-              <div style={styles.wordCount}>Words: {liveMetrics.words}</div>
+            <div className="flex items-center justify-between gap-2.5 mb-2">
+              <button onClick={submit} className="bg-[linear-gradient(180deg,#0ea5e9_0%,#2563eb_100%)] text-[#f8fafc] border border-[rgba(125,211,252,0.62)] px-3.5 py-2.5 rounded-[10px] cursor-pointer font-extrabold shadow-[0_8px_20px_rgba(14,165,233,0.25)]" disabled={loading}>{loading ? "Submitting..." : "Submit Answer"}</button>
+              <div className="text-xs text-[#93c5fd] font-bold">Words: {liveMetrics.words}</div>
             </div>
 
             {taggedSentences.length > 0 && !isStealth && (
-              <div style={styles.tagCard}>
-                <div style={styles.evalTitle}>Live Transcript Signal Tagging</div>
+              <div className="mt-2.5 rounded-[10px] border border-[rgba(125,211,252,0.28)] bg-[rgba(15,23,42,0.72)] px-3 py-2.5">
+                <div className="text-xs text-[#bae6fd] font-extrabold mb-1.5">Live Transcript Signal Tagging</div>
                 {taggedSentences.map((item, index) => (
-                  <div key={`${item.text}-${index}`} style={{ ...styles.tagRow, ...(item.weakness ? styles.tagRowWeak : {}) }}>
-                    <span style={styles.tagPill}>{item.tag}</span>
-                    <span style={styles.tagText}>{item.text}</span>
-                    {item.weakness ? <span style={styles.weakPill}>{item.weakness}</span> : null}
+                  <div key={`${item.text}-${index}`} className={`grid grid-cols-[auto_1fr_auto] gap-2 items-center border-t pt-[7px] mt-[7px] ${item.weakness ? "border-t-[rgba(248,113,113,0.3)]" : "border-t-[rgba(125,211,252,0.18)]"}`}>
+                    <span className="rounded-full border border-[rgba(125,211,252,0.35)] text-[#bae6fd] bg-[rgba(2,132,199,0.16)] text-[10px] font-extrabold px-2 py-[3px]">{item.tag}</span>
+                    <span className="text-[#dbeafe] text-xs leading-[1.4]">{item.text}</span>
+                    {item.weakness ? <span className="rounded-full border border-[rgba(248,113,113,0.38)] text-[#fecaca] bg-[rgba(127,29,29,0.34)] text-[10px] font-extrabold px-2 py-[3px] uppercase">{item.weakness}</span> : null}
                   </div>
                 ))}
                 {taggedSentences.some((item) => item.weakness) ? (
-                  <div style={styles.tagHint}>Rewrite weak spans with one metric, one action, and one concrete result.</div>
+                  <div className="mt-2 rounded-lg border border-[rgba(250,204,21,0.45)] bg-[rgba(113,63,18,0.38)] text-[#fde68a] text-xs font-semibold px-[9px] py-[7px]">Rewrite weak spans with one metric, one action, and one concrete result.</div>
                 ) : null}
               </div>
             )}
@@ -420,32 +420,32 @@ export default function Interview({ strategyTrack = "launch", autoStartNonce = 0
         )}
 
         {evaluation && (
-          <div style={styles.evalCard}>
-            <div style={styles.evalTitle}>{isStealth ? "Stealth Summary" : "Coach Evaluation"}</div>
-            <pre style={styles.eval}>{isStealth ? `${evaluation.slice(0, 300)}${evaluation.length > 300 ? "..." : ""}` : evaluation}</pre>
+          <div className="mt-2.5 rounded-[10px] border border-[rgba(125,211,252,0.32)] bg-[rgba(2,132,199,0.12)] px-3 py-2.5">
+            <div className="text-xs text-[#bae6fd] font-extrabold mb-1.5">{isStealth ? "Stealth Summary" : "Coach Evaluation"}</div>
+            <pre className="m-0 whitespace-pre-wrap text-[#e2e8f0] text-[13px]">{isStealth ? `${evaluation.slice(0, 300)}${evaluation.length > 300 ? "..." : ""}` : evaluation}</pre>
           </div>
         )}
 
         {transcript.length > 0 && !isStealth && (
-          <div style={styles.transcriptCard}>
-            <div style={styles.evalTitle}>Round Transcript</div>
+          <div className="mt-2.5 rounded-[10px] border border-[rgba(125,211,252,0.28)] bg-[rgba(15,23,42,0.72)] px-3 py-2.5">
+            <div className="text-xs text-[#bae6fd] font-extrabold mb-1.5">Round Transcript</div>
             {transcript.slice(-3).map((item, idx) => (
-              <div key={idx} style={styles.transcriptItem}>
-                <div style={styles.transcriptQ}>Q: {item.question}</div>
-                <div style={styles.transcriptA}>A: {item.answer}</div>
+              <div key={idx} className="mt-2 pt-2 border-t border-t-[rgba(125,211,252,0.2)]">
+                <div className="text-xs text-[#e2e8f0] font-bold">Q: {item.question}</div>
+                <div className="mt-1 text-xs text-[#cbd5e1] leading-[1.45]">A: {item.answer}</div>
               </div>
             ))}
           </div>
         )}
 
         {transcript.length > 0 && isStealth && (
-          <div style={styles.stealthNote}>
+          <div className="mt-2.5 rounded-[10px] border border-[rgba(125,211,252,0.28)] bg-[rgba(15,23,42,0.72)] px-3 py-2.5 text-[#93c5fd] text-xs font-semibold leading-[1.4]">
             Stealth mode keeps transcript details compact. Switch to Launch or Depth for full turn-by-turn review.
           </div>
         )}
 
         {completionOffer && question === "Interview completed" && (
-          <div style={styles.deltaCard}>
+          <div className="mt-3 rounded-[10px] border border-[rgba(45,212,191,0.48)] bg-[linear-gradient(180deg,rgba(20,184,166,0.18)_0%,rgba(2,6,23,0.82)_100%)] px-3 py-3">
             {(() => {
               const value = Number(completionOffer.offer_probability || 0);
               const meaning =
@@ -460,59 +460,59 @@ export default function Interview({ strategyTrack = "launch", autoStartNonce = 0
               const velocity = Number(completionOffer.improvement_velocity_pp_per_session || completionOffer.delta_vs_last_session || 0);
               return (
                 <>
-                  <div style={styles.deltaKicker}>Session-End Delta</div>
-                  <div style={styles.deltaHeadline}>
+                  <div className="text-[11px] font-extrabold text-[#99f6e4] uppercase tracking-[0.4px]">Session-End Delta</div>
+                  <div className="mt-[3px] text-[#f0fdfa] text-[22px] font-black">
                     Offer Probability {completionOffer.delta_vs_last_session >= 0 ? "+" : ""}{completionOffer.delta_vs_last_session.toFixed(1)} pts
                   </div>
-                  <div style={styles.deltaSub}>Current probability: {completionOffer.offer_probability.toFixed(1)}% ({completionOffer.confidence_band} confidence)</div>
-                  <div style={styles.deltaVelocity}>Velocity: {velocity >= 0 ? "+" : ""}{velocity.toFixed(1)} pts/session</div>
-                  <div style={styles.deltaMeaning}>{meaning}</div>
-                  <div style={styles.deltaHint}>{targetHint}</div>
-                  {completionOffer.baseline_range_hint ? <div style={styles.deltaBaseline}>{completionOffer.baseline_range_hint}</div> : null}
+                  <div className="mt-1 text-[#ccfbf1] text-xs">Current probability: {completionOffer.offer_probability.toFixed(1)}% ({completionOffer.confidence_band} confidence)</div>
+                  <div className="mt-1 text-[#99f6e4] text-xs font-bold">Velocity: {velocity >= 0 ? "+" : ""}{velocity.toFixed(1)} pts/session</div>
+                  <div className="mt-[5px] text-[#ccfbf1] text-xs font-bold">{meaning}</div>
+                  <div className="mt-1 text-[#99f6e4] text-xs font-semibold">{targetHint}</div>
+                  {completionOffer.baseline_range_hint ? <div className="mt-1 text-[#bae6fd] text-xs font-semibold">{completionOffer.baseline_range_hint}</div> : null}
                   {completionOffer.beta_percentile != null && completionOffer.beta_cohort_size ? (
-                    <div style={styles.deltaPercentile}>Beta context: top {Math.max(1, Math.round(100 - Number(completionOffer.beta_percentile || 0)))}% (n={completionOffer.beta_cohort_size})</div>
+                    <div className="mt-1 text-[#dbeafe] text-xs font-semibold">Beta context: top {Math.max(1, Math.round(100 - Number(completionOffer.beta_percentile || 0)))}% (n={completionOffer.beta_cohort_size})</div>
                   ) : null}
                   {(completionOffer.target_ladder || []).length > 0 ? (
-                    <div style={styles.deltaLadderRow}>
+                    <div className="mt-1.5 flex gap-1.5 flex-wrap">
                       {(completionOffer.target_ladder || []).slice(0, 3).map((item) => (
-                        <span key={item} style={styles.deltaLadderChip}>{item}</span>
+                        <span key={item} className="border border-[rgba(125,211,252,0.35)] bg-[rgba(2,132,199,0.15)] text-[#bae6fd] rounded-full px-2 py-1 text-[11px] font-bold">{item}</span>
                       ))}
                     </div>
                   ) : null}
-                  {completionOffer.plateau_note ? <div style={styles.deltaPlateau}>{completionOffer.plateau_note}</div> : null}
+                  {completionOffer.plateau_note ? <div className="mt-1.5 rounded-lg border border-[rgba(250,204,21,0.38)] bg-[rgba(113,63,18,0.32)] text-[#fde68a] px-2 py-1.5 text-xs font-semibold">{completionOffer.plateau_note}</div> : null}
                 </>
               );
             })()}
-            <div style={styles.deltaListTitle}>What changed</div>
+            <div className="mt-2 text-[#bae6fd] text-xs font-extrabold">What changed</div>
             {(completionOffer.drivers_positive || []).slice(0, 2).map((item) => (
-              <div key={item} style={styles.deltaListItem}>• {item}</div>
+              <div key={item} className="text-[#dbeafe] text-xs leading-[1.4] mt-[3px]">â€¢ {item}</div>
             ))}
-            <div style={styles.deltaListTitle}>What to fix next</div>
+            <div className="mt-2 text-[#bae6fd] text-xs font-extrabold">What to fix next</div>
             {(completionOffer.what_to_fix_next || []).slice(0, 2).map((item) => (
-              <div key={item} style={styles.deltaListItem}>• {item}</div>
+              <div key={item} className="text-[#dbeafe] text-xs leading-[1.4] mt-[3px]">â€¢ {item}</div>
             ))}
-            <div style={styles.feedbackRow}>
-              <div style={styles.feedbackLabel}>Did this score feel accurate?</div>
-              <div style={styles.feedbackActions}>
+            <div className="mt-2.5 rounded-lg border border-[rgba(125,211,252,0.28)] bg-[rgba(15,23,42,0.64)] px-[9px] py-2">
+              <div className="text-[#dbeafe] text-xs font-bold">Did this score feel accurate?</div>
+              <div className="mt-1.5 flex gap-2">
                 <button
-                  style={accuracyFeedback === "accurate" ? styles.feedbackButtonActive : styles.feedbackButton}
+                  className={accuracyFeedback === "accurate" ? "border border-[rgba(45,212,191,0.55)] bg-[rgba(13,148,136,0.3)] text-[#ccfbf1] rounded-lg px-2.5 py-1.5 cursor-default text-xs font-extrabold" : "border border-[rgba(125,211,252,0.35)] bg-[rgba(15,23,42,0.74)] text-[#dbeafe] rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold"}
                   onClick={() => submitAccuracyFeedback(true)}
                   disabled={accuracyFeedback !== null}
                 >
                   Yes
                 </button>
                 <button
-                  style={accuracyFeedback === "inaccurate" ? styles.feedbackButtonActive : styles.feedbackButton}
+                  className={accuracyFeedback === "inaccurate" ? "border border-[rgba(45,212,191,0.55)] bg-[rgba(13,148,136,0.3)] text-[#ccfbf1] rounded-lg px-2.5 py-1.5 cursor-default text-xs font-extrabold" : "border border-[rgba(125,211,252,0.35)] bg-[rgba(15,23,42,0.74)] text-[#dbeafe] rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold"}
                   onClick={() => submitAccuracyFeedback(false)}
                   disabled={accuracyFeedback !== null}
                 >
                   No
                 </button>
               </div>
-              {accuracyFeedbackState ? <div style={styles.feedbackState}>{accuracyFeedbackState}</div> : null}
+              {accuracyFeedbackState ? <div className="mt-1.5 text-[#99f6e4] text-[11px] font-semibold">{accuracyFeedbackState}</div> : null}
             </div>
-            {completionOffer.how_it_works ? <div style={styles.deltaHowText}>How this works: {completionOffer.how_it_works}</div> : null}
-            <button onClick={start} style={styles.deltaButton} disabled={loading}>Run next pressure round now</button>
+            {completionOffer.how_it_works ? <div className="mt-2 text-[#cbd5e1] text-[11px] leading-[1.4]">How this works: {completionOffer.how_it_works}</div> : null}
+            <button onClick={start} className="mt-2.5 bg-[linear-gradient(180deg,#14b8a6_0%,#0ea5e9_100%)] text-[#ecfeff] border border-[rgba(94,234,212,0.55)] px-3 py-[9px] rounded-[10px] cursor-pointer font-extrabold" disabled={loading}>Run next pressure round now</button>
           </div>
         )}
 
@@ -525,39 +525,20 @@ export default function Interview({ strategyTrack = "launch", autoStartNonce = 0
       </div>
 
       <div
-        style={{
-          ...styles.intelligencePanel,
-          ...(pressureTintActive ? styles.intelligencePanelPressure : {}),
-          ...(riskPulseActive ? styles.intelligencePanelRisk : {}),
-          ...(credibilityPulseActive ? styles.intelligencePanelCredibility : {}),
-        }}
+        className={`p-4 rounded-xl border border-[rgba(51,65,85,0.92)] h-fit ${pressureTintActive ? "bg-[rgba(120,53,15,0.26)] transition-[background] duration-300 ease-in-out" : "bg-[rgba(2,6,23,0.96)]"} ${credibilityPulseActive ? "shadow-[0_0_0_1px_rgba(56,189,248,0.28),0_0_14px_rgba(56,189,248,0.24)] transition-shadow duration-200 ease-in-out" : riskPulseActive ? "shadow-[0_0_0_1px_rgba(248,113,113,0.3),0_0_14px_rgba(248,113,113,0.25)] transition-shadow duration-300 ease-in-out" : "shadow-[0_10px_28px_rgba(2,6,23,0.52)]"}`}
       >
-        <div style={styles.panelTitle}>Interviewer Perception Console</div>
-        <div style={styles.panelSub}>Engine-calibrated signals. Expand for advanced diagnostics.</div>
+        <div className="text-lg font-black text-[#f8fafc]">Interviewer Perception Console</div>
+        <div className="mt-1 mb-2.5 text-xs text-[#94a3b8] leading-[1.4]">Engine-calibrated signals. Expand for advanced diagnostics.</div>
 
         <div
-          style={{
-            ...styles.signalLine,
-            borderColor:
-              pressureState === "high"
-                ? "rgba(248, 113, 113, 0.45)"
-                : pressureState === "medium"
-                ? "rgba(251, 191, 36, 0.45)"
-                : "rgba(45, 212, 191, 0.45)",
-            color:
-              pressureState === "high"
-                ? "#fecaca"
-                : pressureState === "medium"
-                ? "#fde68a"
-                : "#99f6e4",
-            animation: pressureState === "high" ? "aiAlertPulse 1.3s ease-out infinite" : undefined,
-          }}
+          className={`mb-2.5 rounded-[10px] border bg-[rgba(15,23,42,0.75)] px-[9px] py-2 text-xs font-bold leading-[1.4] ${pressureState === "high" ? "border-[rgba(248,113,113,0.45)] text-[#fecaca]" : pressureState === "medium" ? "border-[rgba(251,191,36,0.45)] text-[#fde68a]" : "border-[rgba(45,212,191,0.45)] text-[#99f6e4]"}`}
+          ref={(el) => { if (el) el.style.animation = pressureState === "high" ? "aiAlertPulse 1.3s ease-out infinite" : ""; }}
         >
           {pressureState === "high"
-            ? "Pressure Spike detected — slow pace, anchor objective, then respond."
+            ? "Pressure Spike detected â€” slow pace, anchor objective, then respond."
             : pressureState === "medium"
-            ? "Pressure elevated — keep concise structure and one measurable impact."
-            : "Pressure stable — maintain signal quality and pacing."}
+            ? "Pressure elevated â€” keep concise structure and one measurable impact."
+            : "Pressure stable â€” maintain signal quality and pacing."}
         </div>
 
         <MetricRow label="Credibility" value={liveMetrics.credibility} tone="good" emphasis={credibilityPulseActive ? "pulse" : "none"} />
@@ -567,12 +548,12 @@ export default function Interview({ strategyTrack = "launch", autoStartNonce = 0
         <MetricRow label="Risk Drift" value={liveMetrics.drift} tone="warn" emphasis={liveMetrics.drift > 30 || riskPulseActive ? "alert" : "none"} />
 
         {metricCommentary.length > 0 && (
-          <div style={styles.metricCommentaryBlock}>
+          <div className="rounded-[10px] border border-[rgba(51,65,85,0.72)] bg-[rgba(2,6,23,0.88)] px-[9px] py-2 mb-2.5">
             {metricCommentary.map((line) => (
-              <div key={line} style={styles.metricCommentaryLine}>{line}</div>
+              <div key={line} className="text-[#cbd5e1] text-xs font-semibold leading-[1.4]">{line}</div>
             ))}
             {queuedMetricCommentaryCount > 0 ? (
-              <div style={styles.metricCommentaryLine}>
+              <div className="text-[#cbd5e1] text-xs font-semibold leading-[1.4]">
                 +{queuedMetricCommentaryCount} more signal{queuedMetricCommentaryCount === 1 ? "" : "s"} queued
               </div>
             ) : null}
@@ -580,25 +561,25 @@ export default function Interview({ strategyTrack = "launch", autoStartNonce = 0
         )}
 
         {!isStealth && (
-          <button style={styles.advancedToggle} onClick={() => setShowAdvanced((v) => !v)}>
+          <button className="w-full mt-1 rounded-[10px] border border-[rgba(125,211,252,0.35)] bg-[rgba(15,23,42,0.74)] text-[#bae6fd] px-2.5 py-[9px] text-xs font-bold cursor-pointer" onClick={() => setShowAdvanced((v) => !v)}>
             {showAdvanced ? "Hide Advanced" : "Show Advanced"}
           </button>
         )}
 
         {showAdvanced && !isStealth && (
-          <div style={styles.advancedCard}>
-            <div style={styles.advancedLine}>Signal Notes</div>
-            <div style={styles.advancedItem}>- Keep answers under 140 words unless question demands depth.</div>
-            <div style={styles.advancedItem}>- Use one measurable impact statement in each answer.</div>
-            <div style={styles.advancedItem}>- If drift rises, restate objective and role context in one line.</div>
+          <div className="mt-2 rounded-[10px] border border-[rgba(125,211,252,0.25)] bg-[rgba(2,132,199,0.08)] p-2.5">
+            <div className="text-xs text-[#dbeafe] font-extrabold mb-1.5">Signal Notes</div>
+            <div className="text-xs text-[#bfdbfe] leading-[1.45] mb-[5px]">- Keep answers under 140 words unless question demands depth.</div>
+            <div className="text-xs text-[#bfdbfe] leading-[1.45] mb-[5px]">- Use one measurable impact statement in each answer.</div>
+            <div className="text-xs text-[#bfdbfe] leading-[1.45] mb-[5px]">- If drift rises, restate objective and role context in one line.</div>
           </div>
         )}
 
         {isEnterprise && (
-          <div style={styles.enterpriseCard}>
-            <div style={styles.advancedLine}>Governance Layer</div>
-            <div style={styles.advancedItem}>- Session is tagged for audit-ready reporting and reviewer handoff.</div>
-            <div style={styles.advancedItem}>- Keep one evidence statement per answer for downstream calibration.</div>
+          <div className="mt-2 rounded-[10px] border border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.08)] p-2.5">
+            <div className="text-xs text-[#dbeafe] font-extrabold mb-1.5">Governance Layer</div>
+            <div className="text-xs text-[#bfdbfe] leading-[1.45] mb-[5px]">- Session is tagged for audit-ready reporting and reviewer handoff.</div>
+            <div className="text-xs text-[#bfdbfe] leading-[1.45] mb-[5px]">- Keep one evidence statement per answer for downstream calibration.</div>
           </div>
         )}
       </div>
@@ -638,535 +619,24 @@ function MetricRow({
 
   return (
     <div
-      style={{
-        ...styles.metricWrap,
-        ...(emphasis === "pulse" ? styles.metricWrapPulse : {}),
-        ...(emphasis === "alert" ? styles.metricWrapAlert : {}),
-        ...(emphasis === "tint" ? styles.metricWrapTint : {}),
-      }}
+      className={`mb-2.5 rounded-xl px-2.5 py-[9px] transition-all duration-300 ease-in-out ${emphasis === "tint" ? "bg-[rgba(120,53,15,0.26)]" : "bg-[rgba(2,6,23,0.86)]"} ${emphasis === "pulse" ? "border border-[rgba(56,189,248,0.62)] shadow-[0_0_0_1px_rgba(56,189,248,0.22),0_0_12px_rgba(56,189,248,0.24)]" : emphasis === "alert" ? "border border-[rgba(248,113,113,0.65)] shadow-[0_0_0_1px_rgba(248,113,113,0.24),0_0_12px_rgba(248,113,113,0.24)]" : "border border-[rgba(51,65,85,0.7)]"}`}
     >
-      <div style={styles.metricHeader}>
+      <div className="flex items-center justify-between text-[13px] font-extrabold text-[#dbeafe] mb-1.5">
         <span>{label}</span>
         <span>{value}%</span>
       </div>
-      <div style={styles.metricTrack}>
+      <div className="h-2 rounded-full bg-[rgba(51,65,85,0.8)] overflow-hidden border border-[rgba(148,163,184,0.2)]">
         <div
-          style={{
-            ...styles.metricFill,
-            width: `${value}%`,
-            background: tone === "good" ? "linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%)" : "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)",
-            animation: isCritical ? "aiAlertPulse 1.45s ease-out infinite" : flashState ? "aiPulse 0.7s ease-out" : undefined,
-            boxShadow:
-              flashState === "up"
-                ? "0 0 14px rgba(34, 197, 94, 0.45)"
-                : flashState === "down"
-                ? "0 0 14px rgba(239, 68, 68, 0.45)"
-                : isCritical
-                ? "0 0 14px rgba(239, 68, 68, 0.35)"
-                : "none",
+          className="h-full rounded-full transition-[width] duration-300 ease-in-out"
+          ref={(el) => {
+            if (!el) return;
+            el.style.width = `${value}%`;
+            el.style.background = tone === "good" ? "linear-gradient(90deg, #22d3ee 0%, #3b82f6 100%)" : "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)";
+            el.style.animation = isCritical ? "aiAlertPulse 1.45s ease-out infinite" : flashState ? "aiPulse 0.7s ease-out" : "";
+            el.style.boxShadow = flashState === "up" ? "0 0 14px rgba(34, 197, 94, 0.45)" : flashState === "down" ? "0 0 14px rgba(239, 68, 68, 0.45)" : isCritical ? "0 0 14px rgba(239, 68, 68, 0.35)" : "none";
           }}
         />
       </div>
     </div>
   );
 }
-
-const styles: any = {
-  shell: {
-    width: "100%",
-    maxWidth: 1060,
-    display: "grid",
-    gridTemplateColumns: "1fr 320px",
-    gap: 14,
-  },
-  stage: {
-    padding: 20,
-    background: "rgba(2, 6, 23, 0.94)",
-    borderRadius: 12,
-    border: "1px solid rgba(51, 65, 85, 0.92)",
-    boxShadow: "0 10px 28px rgba(2, 6, 23, 0.52)",
-  },
-  intelligencePanel: {
-    padding: 16,
-    background: "rgba(2, 6, 23, 0.96)",
-    borderRadius: 12,
-    border: "1px solid rgba(51, 65, 85, 0.92)",
-    boxShadow: "0 10px 28px rgba(2, 6, 23, 0.52)",
-    height: "fit-content",
-  },
-  intelligencePanelPressure: {
-    background: "rgba(120, 53, 15, 0.26)",
-    transition: "background 300ms ease-in-out",
-  },
-  intelligencePanelRisk: {
-    boxShadow: "0 0 0 1px rgba(248, 113, 113, 0.3), 0 0 14px rgba(248, 113, 113, 0.25)",
-    transition: "box-shadow 300ms ease-in-out",
-  },
-  intelligencePanelCredibility: {
-    boxShadow: "0 0 0 1px rgba(56, 189, 248, 0.28), 0 0 14px rgba(56, 189, 248, 0.24)",
-    transition: "box-shadow 200ms ease-in-out",
-  },
-  topRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 10,
-  },
-  title: {
-    margin: 0,
-    fontSize: 24,
-    color: "#f8fafc",
-    fontWeight: 900,
-  },
-  subtitle: {
-    marginTop: 8,
-    marginBottom: 12,
-    color: "#94a3b8",
-    fontSize: 14,
-  },
-  trackBadge: {
-    display: "inline-flex",
-    borderRadius: 999,
-    border: "1px solid rgba(125, 211, 252, 0.35)",
-    background: "rgba(2, 132, 199, 0.14)",
-    color: "#bae6fd",
-    padding: "4px 10px",
-    fontSize: 11,
-    fontWeight: 700,
-    marginBottom: 4,
-  },
-  questionCard: {
-    marginTop: 4,
-    marginBottom: 10,
-    padding: "14px 14px",
-    borderRadius: 10,
-    background: "rgba(2, 132, 199, 0.14)",
-    border: "1px solid rgba(125, 211, 252, 0.3)",
-  },
-  questionLabel: {
-    fontSize: 12,
-    color: "#93c5fd",
-    fontWeight: 700,
-    marginBottom: 4,
-  },
-  questionText: {
-    fontWeight: 700,
-    color: "#f8fafc",
-    lineHeight: 1.45,
-  },
-  text: {
-    width: "100%",
-    minHeight: 132,
-    padding: 12,
-    borderRadius: 10,
-    border: "1px solid rgba(125, 211, 252, 0.35)",
-    color: "#e2e8f0",
-    background: "rgba(15, 23, 42, 0.72)",
-    marginBottom: 10,
-    resize: "vertical",
-    lineHeight: 1.45,
-    outline: "none",
-  },
-  actionRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-    marginBottom: 8,
-  },
-  wordCount: {
-    fontSize: 12,
-    color: "#93c5fd",
-    fontWeight: 700,
-  },
-  evalCard: {
-    marginTop: 10,
-    borderRadius: 10,
-    border: "1px solid rgba(125, 211, 252, 0.32)",
-    background: "rgba(2, 132, 199, 0.12)",
-    padding: "10px 12px",
-  },
-  eval: {
-    margin: 0,
-    whiteSpace: "pre-wrap",
-    color: "#e2e8f0",
-    fontSize: 13,
-  },
-  evalTitle: {
-    fontSize: 12,
-    color: "#bae6fd",
-    fontWeight: 800,
-    marginBottom: 6,
-  },
-  transcriptCard: {
-    marginTop: 10,
-    borderRadius: 10,
-    border: "1px solid rgba(125, 211, 252, 0.28)",
-    background: "rgba(15, 23, 42, 0.72)",
-    padding: "10px 12px",
-  },
-  tagCard: {
-    marginTop: 10,
-    borderRadius: 10,
-    border: "1px solid rgba(125, 211, 252, 0.28)",
-    background: "rgba(15, 23, 42, 0.72)",
-    padding: "10px 12px",
-  },
-  tagRow: {
-    display: "grid",
-    gridTemplateColumns: "auto 1fr auto",
-    gap: 8,
-    alignItems: "center",
-    borderTop: "1px solid rgba(125, 211, 252, 0.18)",
-    paddingTop: 7,
-    marginTop: 7,
-  },
-  tagRowWeak: {
-    borderTop: "1px solid rgba(248, 113, 113, 0.3)",
-  },
-  tagPill: {
-    borderRadius: 999,
-    border: "1px solid rgba(125, 211, 252, 0.35)",
-    color: "#bae6fd",
-    background: "rgba(2, 132, 199, 0.16)",
-    fontSize: 10,
-    fontWeight: 800,
-    padding: "3px 8px",
-  },
-  tagText: {
-    color: "#dbeafe",
-    fontSize: 12,
-    lineHeight: 1.4,
-  },
-  weakPill: {
-    borderRadius: 999,
-    border: "1px solid rgba(248, 113, 113, 0.38)",
-    color: "#fecaca",
-    background: "rgba(127, 29, 29, 0.34)",
-    fontSize: 10,
-    fontWeight: 800,
-    padding: "3px 8px",
-    textTransform: "uppercase",
-  },
-  tagHint: {
-    marginTop: 8,
-    borderRadius: 8,
-    border: "1px solid rgba(250, 204, 21, 0.45)",
-    background: "rgba(113, 63, 18, 0.38)",
-    color: "#fde68a",
-    fontSize: 12,
-    fontWeight: 600,
-    padding: "7px 9px",
-  },
-  deltaCard: {
-    marginTop: 12,
-    borderRadius: 10,
-    border: "1px solid rgba(45, 212, 191, 0.48)",
-    background: "linear-gradient(180deg, rgba(20, 184, 166, 0.18) 0%, rgba(2, 6, 23, 0.82) 100%)",
-    padding: "12px 12px",
-  },
-  deltaKicker: {
-    fontSize: 11,
-    fontWeight: 800,
-    color: "#99f6e4",
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
-  },
-  deltaHeadline: {
-    marginTop: 3,
-    color: "#f0fdfa",
-    fontSize: 22,
-    fontWeight: 900,
-  },
-  deltaSub: {
-    marginTop: 4,
-    color: "#ccfbf1",
-    fontSize: 12,
-  },
-  deltaMeaning: {
-    marginTop: 5,
-    color: "#ccfbf1",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  deltaVelocity: {
-    marginTop: 4,
-    color: "#99f6e4",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  deltaHint: {
-    marginTop: 4,
-    color: "#99f6e4",
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  deltaBaseline: {
-    marginTop: 4,
-    color: "#bae6fd",
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  deltaPercentile: {
-    marginTop: 4,
-    color: "#dbeafe",
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  deltaLadderRow: {
-    marginTop: 6,
-    display: "flex",
-    gap: 6,
-    flexWrap: "wrap",
-  },
-  deltaLadderChip: {
-    border: "1px solid rgba(125, 211, 252, 0.35)",
-    background: "rgba(2, 132, 199, 0.15)",
-    color: "#bae6fd",
-    borderRadius: 999,
-    padding: "4px 8px",
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  deltaPlateau: {
-    marginTop: 6,
-    borderRadius: 8,
-    border: "1px solid rgba(250, 204, 21, 0.38)",
-    background: "rgba(113, 63, 18, 0.32)",
-    color: "#fde68a",
-    padding: "6px 8px",
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  deltaListTitle: {
-    marginTop: 8,
-    color: "#bae6fd",
-    fontSize: 12,
-    fontWeight: 800,
-  },
-  deltaListItem: {
-    color: "#dbeafe",
-    fontSize: 12,
-    lineHeight: 1.4,
-    marginTop: 3,
-  },
-  feedbackRow: {
-    marginTop: 10,
-    borderRadius: 8,
-    border: "1px solid rgba(125, 211, 252, 0.28)",
-    background: "rgba(15, 23, 42, 0.64)",
-    padding: "8px 9px",
-  },
-  feedbackLabel: {
-    color: "#dbeafe",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  feedbackActions: {
-    marginTop: 6,
-    display: "flex",
-    gap: 8,
-  },
-  feedbackButton: {
-    border: "1px solid rgba(125, 211, 252, 0.35)",
-    background: "rgba(15, 23, 42, 0.74)",
-    color: "#dbeafe",
-    borderRadius: 8,
-    padding: "6px 10px",
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  feedbackButtonActive: {
-    border: "1px solid rgba(45, 212, 191, 0.55)",
-    background: "rgba(13, 148, 136, 0.3)",
-    color: "#ccfbf1",
-    borderRadius: 8,
-    padding: "6px 10px",
-    cursor: "default",
-    fontSize: 12,
-    fontWeight: 800,
-  },
-  feedbackState: {
-    marginTop: 6,
-    color: "#99f6e4",
-    fontSize: 11,
-    fontWeight: 600,
-  },
-  deltaHowText: {
-    marginTop: 8,
-    color: "#cbd5e1",
-    fontSize: 11,
-    lineHeight: 1.4,
-  },
-  deltaButton: {
-    marginTop: 10,
-    background: "linear-gradient(180deg, #14b8a6 0%, #0ea5e9 100%)",
-    color: "#ecfeff",
-    border: "1px solid rgba(94, 234, 212, 0.55)",
-    padding: "9px 12px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 800,
-  },
-  transcriptItem: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTop: "1px solid rgba(125, 211, 252, 0.2)",
-  },
-  transcriptQ: {
-    fontSize: 12,
-    color: "#e2e8f0",
-    fontWeight: 700,
-  },
-  transcriptA: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "#cbd5e1",
-    lineHeight: 1.45,
-  },
-  stealthNote: {
-    marginTop: 10,
-    borderRadius: 10,
-    border: "1px solid rgba(125, 211, 252, 0.28)",
-    background: "rgba(15, 23, 42, 0.72)",
-    padding: "10px 12px",
-    color: "#93c5fd",
-    fontSize: 12,
-    fontWeight: 600,
-    lineHeight: 1.4,
-  },
-  liveButton: {
-    marginBottom: 12,
-    background: "rgba(15, 23, 42, 0.72)",
-    color: "#bae6fd",
-    border: "1px solid rgba(125, 211, 252, 0.35)",
-    padding: "10px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 700,
-  },
-  primaryButton: {
-    background: "linear-gradient(180deg, #0ea5e9 0%, #2563eb 100%)",
-    color: "#f8fafc",
-    border: "1px solid rgba(125, 211, 252, 0.62)",
-    padding: "10px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 800,
-    boxShadow: "0 8px 20px rgba(14, 165, 233, 0.25)",
-  },
-  panelTitle: {
-    fontSize: 18,
-    fontWeight: 900,
-    color: "#f8fafc",
-  },
-  panelSub: {
-    marginTop: 4,
-    marginBottom: 10,
-    fontSize: 12,
-    color: "#94a3b8",
-    lineHeight: 1.4,
-  },
-  signalLine: {
-    marginBottom: 10,
-    borderRadius: 10,
-    border: "1px solid rgba(45, 212, 191, 0.45)",
-    background: "rgba(15, 23, 42, 0.75)",
-    padding: "8px 9px",
-    fontSize: 12,
-    fontWeight: 700,
-    lineHeight: 1.4,
-  },
-  metricWrap: {
-    marginBottom: 10,
-    borderRadius: 12,
-    border: "1px solid rgba(51, 65, 85, 0.7)",
-    background: "rgba(2, 6, 23, 0.86)",
-    padding: "9px 10px",
-    transition: "all 300ms ease-in-out",
-  },
-  metricWrapPulse: {
-    border: "1px solid rgba(56, 189, 248, 0.62)",
-    boxShadow: "0 0 0 1px rgba(56, 189, 248, 0.22), 0 0 12px rgba(56, 189, 248, 0.24)",
-  },
-  metricWrapAlert: {
-    border: "1px solid rgba(248, 113, 113, 0.65)",
-    boxShadow: "0 0 0 1px rgba(248, 113, 113, 0.24), 0 0 12px rgba(248, 113, 113, 0.24)",
-  },
-  metricWrapTint: {
-    background: "rgba(120, 53, 15, 0.26)",
-  },
-  metricHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    fontSize: 13,
-    fontWeight: 800,
-    color: "#dbeafe",
-    marginBottom: 6,
-  },
-  metricTrack: {
-    height: 8,
-    borderRadius: 999,
-    background: "rgba(51, 65, 85, 0.8)",
-    overflow: "hidden",
-    border: "1px solid rgba(148, 163, 184, 0.2)",
-  },
-  metricFill: {
-    height: "100%",
-    borderRadius: 999,
-    transition: "width 300ms ease-in-out",
-  },
-  metricCommentaryBlock: {
-    borderRadius: 10,
-    border: "1px solid rgba(51, 65, 85, 0.72)",
-    background: "rgba(2, 6, 23, 0.88)",
-    padding: "8px 9px",
-    marginBottom: 10,
-  },
-  metricCommentaryLine: {
-    color: "#cbd5e1",
-    fontSize: 12,
-    fontWeight: 600,
-    lineHeight: 1.4,
-  },
-  advancedToggle: {
-    width: "100%",
-    marginTop: 4,
-    borderRadius: 10,
-    border: "1px solid rgba(125, 211, 252, 0.35)",
-    background: "rgba(15, 23, 42, 0.74)",
-    color: "#bae6fd",
-    padding: "9px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  advancedCard: {
-    marginTop: 8,
-    borderRadius: 10,
-    border: "1px solid rgba(125, 211, 252, 0.25)",
-    background: "rgba(2, 132, 199, 0.08)",
-    padding: "10px 10px",
-  },
-  enterpriseCard: {
-    marginTop: 8,
-    borderRadius: 10,
-    border: "1px solid rgba(16, 185, 129, 0.35)",
-    background: "rgba(16, 185, 129, 0.08)",
-    padding: "10px 10px",
-  },
-  advancedLine: {
-    fontSize: 12,
-    color: "#dbeafe",
-    fontWeight: 800,
-    marginBottom: 6,
-  },
-  advancedItem: {
-    fontSize: 12,
-    color: "#bfdbfe",
-    lineHeight: 1.45,
-    marginBottom: 5,
-  },
-};

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 type StrategyTrack = "launch" | "depth" | "stealth" | "enterprise";
 
@@ -20,22 +20,22 @@ export default function QuickStartPanel({ onPick, onRunFirstRound, onRunDemo, on
   };
 
   return (
-    <div style={styles.wrap}>
-      <div style={styles.headerRow}>
+    <div className="w-full max-w-[980px] p-[18px] mb-4 bg-[color-mix(in_srgb,var(--bg)_84%,transparent)] rounded-xl border border-[var(--border-subtle)] shadow-[0_12px_30px_color-mix(in_srgb,var(--bg)_45%,transparent)]">
+      <div className="flex justify-between items-start gap-2">
         <div>
-          <h2 style={styles.title}>Start 60-Second Calibration</h2>
-          <p style={styles.subtitle}>Get baseline, confidence band, and next-best action in one pass.</p>
+          <h2 className="m-0 text-2xl text-[var(--text-primary)]">Start 60-Second Calibration</h2>
+          <p className="mt-1.5 mb-0 text-[var(--text-muted)] text-sm">Get baseline, confidence band, and next-best action in one pass.</p>
         </div>
-        <button style={styles.skipButton} onClick={onDismiss}>Dismiss</button>
+        <button className="border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-primary)] rounded-[10px] py-2 px-3 cursor-pointer font-semibold" onClick={onDismiss}>Dismiss</button>
       </div>
 
-      <div style={styles.positioning}>
+      <div className="mt-3 bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] border border-[var(--border-subtle)] rounded-xl py-2.5 px-3 text-[var(--text-primary)] font-semibold text-[13px]">
         This is not script generation. This is interview performance control.
       </div>
 
-      <div style={styles.trackSection}>
-        <div style={styles.sectionTitle}>1) Choose Candidate Profile</div>
-        <div style={styles.trackRow}>
+      <div className="mt-3 flex flex-col gap-2">
+        <div className="text-[var(--text-primary)] font-extrabold text-[13px]">1) Choose Candidate Profile</div>
+        <div className="flex gap-2 flex-wrap">
           {([
             { id: "launch", label: "Senior SWE" },
             { id: "depth", label: "PM L6" },
@@ -45,168 +45,30 @@ export default function QuickStartPanel({ onPick, onRunFirstRound, onRunDemo, on
             <button
               key={track.id}
               onClick={() => onSelectTrack(track.id)}
-              style={strategyTrack === track.id ? styles.trackButtonActive : styles.trackButton}
+              className={strategyTrack === track.id ? "border border-[var(--border-subtle)] rounded-full bg-[var(--accent)] text-[var(--bg)] py-[7px] px-3 font-bold text-xs cursor-pointer" : "border border-[var(--border-subtle)] rounded-full bg-[var(--surface-1)] text-[var(--text-muted)] py-[7px] px-3 font-bold text-xs cursor-pointer"}
             >
               {track.label}
             </button>
           ))}
         </div>
-        <div style={styles.trackHint}>{trackNotes[strategyTrack]}</div>
+        <div className="text-[var(--text-muted)] text-xs font-semibold">{trackNotes[strategyTrack]}</div>
       </div>
 
-      <div style={styles.steps}>
-        <div style={styles.sectionTitle}>2) Execute Calibration Flow</div>
-        <div style={styles.step}><span style={styles.badge}>A</span>Answer Prompt 1 of 2 (live signal capture)</div>
-        <div style={styles.step}><span style={styles.badge}>B</span>Answer Prompt 2 of 2 (pressure response check)</div>
-        <div style={styles.step}><span style={styles.badge}>C</span>Receive: baseline → current, confidence band, next action</div>
+      <div className="mt-3.5 grid grid-cols-1 gap-2">
+        <div className="text-[var(--text-primary)] font-extrabold text-[13px]">2) Execute Calibration Flow</div>
+        <div className="flex items-center gap-2.5 text-[var(--text-primary)] text-sm"><span className="w-[22px] h-[22px] rounded-full bg-[var(--accent)] text-[var(--bg)] text-xs font-bold inline-flex items-center justify-center">A</span>Answer Prompt 1 of 2 (live signal capture)</div>
+        <div className="flex items-center gap-2.5 text-[var(--text-primary)] text-sm"><span className="w-[22px] h-[22px] rounded-full bg-[var(--accent)] text-[var(--bg)] text-xs font-bold inline-flex items-center justify-center">B</span>Answer Prompt 2 of 2 (pressure response check)</div>
+        <div className="flex items-center gap-2.5 text-[var(--text-primary)] text-sm"><span className="w-[22px] h-[22px] rounded-full bg-[var(--accent)] text-[var(--bg)] text-xs font-bold inline-flex items-center justify-center">C</span>Receive: baseline â†’ current, confidence band, next action</div>
       </div>
 
-      <div style={styles.actions}>
-        <button style={styles.primary} onClick={onRunFirstRound}>Start 60-Second Calibration</button>
-        <button style={styles.secondary} onClick={() => onPick("dashboard")}>See Confidence Envelope</button>
-        <button style={styles.secondary} onClick={() => onPick("resume")}>Load Resume Context</button>
-        <button style={styles.secondary} onClick={() => onPick("job")}>Set Target Job Scope</button>
-        <button style={styles.secondary} onClick={onRunDemo}>Watch 2-Minute Demo</button>
+      <div className="mt-3.5 flex gap-2.5 flex-wrap">
+        <button className="bg-[var(--accent)] text-[var(--bg)] border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3.5 cursor-pointer font-bold" onClick={onRunFirstRound}>Start 60-Second Calibration</button>
+        <button className="bg-[var(--surface-1)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3.5 cursor-pointer font-bold" onClick={() => onPick("dashboard")}>See Confidence Envelope</button>
+        <button className="bg-[var(--surface-1)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3.5 cursor-pointer font-bold" onClick={() => onPick("resume")}>Load Resume Context</button>
+        <button className="bg-[var(--surface-1)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3.5 cursor-pointer font-bold" onClick={() => onPick("job")}>Set Target Job Scope</button>
+        <button className="bg-[var(--surface-1)] text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-[10px] py-2.5 px-3.5 cursor-pointer font-bold" onClick={onRunDemo}>Watch 2-Minute Demo</button>
       </div>
     </div>
   );
 }
 
-const styles: any = {
-  wrap: {
-    width: "100%",
-    maxWidth: 980,
-    padding: 18,
-    marginBottom: 16,
-    background: "color-mix(in srgb, var(--bg) 84%, transparent)",
-    borderRadius: 12,
-    border: "1px solid var(--border-subtle)",
-    boxShadow: "0 12px 30px color-mix(in srgb, var(--bg) 45%, transparent)",
-  },
-  headerRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 8,
-  },
-  title: {
-    margin: 0,
-    fontSize: 24,
-    color: "var(--text-primary)",
-  },
-  subtitle: {
-    marginTop: 6,
-    marginBottom: 0,
-    color: "var(--text-muted)",
-    fontSize: 14,
-  },
-  positioning: {
-    marginTop: 12,
-    background: "color-mix(in srgb, var(--accent) 14%, transparent)",
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 12,
-    padding: "10px 12px",
-    color: "var(--text-primary)",
-    fontWeight: 600,
-    fontSize: 13,
-  },
-  sectionTitle: {
-    color: "var(--text-primary)",
-    fontWeight: 800,
-    fontSize: 13,
-  },
-  trackSection: {
-    marginTop: 12,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  trackRow: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  trackButton: {
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 999,
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    padding: "7px 12px",
-    fontWeight: 700,
-    fontSize: 12,
-    cursor: "pointer",
-  },
-  trackButtonActive: {
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 999,
-    background: "var(--accent)",
-    color: "var(--bg)",
-    padding: "7px 12px",
-    fontWeight: 700,
-    fontSize: 12,
-    cursor: "pointer",
-  },
-  trackHint: {
-    color: "var(--text-muted)",
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  skipButton: {
-    border: "1px solid var(--border-subtle)",
-    background: "var(--surface-1)",
-    color: "var(--text-primary)",
-    borderRadius: 10,
-    padding: "8px 12px",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  steps: {
-    marginTop: 14,
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: 8,
-  },
-  step: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    color: "var(--text-primary)",
-    fontSize: 14,
-  },
-  badge: {
-    width: 22,
-    height: 22,
-    borderRadius: 999,
-    background: "var(--accent)",
-    color: "var(--bg)",
-    fontSize: 12,
-    fontWeight: 700,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actions: {
-    marginTop: 14,
-    display: "flex",
-    gap: 10,
-    flexWrap: "wrap",
-  },
-  primary: {
-    background: "var(--accent)",
-    color: "var(--bg)",
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 10,
-    padding: "10px 14px",
-    cursor: "pointer",
-    fontWeight: 700,
-  },
-  secondary: {
-    background: "var(--surface-1)",
-    color: "var(--text-primary)",
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 10,
-    padding: "10px 14px",
-    cursor: "pointer",
-    fontWeight: 700,
-  },
-};

@@ -48,7 +48,7 @@ export default function TopBar() {
   return (
     <header
       className="h-16 border-b border-white/[0.06] bg-canvas/50 backdrop-blur-xl flex items-center justify-between px-6 transition-all"
-      style={{ marginLeft: collapsed ? 64 : 260 }}
+      ref={(el) => { if (el) el.style.marginLeft = `${collapsed ? 64 : 260}px`; }}
     >
       {/* Search */}
       <div className="flex items-center gap-3 flex-1 max-w-md">
@@ -62,7 +62,7 @@ export default function TopBar() {
 
       <div className="flex items-center gap-4">
         {/* Notifications */}
-        <button className="relative p-2 rounded-lg hover:bg-white/[0.04] transition text-textMuted hover:text-textPrimary cursor-pointer">
+        <button title="Notifications" className="relative p-2 rounded-lg hover:bg-white/[0.04] transition text-textMuted hover:text-textPrimary cursor-pointer">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-cyan" />
         </button>

@@ -15,7 +15,7 @@ export default function MetricBar({ label, value, max = 5 }: MetricBarProps) {
         <span>{clamped.toFixed(1)}/{max}</span>
       </div>
       <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-800">
-        <div className="h-full rounded-full bg-cyan-500" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-cyan-500" ref={(el) => { if (el) el.style.width = `${pct}%`; }} />
       </div>
     </div>
   );

@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AtluriIn Practice Overlay</title>
+    <style>
+      :root { color-scheme: dark; }
+      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: rgba(13,20,32,0.92); color: #e6eefc; border-radius: 12px; overflow: hidden; }
+      header { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+      header .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      header .title { font-weight: 800; letter-spacing: 0.2px; }
+      header .sub { font-size: 12px; opacity: 0.8; }
+      main { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+      /* Frameless window: allow dragging via header, but keep controls clickable. */
+      button, input, select, label { -webkit-app-region: no-drag; }
+
+      .row { display: flex; gap: 8px; align-items: center; }
+      input, select { background: #111a29; border: 1px solid rgba(255,255,255,0.12); color: #e6eefc; padding: 8px 10px; border-radius: 8px; width: 100%; }
+      input[type="range"] { width: 78px; padding: 0; height: 18px; }
+      button { background: #2a6df4; color: white; border: 0; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; }
+      button.secondary { background: #233047; }
+      button.danger { background: #b4232c; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; opacity: 0.9; }
+      .log { max-height: 260px; overflow: auto; white-space: pre-wrap; }
+      .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(42,109,244,0.2); border: 1px solid rgba(42,109,244,0.35); font-size: 12px; }
+
+      .kpi { display: flex; align-items: baseline; gap: 10px; }
+      .kpi .pct { font-size: 22px; font-weight: 900; }
+      .kpi .delta { font-size: 13px; opacity: 0.9; }
+
+      .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); }
+      .chip.warn { border-color: rgba(240, 186, 50, 0.35); background: rgba(240, 186, 50, 0.12); }
+      .chip.danger { border-color: rgba(255, 80, 105, 0.35); background: rgba(255, 80, 105, 0.12); }
+      .chip.good { border-color: rgba(60, 255, 170, 0.25); background: rgba(60, 255, 170, 0.10); }
+
+      .meters { display: grid; grid-template-columns: 1fr; gap: 10px; }
+      .meter .label { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.9; margin-bottom: 4px; }
+      .bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.10); overflow: hidden; border: 1px solid rgba(255,255,255,0.10); }
+      .bar > i { display: block; height: 100%; width: 0%; background: rgba(42,109,244,0.90); }
+
+      .feed { max-height: 160px; overflow: auto; font-size: 12px; line-height: 1.35; }
+      .feed .item { padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+      .feed .t { opacity: 0.75; margin-right: 6px; }
+      .feed .tag { margin-left: 6px; opacity: 0.85; }
+
+      /* Compact mode hides configuration/log; focuses on KPI + coaching */
+      body[data-mode="compact"] main #configCard,
+      body[data-mode="compact"] main #logCard {
+        display: none;
+      }
+
+      #stealthPanel { gap: 10px; background: rgba(0,0,0,0.20); padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
+      #stealthPanel label { font-size: 11px; opacity: 0.75; }
+
+      /* Title bar - drag zone at the very top */
+      .title-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 6px 12px; background: rgba(0,0,0,0.3); -webkit-app-region: drag; cursor: move; }
+      .title-bar .drag-indicator { display: flex; align-items: center; gap: 8px; }
+      .title-bar .drag-icon { opacity: 0.5; font-size: 14px; letter-spacing: 2px; }
+      .title-bar .title-text { font-size: 13px; font-weight: 700; opacity: 0.9; }
+
+      /* Window control buttons - top right corner */
+      .window-controls { display: flex; gap: 2px; -webkit-app-region: no-drag; }
+      .window-controls button { background: transparent; padding: 4px 10px; min-width: 32px; border-radius: 0; font-size: 14px; transition: background 0.15s; }
+      .window-controls button:hover { background: rgba(255,255,255,0.15); }
+      .window-controls .close-btn:hover { background: rgba(255,60,60,0.8); }
+
+      /* Screen region selection overlay */
+      #regionSelectOverlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        z-index: 10000; cursor: crosshair; background: rgba(0,0,0,0.3);
+      }
+      #regionSelectOverlay .selection-rect {
+        position: absolute; border: 2px dashed #2a6df4; background: rgba(42,109,244,0.15);
+      }
+      #regionSelectOverlay .hint {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.8); color: #fff; padding: 6px 14px; border-radius: 8px;
+        font-size: 13px; pointer-events: none;
+      }
+
+      /* Status indicator pills */
+      .status-pill {
+        display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+        border-radius: 999px; font-size: 11px; font-weight: 600;
+      }
+      .status-pill.active { background: rgba(60,255,170,0.15); color: #3cffaa; border: 1px solid rgba(60,255,170,0.3); }
+      .status-pill.muted { background: rgba(255,80,105,0.15); color: #ff5069; border: 1px solid rgba(255,80,105,0.3); }
+      .status-pill.paused { background: rgba(240,186,50,0.15); color: #f0ba32; border: 1px solid rgba(240,186,50,0.3); }
+
+      /* Hotkey reference */
+      .hotkey-ref { font-size: 10px; opacity: 0.6; padding: 4px 12px; line-height: 1.5; }
+      .hotkey-ref kbd { background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; font-family: monospace; }
+
+      /* Color-coded suggestions */
+      .suggestion-answer { color: #3cffaa; }
+      .suggestion-tip { color: #5ba8ff; }
+      .suggestion-warning { color: #f0ba32; }
+      .suggestion-code { color: #c792ea; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .suggestion-section { font-weight: 700; margin-top: 6px; display: block; }
+      .suggestion-bullet { display: block; padding-left: 12px; }
+
+      /* Settings tabs */
+      .settings-tabs { display: flex; gap: 2px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+      .settings-tab { background: transparent; color: rgba(255,255,255,0.6); padding: 8px 14px; border-radius: 8px 8px 0 0; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+      .settings-tab.active { background: rgba(42,109,244,0.2); color: #5ba8ff; border-bottom: 2px solid #2a6df4; }
+      .settings-panel { display: none; }
+      .settings-panel.active { display: block; }
+      textarea.settings-input { background: #111a29; border: 1px solid rgba(255,255,255,0.12); color: #e6eefc; padding: 8px 10px; border-radius: 8px; width: 100%; min-height: 80px; resize: vertical; font-family: inherit; font-size: 13px; }
+      .hotkey-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+      .hotkey-row label { width: 130px; font-size: 12px; opacity: 0.85; flex-shrink: 0; }
+      .hotkey-row input { flex: 1; font-size: 12px; }
+      .save-indicator { font-size: 12px; color: #3cffaa; display: none; margin-left: 8px; }
+
+      /* Persona chips */
+      .persona-bar { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px 12px; }
+      .persona-chip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #e6eefc; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+      .persona-chip:hover { background: rgba(42,109,244,0.2); border-color: rgba(42,109,244,0.4); }
+      .persona-chip.active { background: rgba(42,109,244,0.3); border-color: #2a6df4; color: #5ba8ff; }
+
+      /* Session replay */
+      .session-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+      .session-coaching { font-size: 11px; white-space: pre-wrap; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; display: none; }
+
+      /* Gaze warning */
+      #gazeWarning { padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; display: none; margin: 4px 12px; }
+
+      /* Ghost type */
+      .ghost-controls { display: flex; gap: 6px; align-items: center; }
+
+      /* Ollama / Mirror status */
+      .feature-status { font-size: 11px; opacity: 0.7; padding: 2px 12px; }
+
+      /* Voice tone badge */
+      #voiceToneStatus { display: none; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: rgba(42,109,244,0.15); border: 1px solid rgba(42,109,244,0.3); }
+
+      /* ════════════════════════════════════════════════════════
+         NEXT-GEN: Mode Tabs, Setup Wizard, Speech Analytics,
+         Model Selector, Document Context, AI Coach
+         ════════════════════════════════════════════════════════ */
+
+      /* Mode Tabs — 5 modes */
+      .mode-tabs { display: flex; gap: 2px; padding: 2px 8px; background: rgba(0,0,0,0.25); border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .mode-tab { flex: 1; background: transparent; color: rgba(255,255,255,0.5); padding: 8px 6px; border: none; border-radius: 8px 8px 0 0; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+      .mode-tab:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.04); }
+      .mode-tab.active { color: #5ba8ff; background: rgba(42,109,244,0.15); border-bottom: 2px solid #2a6df4; }
+      .mode-tab .tab-icon { display: block; font-size: 16px; margin-bottom: 2px; }
+
+      /* Setup Wizard — accordion steps */
+      .setup-wizard { padding: 0; }
+      .setup-step { border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .setup-step:last-child { border-bottom: none; }
+      .setup-step-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; transition: background 0.15s; }
+      .setup-step-header:hover { background: rgba(255,255,255,0.03); }
+      .setup-step-number { width: 28px; height: 28px; border-radius: 50%; background: rgba(42,109,244,0.2); border: 1px solid rgba(42,109,244,0.4); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #5ba8ff; flex-shrink: 0; }
+      .setup-step-number.done { background: rgba(60,255,170,0.2); border-color: rgba(60,255,170,0.4); color: #3cffaa; }
+      .setup-step-info { flex: 1; }
+      .setup-step-title { font-size: 13px; font-weight: 700; }
+      .setup-step-desc { font-size: 10px; opacity: 0.6; }
+      .setup-step-toggle { font-size: 16px; opacity: 0.5; transition: transform 0.2s; }
+      .setup-step.open .setup-step-toggle { transform: rotate(180deg); }
+      .setup-step-body { display: none; padding: 0 14px 12px 52px; }
+      .setup-step.open .setup-step-body { display: block; }
+      .setup-field { margin-bottom: 10px; }
+      .setup-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.7; margin-bottom: 4px; }
+      .setup-input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); color: #e6eefc; padding: 8px 12px; border-radius: 8px; width: 100%; font-size: 12px; box-sizing: border-box; }
+      .setup-input:focus { border-color: rgba(42,109,244,0.5); outline: none; background: rgba(42,109,244,0.08); }
+      .setup-textarea { min-height: 60px; resize: vertical; font-family: inherit; }
+      .char-count { font-size: 10px; opacity: 0.5; text-align: right; margin-top: 2px; }
+
+      /* Model Selector */
+      .model-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .model-option { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 10px; cursor: pointer; transition: all 0.15s; }
+      .model-option:hover { border-color: rgba(42,109,244,0.3); background: rgba(42,109,244,0.05); }
+      .model-option.selected { border-color: #2a6df4; background: rgba(42,109,244,0.15); }
+      .model-option .model-name { font-size: 12px; font-weight: 700; }
+      .model-option .model-tag { display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 999px; margin-top: 3px; }
+      .model-tag.fast { background: rgba(60,255,170,0.15); color: #3cffaa; }
+      .model-tag.smart { background: rgba(42,109,244,0.15); color: #5ba8ff; }
+      .model-tag.local { background: rgba(240,186,50,0.15); color: #f0ba32; }
+      .model-tag.vision { background: rgba(199,146,234,0.15); color: #c792ea; }
+
+      /* Speech Analytics */
+      .speech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .speech-metric { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 10px; }
+      .speech-metric .metric-label { font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.5px; }
+      .speech-metric .metric-value { font-size: 18px; font-weight: 900; margin-top: 2px; }
+      .speech-metric .metric-bar { height: 4px; border-radius: 999px; background: rgba(255,255,255,0.08); margin-top: 4px; overflow: hidden; }
+      .speech-metric .metric-bar i { display: block; height: 100%; width: 0%; border-radius: 999px; transition: width 0.5s ease; }
+      .speech-metric .sub-label { font-size: 9px; opacity: 0.5; margin-top: 2px; }
+
+      /* AI Coach Card */
+      .coach-card { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 8px; }
+      .coach-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+      .coach-info { flex: 1; }
+      .coach-name { font-size: 13px; font-weight: 700; }
+      .coach-role { font-size: 10px; color: #5ba8ff; }
+      .coach-toggle { position: relative; width: 36px; height: 20px; border-radius: 999px; background: rgba(255,255,255,0.15); cursor: pointer; border: none; transition: background 0.2s; flex-shrink: 0; }
+      .coach-toggle.on { background: rgba(42,109,244,0.6); }
+      .coach-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: white; transition: transform 0.2s; }
+      .coach-toggle.on::after { transform: translateX(16px); }
+
+      /* Document chips */
+      .doc-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+      .doc-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 10px; background: rgba(42,109,244,0.12); border: 1px solid rgba(42,109,244,0.25); color: #5ba8ff; }
+      .doc-chip .remove { cursor: pointer; opacity: 0.6; font-size: 12px; }
+      .doc-chip .remove:hover { opacity: 1; }
+
+      /* Start button — enhanced */
+      .start-btn-hero { width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; background: linear-gradient(135deg, #2a6df4, #5b3cf4); border: 2px solid rgba(42,109,244,0.5); color: white; cursor: pointer; transition: all 0.2s; }
+      .start-btn-hero:hover { background: linear-gradient(135deg, #3a7df4, #6b4cf4); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(42,109,244,0.3); }
+      .start-btn-hero:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+      /* Stealth Health Mini Badge */
+      .stealth-health-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+      .stealth-health-badge.safe { background: rgba(60,255,170,0.15); color: #3cffaa; border: 1px solid rgba(60,255,170,0.3); }
+      .stealth-health-badge.warn { background: rgba(240,186,50,0.15); color: #f0ba32; border: 1px solid rgba(240,186,50,0.3); }
+      .stealth-health-badge.danger { background: rgba(255,80,105,0.15); color: #ff5069; border: 1px solid rgba(255,80,105,0.3); }
+
+      /* Mode panel visibility */
+      .mode-panel { display: none; }
+      .mode-panel.active { display: block; }
+    </style>
+  </head>
+  <body data-mode="expanded">
+    <!-- Drag bar at top with window controls -->
+    <div class="title-bar">
+      <div class="drag-indicator">
+        <span class="drag-icon">⋮⋮</span>
+        <span class="title-text">Practice Mode</span>
+        <span id="voiceToneStatus"></span>
+      </div>
+      <div class="window-controls">
+        <button id="gazeToggle" title="Toggle Eye-Gaze Tracking" style="font-size:12px;">👁 Gaze</button>
+        <button id="mirrorBtn" title="Phone Mirror Mode" style="font-size:12px;">📱</button>
+        <button id="minimizeBtn" title="Minimize (Ctrl+Shift+H to restore)">─</button>
+        <button id="closeBtn" class="close-btn" title="Close overlay">✕</button>
+      </div>
+    </div>
+
+    <!-- FEATURE 11: Eye-Gaze Warning Banner -->
+    <div id="gazeWarning"></div>
+
+    <!-- FEATURE 5: Persona Switcher Bar -->
+    <div id="personaBar" class="persona-bar"></div>
+
+    <!-- NEXT-GEN: 5-Mode Tabs (LockedIn has 3 — we have 5) -->
+    <div class="mode-tabs" id="modeTabs">
+      <button class="mode-tab active" data-mode="live">
+        <span class="tab-icon">🎯</span> Live
+      </button>
+      <button class="mode-tab" data-mode="mock">
+        <span class="tab-icon">🎭</span> Mock
+      </button>
+      <button class="mode-tab" data-mode="coding">
+        <span class="tab-icon">💻</span> Coding
+      </button>
+      <button class="mode-tab" data-mode="meeting">
+        <span class="tab-icon">📋</span> Meeting
+      </button>
+      <button class="mode-tab" data-mode="assessment">
+        <span class="tab-icon">📝</span> Assessment
+      </button>
+    </div>
+
+    <header>
+      <div class="top">
+        <div>
+          <div class="sub">Always-on-top overlay • Drag bar to move</div>
+          <div class="row" style="gap:6px; margin-top:4px;">
+            <span id="micStatusPill" class="status-pill active">🎤 Mic ON</span>
+            <span id="aiStatusPill" class="status-pill active">🤖 AI ON</span>
+            <span id="captureStatusPill" class="status-pill" style="display:none;">📷 Capture</span>
+          </div>
+        </div>
+        <div class="row" style="gap:6px; align-items:center; flex-wrap: wrap;">
+          <button id="eyeBtn" class="icon-btn" title="Toggle Stealth Mode" style="background:transparent;padding:6px 8px;">
+            <span id="eyeIcon" style="font-size:20px;">👁️</span>
+          </button>
+          <span id="stealthStatus" style="font-size:13px;min-width:90px;">Stealth: OFF</span>
+          <button id="settingsBtn" class="icon-btn" title="Settings" style="background:transparent;padding:6px 8px;">
+            <span style="font-size:20px;">⚙️</span>
+          </button>
+          <div id="stealthPanel" class="row">
+            <div class="row" style="gap:6px;">
+              <label for="uiOpacity">Opacity</label>
+              <input type="range" id="uiOpacity" min="20" max="100" value="100" />
+            </div>
+            <div class="row" style="gap:6px;">
+              <input type="checkbox" id="stealthMode" />
+              <label for="stealthMode">Stealth</label>
+            </div>
+          </div>
+          <button id="privacyBtn" class="secondary" style="padding:8px 10px;">Privacy: Off</button>
+          <button id="captureBtn" class="secondary" style="padding:8px 10px;" title="Capture screen region (Ctrl+Shift+S)">📷</button>
+          <button id="modeBtn" class="secondary" style="padding:8px 10px;">Compact</button>
+        </div>
+      </div>
+      <!-- Settings Modal (Tabbed) -->
+      <div id="settingsModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:#1a2233;padding:24px 28px;border-radius:14px;min-width:360px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 4px 32px #000a;">
+          <div style="font-size:18px;font-weight:700;margin-bottom:12px;">Settings</div>
+
+          <!-- Tabs -->
+          <div class="settings-tabs">
+            <button class="settings-tab active" data-tab="general">General</button>
+            <button class="settings-tab" data-tab="apikeys">API Keys</button>
+            <button class="settings-tab" data-tab="context">Resume / JD</button>
+            <button class="settings-tab" data-tab="hotkeys">Hotkeys</button>
+            <button class="settings-tab" data-tab="personas">Personas</button>
+            <button class="settings-tab" data-tab="advanced">Advanced</button>
+          </div>
+
+          <!-- General Tab -->
+          <div class="settings-panel active" id="tabGeneral" data-tab="general">
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">Response Length</label>
+              <select id="settingResponseLength">
+                <option value="default">Default</option>
+                <option value="concise">Concise</option>
+                <option value="detailed">Detailed</option>
+              </select>
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">Language & Accent</label>
+              <input id="settingLanguage" placeholder="e.g. English (US)" />
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">Process Time</label>
+              <select id="settingProcessTime">
+                <option value="fast">Fast</option>
+                <option value="medium">Medium</option>
+                <option value="quality">Quality</option>
+              </select>
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">Filler Words</label>
+              <input type="checkbox" id="settingFillerWords" /> Enable
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">Threshold</label>
+              <input type="range" id="settingThreshold" min="0" max="100" value="50" />
+              <span id="settingThresholdVal">50</span>
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">Process Name</label>
+              <input id="settingProcessName" placeholder="(optional)" />
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">Auto-read</label>
+              <input type="checkbox" id="settingAutoRead" /> Read answers aloud
+            </div>
+          </div>
+
+          <!-- API Keys Tab -->
+          <div class="settings-panel" id="tabApikeys" data-tab="apikeys">
+            <div style="font-size:12px;opacity:0.7;margin-bottom:10px;">
+              API keys are stored encrypted on disk via electron-store. They never leave your machine.
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">OpenAI Key</label>
+              <input id="settingOpenaiKey" type="password" placeholder="sk-..." autocomplete="off" />
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:140px;">Claude Key</label>
+              <input id="settingClaudeKey" type="password" placeholder="sk-ant-..." autocomplete="off" />
+            </div>
+            <div style="font-size:11px;opacity:0.6;">
+              Keys are used for Vision API (screen capture analysis) and direct AI queries.
+              Leave blank to use backend-configured keys.
+            </div>
+          </div>
+
+          <!-- Resume / JD Tab -->
+          <div class="settings-panel" id="tabContext" data-tab="context">
+            <div style="font-size:12px;opacity:0.7;margin-bottom:10px;">
+              Paste your resume and job description for context-aware AI responses.
+              The AI will tailor suggestions to match your experience with the role requirements.
+            </div>
+            <div style="margin-bottom:12px;">
+              <label style="font-weight:600;display:block;margin-bottom:4px;">Resume / Experience</label>
+              <textarea id="settingResume" class="settings-input" rows="5"
+                placeholder="Paste your resume text, key skills, or experience summary here..."></textarea>
+            </div>
+            <div style="margin-bottom:12px;">
+              <label style="font-weight:600;display:block;margin-bottom:4px;">Job Description</label>
+              <textarea id="settingJobDescription" class="settings-input" rows="5"
+                placeholder="Paste the job description or role requirements here..."></textarea>
+            </div>
+            <div style="font-size:11px;opacity:0.6;">
+              This context is injected into AI prompts for better answer suggestions.
+            </div>
+          </div>
+
+          <!-- Hotkeys Tab -->
+          <div class="settings-panel" id="tabHotkeys" data-tab="hotkeys">
+            <div style="font-size:12px;opacity:0.7;margin-bottom:10px;">
+              Customize global hotkeys. Use Electron accelerator format (e.g. CommandOrControl+Shift+H).
+            </div>
+            <div class="hotkey-row">
+              <label>Toggle Overlay</label>
+              <input id="hkToggleOverlay" placeholder="CommandOrControl+Shift+H" />
+            </div>
+            <div class="hotkey-row">
+              <label>Capture Screen</label>
+              <input id="hkCaptureScreen" placeholder="CommandOrControl+Shift+S" />
+            </div>
+            <div class="hotkey-row">
+              <label>Toggle Mic</label>
+              <input id="hkToggleMic" placeholder="CommandOrControl+Shift+M" />
+            </div>
+            <div class="hotkey-row">
+              <label>Toggle AI</label>
+              <input id="hkToggleAi" placeholder="CommandOrControl+Shift+P" />
+            </div>
+            <div class="hotkey-row">
+              <label>Click-Through</label>
+              <input id="hkToggleClickThrough" placeholder="CommandOrControl+Shift+T" />
+            </div>
+            <div class="hotkey-row">
+              <label>Quit App</label>
+              <input id="hkQuit" placeholder="CommandOrControl+Shift+Q" />
+            </div>
+            <div style="font-size:11px;opacity:0.6;">
+              Arrow nudge keys (Ctrl+Shift+Arrow) are not customizable.<br>
+              Changes take effect immediately upon save.
+            </div>
+          </div>
+
+          <!-- Personas Tab -->
+          <div class="settings-panel" id="tabPersonas" data-tab="personas">
+            <div style="font-size:12px;opacity:0.7;margin-bottom:10px;">
+              Create prompt personas to switch AI coaching style instantly during interviews.
+            </div>
+            <div id="personaList" style="max-height:250px;overflow-y:auto;">
+              <!-- Populated by JS -->
+            </div>
+            <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;">
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Add Custom Persona</div>
+              <div class="row" style="margin-bottom:6px;">
+                <label style="width:80px;font-size:12px;">Name</label>
+                <input id="newPersonaName" placeholder="My Persona" style="font-size:12px;" />
+              </div>
+              <div class="row" style="margin-bottom:6px;">
+                <label style="width:80px;font-size:12px;">Icon</label>
+                <input id="newPersonaIcon" placeholder="🎯" style="width:60px;font-size:12px;" />
+              </div>
+              <div style="margin-bottom:6px;">
+                <label style="font-size:12px;display:block;margin-bottom:4px;">System Prompt</label>
+                <textarea id="newPersonaPrompt" class="settings-input" rows="3"
+                  placeholder="You are a..." style="font-size:12px;"></textarea>
+              </div>
+              <button id="addPersonaBtn" class="secondary" style="padding:6px 12px;font-size:12px;">+ Add Persona</button>
+            </div>
+          </div>
+
+          <!-- Advanced Tab -->
+          <div class="settings-panel" id="tabAdvanced" data-tab="advanced">
+            <div style="font-size:12px;opacity:0.7;margin-bottom:10px;">
+              Advanced features: smart hover, predictive streaming, ghost typing, display routing, and more.
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:160px;font-size:12px;">Smart Hover</label>
+              <input type="checkbox" id="settingSmartHover" checked /> Auto click-through
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:160px;font-size:12px;">Predictive Streaming</label>
+              <input type="checkbox" id="settingPredictive" checked /> Pre-fetch AI answers
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:160px;font-size:12px;">Ghost Type WPM</label>
+              <input id="settingGhostWpm" type="number" value="85" min="20" max="200" style="width:80px;" />
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:160px;font-size:12px;">Display Routing</label>
+              <select id="settingDisplayRoute">
+                <option value="auto">Auto (secondary if available)</option>
+                <option value="primary">Primary Display</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:160px;font-size:12px;">Eye-Gaze Tracking</label>
+              <input type="checkbox" id="settingGaze" /> Warn when looking away
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:160px;font-size:12px;">Offline AI (Ollama)</label>
+              <input type="checkbox" id="settingOllama" /> Use local models when available
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+              <label style="width:160px;font-size:12px;">Phone Mirror</label>
+              <input type="checkbox" id="settingMirror" /> Enable mirror server
+            </div>
+            <div style="font-size:11px;opacity:0.6;">
+              Smart Hover: overlay becomes click-through when mouse leaves.<br>
+              Predictive: starts generating answers before question finishes.<br>
+              Ghost Type: simulates human-speed keyboard input of AI suggestions.<br>
+              Eye-Gaze: warns when you look away from camera during interview.
+            </div>
+          </div>
+
+          <div class="row" style="justify-content:flex-end;gap:10px;margin-top:14px;">
+            <span id="settingsSaveIndicator" class="save-indicator">✓ Saved</span>
+            <button id="settingsCancelBtn" class="secondary">Cancel</button>
+            <button id="settingsSaveBtn">Save</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="app-root">
+      <div class="card" id="kpiCard">
+        <div class="row" style="justify-content: space-between;">
+          <span class="badge">Practice Mode Active</span>
+          <span class="mono" id="offerBand"></span>
+        </div>
+        <div style="height:8px"></div>
+        <div class="kpi">
+          <div class="pct" id="offerPct">Offer: --%</div>
+          <div class="delta" id="offerDelta">Δ --</div>
+        </div>
+        <div style="height:10px"></div>
+
+        <div class="meters">
+          <div class="meter">
+            <div class="label"><span>Impact Strength</span><span class="mono" id="mImpactVal">--</span></div>
+            <div class="bar"><i id="mImpact"></i></div>
+          </div>
+          <div class="meter">
+            <div class="label"><span>Credibility</span><span class="mono" id="mCredVal">--</span></div>
+            <div class="bar"><i id="mCred"></i></div>
+          </div>
+          <div class="meter">
+            <div class="label"><span>STAR Completion</span><span class="mono" id="mStarVal">--</span></div>
+            <div class="bar"><i id="mStar"></i></div>
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+        <div class="mono" id="drivers"></div>
+        <div style="height:8px"></div>
+        <div class="chips" id="starChips"></div>
+        <div style="height:8px"></div>
+        <div class="chips" id="warningChips"></div>
+      </div>
+
+      <div class="card setup-wizard" id="configCard">
+        <!-- Step 1: Interview Setup -->
+        <div class="setup-step open" id="setupStep1">
+          <div class="setup-step-header" onclick="toggleSetupStep(1)">
+            <div class="setup-step-number" id="stepNum1">1</div>
+            <div class="setup-step-info">
+              <div class="setup-step-title">Interview Setup</div>
+              <div class="setup-step-desc">Configure session context</div>
+            </div>
+            <span class="setup-step-toggle">▼</span>
+          </div>
+          <div class="setup-step-body">
+            <div class="setup-field">
+              <span class="setup-label">Scenario</span>
+              <select id="setupScenario" class="setup-input">
+                <option value="general">General Purpose</option>
+                <option value="behavioral">Behavioral / STAR</option>
+                <option value="technical">Technical Deep-Dive</option>
+                <option value="system_design">System Design</option>
+                <option value="leadership">Leadership / VP+</option>
+                <option value="case_study">Case Study</option>
+                <option value="panel">Panel Interview</option>
+                <option value="coding">Live Coding</option>
+              </select>
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Company</span>
+              <input id="setupCompany" class="setup-input" placeholder="e.g. Google, Meta, Stripe" />
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Position</span>
+              <input id="setupPosition" class="setup-input" placeholder="e.g. Senior Software Engineer, PM" />
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Objective</span>
+              <textarea id="setupObjective" class="setup-input setup-textarea" placeholder="Additional context — e.g. Behavioral round with VP of Engineering, focus on leadership and cross-functional collaboration" maxlength="800"></textarea>
+              <div class="char-count"><span id="objCharCount">800</span> characters left</div>
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Industry</span>
+              <select id="setupIndustry" class="setup-input">
+                <option value="default">Default</option>
+                <option value="tech">Technology</option>
+                <option value="finance">Finance / FinTech</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="ecommerce">E-Commerce</option>
+                <option value="saas">SaaS / B2B</option>
+                <option value="consulting">Consulting</option>
+                <option value="startup">Startup</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Experience Level</span>
+              <select id="setupExperience" class="setup-input">
+                <option value="entry">Entry Level (0-2 yrs)</option>
+                <option value="mid" selected>Mid Level (3-5 yrs)</option>
+                <option value="senior">Senior (6-10 yrs)</option>
+                <option value="staff">Staff / Principal (10+ yrs)</option>
+                <option value="director">Director / VP</option>
+                <option value="executive">Executive / C-Suite</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Documents -->
+        <div class="setup-step" id="setupStep2">
+          <div class="setup-step-header" onclick="toggleSetupStep(2)">
+            <div class="setup-step-number" id="stepNum2">2</div>
+            <div class="setup-step-info">
+              <div class="setup-step-title">Documents</div>
+              <div class="setup-step-desc">Upload materials for context</div>
+            </div>
+            <span id="docCount" class="badge" style="font-size:10px;">0 docs</span>
+            <span class="setup-step-toggle">▼</span>
+          </div>
+          <div class="setup-step-body">
+            <div class="setup-field">
+              <span class="setup-label">Resume / Experience</span>
+              <textarea id="setupResume" class="setup-input setup-textarea" rows="4" placeholder="Paste resume text, key skills, experience summary..."></textarea>
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Job Description</span>
+              <textarea id="setupJobDesc" class="setup-input setup-textarea" rows="4" placeholder="Paste job description or role requirements..."></textarea>
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Company Research</span>
+              <textarea id="setupCompanyResearch" class="setup-input setup-textarea" rows="3" placeholder="Company mission, culture, recent news, tech stack..."></textarea>
+            </div>
+            <div class="doc-chips" id="docChips">
+              <!-- populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: AI Engine -->
+        <div class="setup-step" id="setupStep3">
+          <div class="setup-step-header" onclick="toggleSetupStep(3)">
+            <div class="setup-step-number" id="stepNum3">3</div>
+            <div class="setup-step-info">
+              <div class="setup-step-title">AI Engine</div>
+              <div class="setup-step-desc">Choose your AI model & coach</div>
+            </div>
+            <span class="setup-step-toggle">▼</span>
+          </div>
+          <div class="setup-step-body">
+            <div class="setup-field">
+              <span class="setup-label">Model</span>
+              <div class="model-selector" id="modelSelector">
+                <div class="model-option selected" data-model="gpt4o" onclick="selectModel(this)">
+                  <div class="model-name">GPT-4o</div>
+                  <span class="model-tag smart">Smart</span>
+                  <span class="model-tag vision">Vision</span>
+                </div>
+                <div class="model-option" data-model="gpt4o-mini" onclick="selectModel(this)">
+                  <div class="model-name">GPT-4o Mini</div>
+                  <span class="model-tag fast">Fast</span>
+                </div>
+                <div class="model-option" data-model="claude" onclick="selectModel(this)">
+                  <div class="model-name">Claude 3.5</div>
+                  <span class="model-tag smart">Smart</span>
+                </div>
+                <div class="model-option" data-model="ollama" onclick="selectModel(this)">
+                  <div class="model-name">Ollama (Local)</div>
+                  <span class="model-tag local">Offline</span>
+                  <span class="model-tag fast">Fast</span>
+                </div>
+              </div>
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Image Analysis Focus</span>
+              <textarea id="setupImageContext" class="setup-input setup-textarea" rows="2" placeholder='e.g. "Prioritize system design diagrams" or "Focus on the code, not the UI"' maxlength="400"></textarea>
+              <div class="char-count"><span id="imgCharCount">400</span> characters left</div>
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">AI Coach</span>
+              <div class="coach-card">
+                <div class="coach-avatar" style="background:rgba(42,109,244,0.2); border: 1px solid rgba(42,109,244,0.4);">🧠</div>
+                <div class="coach-info">
+                  <div class="coach-name" id="coachName">Aria</div>
+                  <div class="coach-role" id="coachRole">AI Interview Coach</div>
+                </div>
+                <button class="coach-toggle on" id="coachToggle" onclick="toggleCoach()"></button>
+              </div>
+              <select id="coachStyle" class="setup-input" style="margin-top:6px;">
+                <option value="balanced">Balanced — Adapt to question type</option>
+                <option value="technical">Technical Coach — Deep-dive answers</option>
+                <option value="behavioral">Behavioral Coach — STAR framework</option>
+                <option value="executive">Executive Coach — Leadership narrative</option>
+                <option value="coding">Coding Coach — Solution + complexity analysis</option>
+                <option value="aggressive">Aggressive Coach — Push for specifics</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: System Configuration -->
+        <div class="setup-step" id="setupStep4">
+          <div class="setup-step-header" onclick="toggleSetupStep(4)">
+            <div class="setup-step-number" id="stepNum4">4</div>
+            <div class="setup-step-info">
+              <div class="setup-step-title">System</div>
+              <div class="setup-step-desc">Audio capture & connection</div>
+            </div>
+            <span class="setup-step-toggle">▼</span>
+          </div>
+          <div class="setup-step-body">
+            <div class="setup-field">
+              <span class="setup-label">Backend URL</span>
+              <input id="backendUrl" class="setup-input" placeholder="http://localhost:9010" />
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Room ID</span>
+              <input id="roomId" class="setup-input" placeholder="(auto-generated)" />
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Audio Source</span>
+              <select id="systemMode" class="setup-input">
+                <option value="display" selected>Display Capture</option>
+                <option value="loopback">WASAPI Loopback (Beta)</option>
+              </select>
+            </div>
+            <div class="setup-field">
+              <span class="setup-label">Microphone</span>
+              <div class="row" style="gap:6px;">
+                <select id="micDevice" class="setup-input" style="flex:1;"></select>
+                <button id="refreshDevicesBtn" class="secondary" style="padding:8px 10px;flex-shrink:0;">↻</button>
+              </div>
+            </div>
+            <div class="row" style="gap:6px;margin-top:4px;">
+              <button id="testSystemBtn" class="secondary" style="padding:6px 10px;font-size:11px;flex:1;">🔊 Test Audio</button>
+              <button id="testMicBtn" class="secondary" style="padding:6px 10px;font-size:11px;flex:1;">🎤 Test Mic</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Start Button -->
+        <div style="padding:12px 14px;">
+          <div class="row" style="gap:8px;margin-bottom:8px;">
+            <span id="stealthHealthBadge" class="stealth-health-badge safe">🛡️ Stealth: 100%</span>
+            <span class="mono" id="status" style="font-size:11px;opacity:0.7;">Ready</span>
+          </div>
+          <button id="startBtn" class="start-btn-hero">▶ START SESSION</button>
+          <button id="stopBtn" class="danger" disabled style="width:100%;margin-top:6px;display:none;">⏹ STOP SESSION</button>
+        </div>
+      </div>
+
+      <!-- Speech Analytics Card (LockedIn has "Speech Reflection" — ours is 6 metrics) -->
+      <div class="card" id="speechCard" style="display:none;">
+        <div style="font-weight:700;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+          <span>📊 Speech Analytics</span>
+          <span class="badge" style="font-size:10px;" id="speechOverall">--/100</span>
+        </div>
+        <div class="speech-grid">
+          <div class="speech-metric">
+            <div class="metric-label">Structure</div>
+            <div class="metric-value" id="saStructure" style="color:#5ba8ff;">--</div>
+            <div class="metric-bar"><i id="saStructureBar" style="background:#5ba8ff;"></i></div>
+            <div class="sub-label">STAR adherence</div>
+          </div>
+          <div class="speech-metric">
+            <div class="metric-label">Clarity</div>
+            <div class="metric-value" id="saClarity" style="color:#3cffaa;">--</div>
+            <div class="metric-bar"><i id="saClarityBar" style="background:#3cffaa;"></i></div>
+            <div class="sub-label">Concise & direct</div>
+          </div>
+          <div class="speech-metric">
+            <div class="metric-label">Confidence</div>
+            <div class="metric-value" id="saConfidence" style="color:#c792ea;">--</div>
+            <div class="metric-bar"><i id="saConfidenceBar" style="background:#c792ea;"></i></div>
+            <div class="sub-label">Hedging & fillers</div>
+          </div>
+          <div class="speech-metric">
+            <div class="metric-label">Impact</div>
+            <div class="metric-value" id="saImpact" style="color:#f0ba32;">--</div>
+            <div class="metric-bar"><i id="saImpactBar" style="background:#f0ba32;"></i></div>
+            <div class="sub-label">Quantified results</div>
+          </div>
+          <div class="speech-metric">
+            <div class="metric-label">Pacing</div>
+            <div class="metric-value" id="saPacing" style="color:#ff8c42;">--</div>
+            <div class="metric-bar"><i id="saPacingBar" style="background:#ff8c42;"></i></div>
+            <div class="sub-label">WPM analysis</div>
+          </div>
+          <div class="speech-metric">
+            <div class="metric-label">Engagement</div>
+            <div class="metric-value" id="saEngagement" style="color:#ff5069;">--</div>
+            <div class="metric-bar"><i id="saEngagementBar" style="background:#ff5069;"></i></div>
+            <div class="sub-label">Energy & enthusiasm</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;">
+          <div class="mono" style="font-size:10px;opacity:0.6;" id="speechFeedback">Waiting for speech data...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:6px;">Live</div>
+        <div class="mono" id="question">Question: (waiting)</div>
+        <div style="height:8px"></div>
+        <div class="mono" id="partial">Partial: </div>
+        <div style="height:8px"></div>
+        <div class="mono" id="suggestion">Suggestion: </div>
+        <div style="height:6px"></div>
+        <div class="row" id="suggestionActions" style="gap:6px;">
+          <button id="copySuggestionBtn" class="secondary" style="padding:6px 10px;font-size:12px;">📋 Copy</button>
+          <button id="ttsSuggestionBtn" class="secondary" style="padding:6px 10px;font-size:12px;">🔊 Read Aloud</button>
+          <button id="stopTtsBtn" class="secondary" style="padding:6px 10px;font-size:12px;display:none;">⏹ Stop</button>
+          <label style="font-size:11px;display:flex;align-items:center;gap:4px;margin-left:8px;">
+            <input type="checkbox" id="autoReadToggle" /> Auto-read
+          </label>
+        </div>
+
+        <!-- FEATURE 12: Ghost Type Controls -->
+        <div class="ghost-controls" style="margin-top:6px;">
+          <button id="ghostTypeBtn" class="secondary" style="padding:6px 10px;font-size:12px;" title="Type suggestion text with human-speed simulation">👻 Ghost Type</button>
+          <button id="ghostStopBtn" class="secondary" style="padding:6px 10px;font-size:12px;display:none;">⏹ Stop Typing</button>
+          <label style="font-size:10px;opacity:0.7;display:flex;align-items:center;gap:4px;">
+            WPM: <input id="ghostWpm" type="number" value="85" min="20" max="200" style="width:50px;padding:2px 4px;font-size:11px;" />
+          </label>
+        </div>
+
+        <!-- FEATURE 6: Session Replay Controls -->
+        <div class="session-controls" style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06);">
+          <button id="sessionRecordBtn" class="secondary" style="padding:6px 10px;font-size:12px;">🔴 Record Session</button>
+          <button id="sessionStopBtn" class="secondary" style="padding:6px 10px;font-size:12px;display:none;">⏹ Stop Recording</button>
+          <button id="downloadSessionBtn" class="secondary" style="padding:6px 10px;font-size:12px;display:none;">💾 Download</button>
+          <span id="sessionStatus" style="font-size:11px;opacity:0.7;"></span>
+        </div>
+        <div id="sessionCoaching" class="session-coaching"></div>
+        <div style="height:10px"></div>
+        <div class="feed" id="feed"></div>
+      </div>
+
+      <div class="card" id="logCard">
+        <div style="font-weight:700;margin-bottom:6px;">Event Log</div>
+        <div class="mono log" id="log"></div>
+      </div>
+
+      <!-- Screen capture result display -->
+      <div class="card" id="captureCard" style="display:none;">
+        <div style="font-weight:700;margin-bottom:6px;">Screen Capture Analysis</div>
+        <div class="mono" id="captureAnalysis" style="white-space:pre-wrap;">Analyzing...</div>
+        <div class="row" style="margin-top:8px; gap:6px;">
+          <button id="captureNewBtn" class="secondary" style="padding:6px 10px;font-size:12px;">📷 New Capture</button>
+          <button id="captureCloseBtn" class="secondary" style="padding:6px 10px;font-size:12px;">✕ Close</button>
+        </div>
+      </div>
+
+      <!-- Hotkey reference -->
+      <div class="hotkey-ref">
+        <kbd>Ctrl+Shift+H</kbd> toggle overlay
+        <kbd>Ctrl+Shift+S</kbd> capture screen
+        <kbd>Ctrl+Shift+M</kbd> mic
+        <kbd>Ctrl+Shift+P</kbd> AI
+        <kbd>Ctrl+Shift+T</kbd> click-through
+        <kbd>Ctrl+Shift+Arrow</kbd> nudge
+        <kbd>Ctrl+Shift+Q</kbd> quit
+      </div>
+
+      <!-- FEATURE 10: Ollama Offline AI Status -->
+      <div class="feature-status">
+        <span id="ollamaStatus">🔴 Ollama: Checking...</span>
+        <button id="ollamaBtn" class="secondary" style="padding:2px 8px;font-size:10px;margin-left:6px;">Setup</button>
+      </div>
+
+      <!-- FEATURE 9: Phone Mirror Status -->
+      <div class="feature-status">
+        <span id="mirrorStatus">Mirror: Off</span>
+      </div>
+
+      <!-- FEATURE 11: Eye-Gaze Canvas (hidden, used for tracking) -->
+      <canvas id="gazeCanvas" width="100" height="20" style="display:none;"></canvas>
+      </div>
+    </main>
+
+    <!-- Screen region selection overlay (hidden by default) -->
+    <div id="regionSelectOverlay">
+      <div class="hint">Click and drag to select a region • ESC to cancel</div>
+      <div class="selection-rect" id="selectionRect"></div>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1457 @@
+"use client";
+
+import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  Plus, ArrowUpDown, LayoutTemplate, Palette, Sparkles,
+  CheckCircle, Download, Share2, History, Undo2, Redo2,
+  ChevronDown, ChevronUp, X, GripVertical, Trash2, Type, Briefcase,
+  GraduationCap, Award, Code, User, Mail, Phone, MapPin,
+  Linkedin, Globe, Save, FileText, Eye, EyeOff, Loader2,
+  ArrowLeft, AlertTriangle, Copy, Check, Printer, MoveUp, MoveDown,
+  Circle, Hash, Wand2, Link2,
+} from "lucide-react";
+import { TemplatePreview, TEMPLATE_REGISTRY, TEMPLATE_CATEGORIES } from "@/components/resume/TemplatePreview";
+import type { TemplateInfo } from "@/components/resume/TemplatePreview";
+
+/* Suspense wrapper for useSearchParams */
+export default function ResumeEditorWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-8 h-8 text-brand-cyan animate-spin" />
+      </div>
+    }>
+      <ResumeEditorPage />
+    </Suspense>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   TYPES
+   ══════════════════════════════════════════════════════════ */
+interface ResumeSection {
+  id: string;
+  type: "contact" | "summary" | "experience" | "education" | "skills" | "certifications" | "projects" | "custom";
+  title: string;
+  visible: boolean;
+}
+
+interface ExperienceEntry {
+  company: string;
+  role: string;
+  dateRange: string;
+  location: string;
+  description: string;
+  bullets: string[];
+}
+
+interface EducationEntry {
+  school: string;
+  degree: string;
+  year: string;
+  gpa?: string;
+}
+
+interface ResumeData {
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+  website: string;
+  summary: string;
+  experience: ExperienceEntry[];
+  education: EducationEntry[];
+  skills: string[];
+  certifications: string[];
+  projects: { name: string; description: string; tech: string }[];
+}
+
+/* ══════════════════════════════════════════════════════════
+   DEFAULT DATA
+   ══════════════════════════════════════════════════════════ */
+const DEFAULT_RESUME: ResumeData = {
+  name: "Your Full Name",
+  title: "Professional Title",
+  email: "email@example.com",
+  phone: "(555) 123-4567",
+  location: "City, State",
+  linkedin: "linkedin.com/in/yourprofile",
+  website: "",
+  summary: "Results-driven professional with X+ years of experience in [industry/field]. Proven track record of [key achievement]. Expertise in [key skills]. Passionate about [goal/value proposition].",
+  experience: [
+    {
+      company: "Company Name",
+      role: "Job Title",
+      dateRange: "MM/YYYY – Present",
+      location: "City, State",
+      description: "",
+      bullets: [
+        "Led [project/initiative] resulting in [quantifiable outcome]",
+        "Managed team of X to deliver [result] on time and under budget",
+        "Implemented [technology/process] improving efficiency by X%",
+      ],
+    },
+    {
+      company: "Previous Company",
+      role: "Previous Role",
+      dateRange: "MM/YYYY – MM/YYYY",
+      location: "City, State",
+      description: "",
+      bullets: [
+        "Developed [solution] serving X users across Y regions",
+        "Reduced [metric] by X% through [approach]",
+      ],
+    },
+  ],
+  education: [
+    {
+      school: "University Name",
+      degree: "Bachelor of Science in Computer Science",
+      year: "2020",
+    },
+  ],
+  skills: ["Skill 1", "Skill 2", "Skill 3", "Skill 4", "Skill 5", "Skill 6", "Skill 7", "Skill 8"],
+  certifications: ["Certification 1", "Certification 2"],
+  projects: [
+    { name: "Project Name", description: "Brief description of the project and your role", tech: "React, Node.js, AWS" },
+  ],
+};
+
+const DEFAULT_SECTIONS: ResumeSection[] = [
+  { id: "contact", type: "contact", title: "Contact Information", visible: true },
+  { id: "summary", type: "summary", title: "Professional Summary", visible: true },
+  { id: "experience", type: "experience", title: "Professional Experience", visible: true },
+  { id: "education", type: "education", title: "Education", visible: true },
+  { id: "skills", type: "skills", title: "Skills", visible: true },
+  { id: "certifications", type: "certifications", title: "Certifications", visible: true },
+  { id: "projects", type: "projects", title: "Projects", visible: true },
+];
+
+const SECTION_ICONS: Record<string, React.ReactNode> = {
+  contact: <User className="w-4 h-4" />,
+  summary: <FileText className="w-4 h-4" />,
+  experience: <Briefcase className="w-4 h-4" />,
+  education: <GraduationCap className="w-4 h-4" />,
+  skills: <Code className="w-4 h-4" />,
+  certifications: <Award className="w-4 h-4" />,
+  projects: <Globe className="w-4 h-4" />,
+  custom: <Type className="w-4 h-4" />,
+};
+
+/* ── Design constants ─────────────────────────────────── */
+const FONT_OPTIONS = [
+  { label: "Inter", value: "Inter, sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Merriweather", value: "'Merriweather', serif" },
+  { label: "Roboto", value: "'Roboto', sans-serif" },
+  { label: "Playfair", value: "'Playfair Display', serif" },
+  { label: "Lato", value: "'Lato', sans-serif" },
+  { label: "Monospace", value: "'Courier New', monospace" },
+];
+
+const FONT_SIZES = [
+  { label: "Small", value: "14px" },
+  { label: "Medium", value: "16px" },
+  { label: "Large", value: "18px" },
+  { label: "X-Large", value: "20px" },
+];
+
+const ACCENT_COLORS = [
+  { label: "Cyan", value: "#00D4FF" },
+  { label: "Purple", value: "#7B61FF" },
+  { label: "Green", value: "#00FF88" },
+  { label: "Orange", value: "#FF6B35" },
+  { label: "Red", value: "#FF4466" },
+  { label: "Blue", value: "#3B82F6" },
+  { label: "Teal", value: "#14B8A6" },
+  { label: "Pink", value: "#EC4899" },
+];
+
+/* ══════════════════════════════════════════════════════════
+   SIDEBAR TOOL ITEM
+   ══════════════════════════════════════════════════════════ */
+function ToolButton({
+  icon, label, active, badge, onClick,
+}: {
+  icon: React.ReactNode; label: string; active?: boolean; badge?: number; onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-lg text-sm font-medium transition-all ${
+        active
+          ? "bg-brand-cyan/10 text-brand-cyan"
+          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="ml-auto bg-brand-green/15 text-brand-green text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+          {badge}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESUME CHECK LOGIC
+   ══════════════════════════════════════════════════════════ */
+function runResumeChecks(resume: ResumeData, sections: ResumeSection[]) {
+  const checks: { label: string; pass: boolean; tip: string }[] = [];
+
+  checks.push({
+    label: "Full name provided",
+    pass: resume.name.length > 0 && resume.name !== "Your Full Name",
+    tip: "Add your real name to the Contact section.",
+  });
+  checks.push({
+    label: "Professional title set",
+    pass: resume.title.length > 0 && resume.title !== "Professional Title",
+    tip: "Set a professional title like 'Senior Software Engineer'.",
+  });
+  checks.push({
+    label: "Email address",
+    pass: resume.email.includes("@") && resume.email !== "email@example.com",
+    tip: "Add a valid email address.",
+  });
+  checks.push({
+    label: "Phone number",
+    pass: resume.phone.length >= 7 && resume.phone !== "(555) 123-4567",
+    tip: "Add your real phone number.",
+  });
+  checks.push({
+    label: "Summary length (50+ chars)",
+    pass: resume.summary.length >= 50 && !resume.summary.includes("[industry/field]"),
+    tip: "Write a compelling summary of at least 50 characters.",
+  });
+  checks.push({
+    label: "At least 1 experience entry",
+    pass: resume.experience.length >= 1 && resume.experience[0].company !== "Company Name",
+    tip: "Add at least one real work experience entry.",
+  });
+  checks.push({
+    label: "Experience has bullet points",
+    pass: resume.experience.some((e) => e.bullets.length >= 2 && e.bullets.some((b) => b.length > 10)),
+    tip: "Add 2+ descriptive bullet points per position.",
+  });
+  checks.push({
+    label: "At least 5 skills listed",
+    pass: resume.skills.filter((s) => s.length > 0 && !s.startsWith("Skill ")).length >= 5,
+    tip: "List at least 5 relevant skills.",
+  });
+  checks.push({
+    label: "Education included",
+    pass: resume.education.length >= 1 && resume.education[0].school !== "University Name",
+    tip: "Add your educational background.",
+  });
+  checks.push({
+    label: "LinkedIn profile",
+    pass: resume.linkedin.includes("linkedin.com/in/") && resume.linkedin !== "linkedin.com/in/yourprofile",
+    tip: "Add your real LinkedIn profile URL.",
+  });
+
+  const score = Math.round((checks.filter((c) => c.pass).length / checks.length) * 100);
+  return { checks, score };
+}
+
+/* ══════════════════════════════════════════════════════════
+   MAIN EDITOR PAGE
+   ══════════════════════════════════════════════════════════ */
+function ResumeEditorPage() {
+  const searchParams = useSearchParams();
+  const templateParam = searchParams.get("template");
+  const templateId = templateParam ? parseInt(templateParam, 10) : 1;
+
+  /* ── State ─────────────────────────────────────────── */
+  const [activeTemplateId, setActiveTemplateId] = useState(templateId);
+  const [resume, setResume] = useState<ResumeData>({ ...DEFAULT_RESUME });
+  const [sections, setSections] = useState<ResumeSection[]>([...DEFAULT_SECTIONS]);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
+  const [activeSection, setActiveSection] = useState<string>("contact");
+  const [templateCategory, setTemplateCategory] = useState("All");
+  const [undoStack, setUndoStack] = useState<ResumeData[]>([]);
+  const [redoStack, setRedoStack] = useState<ResumeData[]>([]);
+  const [undoTimestamps, setUndoTimestamps] = useState<number[]>([]);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [designFont, setDesignFont] = useState(FONT_OPTIONS[0].value);
+  const [designFontSize, setDesignFontSize] = useState(FONT_SIZES[1].value);
+  const [designAccent, setDesignAccent] = useState(ACCENT_COLORS[0].value);
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  const templateInfo = TEMPLATE_REGISTRY.find((t) => t.id === activeTemplateId) || TEMPLATE_REGISTRY[0];
+
+  /* ── Update helper with undo ───────────────────────── */
+  const updateResume = useCallback((updater: (prev: ResumeData) => ResumeData) => {
+    setResume((prev) => {
+      setUndoStack((stack) => [...stack.slice(-30), prev]);
+      setRedoStack([]);
+      setUndoTimestamps((ts) => [...ts.slice(-30), Date.now()]);
+      return updater(prev);
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    setUndoStack((stack) => {
+      if (stack.length === 0) return stack;
+      const prev = stack[stack.length - 1];
+      setResume((current) => {
+        setRedoStack((rs) => [...rs, current]);
+        return prev;
+      });
+      return stack.slice(0, -1);
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    setRedoStack((stack) => {
+      if (stack.length === 0) return stack;
+      const next = stack[stack.length - 1];
+      setResume((current) => {
+        setUndoStack((us) => [...us, current]);
+        return next;
+      });
+      return stack.slice(0, -1);
+    });
+  }, []);
+
+  /* ── Keyboard shortcuts ────────────────────────────── */
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && e.shiftKey) { e.preventDefault(); redo(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); handleSave(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [undo, redo]);
+
+  /* ── Save handler ──────────────────────────────────── */
+  const handleSave = useCallback(() => {
+    setSaving(true);
+    localStorage.setItem(`resume-draft-${activeTemplateId}`, JSON.stringify(resume));
+    setTimeout(() => {
+      setSaving(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }, 500);
+  }, [resume, activeTemplateId]);
+
+  /* ── Load saved draft ──────────────────────────────── */
+  useEffect(() => {
+    const draft = localStorage.getItem(`resume-draft-${activeTemplateId}`);
+    if (draft) {
+      try { setResume(JSON.parse(draft)); } catch { /* ignore */ }
+    }
+  }, [activeTemplateId]);
+
+  /* ── Section management ────────────────────────────── */
+  const toggleSection = (id: string) => {
+    setSections((prev) => prev.map((s) => s.id === id ? { ...s, visible: !s.visible } : s));
+  };
+
+  const addSection = () => {
+    const id = `custom-${Date.now()}`;
+    setSections((prev) => [...prev, { id, type: "custom", title: "New Section", visible: true }]);
+  };
+
+  const moveSection = (idx: number, direction: "up" | "down") => {
+    setSections((prev) => {
+      const arr = [...prev];
+      const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= arr.length) return prev;
+      [arr[idx], arr[swapIdx]] = [arr[swapIdx], arr[idx]];
+      return arr;
+    });
+  };
+
+  const removeSection = (id: string) => {
+    setSections((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  /* ── Export PDF ─────────────────────────────────────── */
+  const handleExportPDF = useCallback(() => {
+    window.print();
+  }, []);
+
+  /* ── Share link ─────────────────────────────────────── */
+  const handleShare = useCallback(() => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    });
+  }, []);
+
+  /* ── Template selection with auto-preview ──────────── */
+  const selectTemplate = useCallback((id: number) => {
+    setActiveTemplateId(id);
+    setShowPreview(true);
+  }, []);
+
+  /* ── Filtered templates for picker ─────────────────── */
+  const filteredTemplates = TEMPLATE_REGISTRY.filter(
+    (t) => templateCategory === "All" || t.category === templateCategory
+  );
+
+  /* ── Resume quality checks ─────────────────────────── */
+  const { checks, score } = runResumeChecks(resume, sections);
+
+  /* ── Close tool panel helper ───────────────────────── */
+  const closeTool = () => setActiveTool(null);
+  const toggleTool = (tool: string) => {
+    setActiveTool((prev) => prev === tool ? null : tool);
+    setShowTemplates(false);
+  };
+
+  /* ══════════════════════════════════════════════════════
+     RENDER — LIGHT MODE + ENLARGED
+     ══════════════════════════════════════════════════════ */
+  return (
+    <div className="h-screen flex flex-col bg-gray-50 text-gray-900 overflow-hidden print:bg-white">
+      {/* ── Top Bar ─────────────────────────────────── */}
+      <header className="flex items-center justify-between h-14 px-5 bg-white border-b border-gray-200 flex-shrink-0 shadow-sm print:hidden">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => window.close()}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+          <div className="w-px h-5 bg-gray-200" />
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={undo}
+              disabled={undoStack.length === 0}
+              className="p-2 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={redo}
+              disabled={redoStack.length === 0}
+              className="p-2 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <Redo2 className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="w-px h-5 bg-gray-200" />
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded bg-gradient-to-br from-brand-cyan to-brand-purple flex items-center justify-center">
+              <FileText className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-base font-semibold text-gray-800">{templateInfo.name}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+              {saved ? "Saved" : saving ? "Saving..." : "Draft"}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition"
+          >
+            {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showPreview ? "Hide Preview" : "Preview"}
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Save
+          </button>
+          <button
+            onClick={handleExportPDF}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-brand-cyan text-white hover:bg-brand-cyan/90 transition shadow-lg shadow-brand-cyan/20"
+          >
+            <Download className="w-4 h-4" />
+            Export PDF
+          </button>
+        </div>
+      </header>
+
+      {/* ── Main content area ───────────────────────── */}
+      <div className="flex flex-1 overflow-hidden print:block">
+        {/* ── Left Sidebar ─────────────────────────── */}
+        <aside className="w-[200px] flex-shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-y-auto print:hidden">
+          <div className="p-3 space-y-0.5 flex-1">
+            <ToolButton icon={<Plus className="w-4 h-4" />} label="Add Section" onClick={addSection} />
+            <ToolButton
+              icon={<ArrowUpDown className="w-4 h-4" />}
+              label="Rearrange"
+              active={activeTool === "rearrange"}
+              onClick={() => toggleTool("rearrange")}
+            />
+            <ToolButton
+              icon={<LayoutTemplate className="w-4 h-4" />}
+              label="Templates"
+              active={showTemplates}
+              onClick={() => { setShowTemplates(!showTemplates); setActiveTool(null); }}
+            />
+            <ToolButton
+              icon={<Palette className="w-4 h-4" />}
+              label="Design & Font"
+              active={activeTool === "design"}
+              onClick={() => toggleTool("design")}
+            />
+            <div className="border-t border-gray-200 my-2" />
+            <ToolButton
+              icon={<Sparkles className="w-4 h-4" />}
+              label="AI Improve"
+              badge={resume.experience.reduce((acc, e) => acc + e.bullets.length, 0)}
+              active={activeTool === "ai"}
+              onClick={() => toggleTool("ai")}
+            />
+            <ToolButton
+              icon={<CheckCircle className="w-4 h-4" />}
+              label="Check"
+              active={activeTool === "check"}
+              onClick={() => toggleTool("check")}
+            />
+            <div className="border-t border-gray-200 my-2" />
+            <ToolButton
+              icon={<Download className="w-4 h-4" />}
+              label="Download"
+              onClick={handleExportPDF}
+            />
+            <ToolButton
+              icon={<Share2 className="w-4 h-4" />}
+              label={copiedLink ? "Copied!" : "Share"}
+              onClick={handleShare}
+            />
+            <ToolButton
+              icon={<History className="w-4 h-4" />}
+              label="History"
+              active={activeTool === "history"}
+              onClick={() => toggleTool("history")}
+            />
+          </div>
+
+          {/* Section list */}
+          <div className="border-t border-gray-200 p-3">
+            <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold px-3 mb-2">Sections</p>
+            <div className="space-y-0.5">
+              {sections.map((s) => (
+                <div
+                  key={s.id}
+                  onClick={() => {
+                    setActiveSection(s.id);
+                    document.getElementById(`section-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }}
+                  className={`group w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm cursor-pointer transition-all ${
+                    activeSection === s.id
+                      ? "bg-brand-cyan/10 text-brand-cyan font-medium"
+                      : s.visible
+                        ? "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        : "text-gray-400 hover:text-gray-500 hover:bg-gray-50 line-through"
+                  }`}
+                >
+                  {SECTION_ICONS[s.type] || <Type className="w-3.5 h-3.5" />}
+                  <span className="truncate">{s.title}</span>
+                  <span
+                    role="button"
+                    onClick={(e) => { e.stopPropagation(); toggleSection(s.id); }}
+                    className="ml-auto opacity-0 group-hover:opacity-100 cursor-pointer"
+                  >
+                    {s.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* ── Template Picker Panel ──────────────────── */}
+        {showTemplates && (
+          <div className="w-[280px] flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto p-4 space-y-4 print:hidden">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-700">Templates</h3>
+              <button onClick={() => setShowTemplates(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {TEMPLATE_CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setTemplateCategory(cat)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
+                    templateCategory === cat
+                      ? "bg-brand-cyan/10 text-brand-cyan"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {filteredTemplates.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => selectTemplate(t.id)}
+                  className={`group relative rounded-lg overflow-hidden border transition-all ${
+                    t.id === activeTemplateId
+                      ? "border-brand-cyan ring-2 ring-brand-cyan/30"
+                      : "border-gray-200 hover:border-gray-400"
+                  }`}
+                >
+                  <TemplatePreview id={t.id} />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <span className="text-xs font-semibold text-white bg-black/60 px-2.5 py-1 rounded">Use</span>
+                  </div>
+                  {t.id === activeTemplateId && (
+                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-brand-cyan flex items-center justify-center">
+                      <CheckCircle className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Tool Panels (between sidebar and editor) ── */}
+        {activeTool && !showTemplates && (
+          <div className="w-[300px] flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto print:hidden">
+            {/* ─── Rearrange Panel ─── */}
+            {activeTool === "rearrange" && (
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-700">Rearrange Sections</h3>
+                  <button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+                </div>
+                <p className="text-xs text-gray-500">Move sections up or down to reorder your resume layout.</p>
+                <div className="space-y-1.5">
+                  {sections.map((s, idx) => (
+                    <div key={s.id} className="flex items-center gap-2 p-3 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition">
+                      <GripVertical className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-700 flex-1 font-medium">{s.title}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => moveSection(idx, "up")}
+                          disabled={idx === 0}
+                          className="p-1 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <MoveUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => moveSection(idx, "down")}
+                          disabled={idx === sections.length - 1}
+                          className="p-1 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <MoveDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => toggleSection(s.id)}
+                          className="p-1 rounded hover:bg-gray-200 text-gray-500"
+                        >
+                          {s.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        </button>
+                        {s.type === "custom" && (
+                          <button
+                            onClick={() => removeSection(s.id)}
+                            className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ─── Design & Font Panel ─── */}
+            {activeTool === "design" && (
+              <div className="p-4 space-y-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-700">Design & Font</h3>
+                  <button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Font Family</label>
+                  <div className="mt-2 space-y-1">
+                    {FONT_OPTIONS.map((f) => (
+                      <button
+                        key={f.value}
+                        onClick={() => setDesignFont(f.value)}
+                        className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition ${
+                          designFont === f.value
+                            ? "bg-brand-cyan/10 text-brand-cyan font-medium border border-brand-cyan/30"
+                            : "text-gray-700 hover:bg-gray-100 border border-transparent"
+                        }`}
+                        style={{ fontFamily: f.value }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Font Size</label>
+                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+                    {FONT_SIZES.map((sz) => (
+                      <button
+                        key={sz.value}
+                        onClick={() => setDesignFontSize(sz.value)}
+                        className={`px-3 py-2.5 rounded-lg text-sm text-center transition ${
+                          designFontSize === sz.value
+                            ? "bg-brand-cyan/10 text-brand-cyan font-medium border border-brand-cyan/30"
+                            : "text-gray-700 hover:bg-gray-100 border border-gray-200"
+                        }`}
+                      >
+                        {sz.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Accent Color</label>
+                  <div className="mt-2 grid grid-cols-4 gap-2">
+                    {ACCENT_COLORS.map((c) => (
+                      <button
+                        key={c.value}
+                        onClick={() => setDesignAccent(c.value)}
+                        className={`flex flex-col items-center gap-1.5 p-2 rounded-lg transition ${
+                          designAccent === c.value ? "bg-gray-100 ring-2 ring-brand-cyan/40" : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: c.value }} />
+                        <span className="text-[10px] text-gray-500">{c.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ─── AI Improve Panel ─── */}
+            {activeTool === "ai" && (
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-700">AI Improve</h3>
+                  <button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+                </div>
+                <div className="bg-gradient-to-br from-purple-50 to-cyan-50 rounded-lg p-4 border border-purple-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wand2 className="w-5 h-5 text-brand-purple" />
+                    <span className="text-sm font-semibold text-gray-800">AI Enhancement</span>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    AI can help strengthen your bullet points by adding quantifiable metrics, action verbs, and impact statements.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Bullet Points to Improve</p>
+                  {resume.experience.map((exp, eIdx) => (
+                    <div key={eIdx} className="space-y-2">
+                      <p className="text-xs font-medium text-gray-700">{exp.role} at {exp.company}</p>
+                      {exp.bullets.map((bullet, bIdx) => {
+                        const hasMetrics = /\d+%|\d+ /.test(bullet);
+                        const hasActionVerb = /^(Led|Managed|Developed|Implemented|Created|Designed|Built|Reduced|Increased|Improved|Launched|Drove|Delivered|Optimized)/i.test(bullet);
+                        const isWeak = bullet.length < 30 || bullet.includes("[") || (!hasMetrics && !hasActionVerb);
+                        return (
+                          <div key={bIdx} className={`p-3 rounded-lg border text-xs ${
+                            isWeak ? "border-amber-200 bg-amber-50" : "border-green-200 bg-green-50"
+                          }`}>
+                            <div className="flex items-start gap-2">
+                              {isWeak ? (
+                                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                              ) : (
+                                <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+                              )}
+                              <div className="flex-1">
+                                <p className="text-gray-700 leading-relaxed">{bullet || "(empty)"}</p>
+                                {isWeak && (
+                                  <div className="mt-2 space-y-1">
+                                    {!hasActionVerb && <p className="text-amber-600">- Start with a strong action verb</p>}
+                                    {!hasMetrics && <p className="text-amber-600">- Add quantifiable metrics (%, $, numbers)</p>}
+                                    {bullet.includes("[") && <p className="text-amber-600">- Replace placeholder text with real content</p>}
+                                    {bullet.length < 30 && bullet.length > 0 && <p className="text-amber-600">- Add more detail and impact</p>}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-2 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>Total bullets: {resume.experience.reduce((a, e) => a + e.bullets.length, 0)}</span>
+                    <span className="text-brand-green font-medium">
+                      {resume.experience.reduce((a, e) => a + e.bullets.filter((b) => /\d+%|\d+ /.test(b) || /^(Led|Managed|Developed|Implemented)/i.test(b)).length, 0)} strong
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ─── Check Panel ─── */}
+            {activeTool === "check" && (
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-700">Resume Check</h3>
+                  <button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+                </div>
+
+                {/* Score */}
+                <div className="text-center py-4">
+                  <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 ${
+                    score >= 80 ? "border-green-400" : score >= 50 ? "border-amber-400" : "border-red-400"
+                  }`}>
+                    <span className={`text-2xl font-bold ${
+                      score >= 80 ? "text-green-600" : score >= 50 ? "text-amber-600" : "text-red-600"
+                    }`}>{score}%</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {score >= 80 ? "Great resume!" : score >= 50 ? "Needs improvement" : "Needs attention"}
+                  </p>
+                </div>
+
+                {/* Checklist */}
+                <div className="space-y-2">
+                  {checks.map((c, idx) => (
+                    <div key={idx} className={`flex items-start gap-3 p-3 rounded-lg ${
+                      c.pass ? "bg-green-50" : "bg-red-50"
+                    }`}>
+                      {c.pass ? (
+                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div>
+                        <p className={`text-sm font-medium ${c.pass ? "text-green-700" : "text-red-700"}`}>{c.label}</p>
+                        {!c.pass && <p className="text-xs text-gray-500 mt-0.5">{c.tip}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ─── History Panel ─── */}
+            {activeTool === "history" && (
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-700">Edit History</h3>
+                  <button onClick={closeTool} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+                </div>
+                {undoStack.length === 0 ? (
+                  <div className="text-center py-8">
+                    <History className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                    <p className="text-sm text-gray-500">No edit history yet</p>
+                    <p className="text-xs text-gray-400 mt-1">Changes will appear here as you edit</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-brand-cyan/5 border border-brand-cyan/20">
+                      <div className="w-2 h-2 rounded-full bg-brand-cyan" />
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-brand-cyan">Current State</p>
+                        <p className="text-[10px] text-gray-400">Now</p>
+                      </div>
+                    </div>
+                    {[...undoStack].reverse().map((state, idx) => {
+                      const ts = undoTimestamps[undoStack.length - 1 - idx];
+                      const timeStr = ts ? new Date(ts).toLocaleTimeString() : "";
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            // Restore this state
+                            const stepsBack = idx + 1;
+                            for (let i = 0; i < stepsBack; i++) undo();
+                          }}
+                          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition text-left"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-gray-300" />
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-700">Edit #{undoStack.length - idx}</p>
+                            <p className="text-[10px] text-gray-400">{timeStr}</p>
+                          </div>
+                          <Undo2 className="w-3.5 h-3.5 text-gray-400" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Editor Center Panel ──────────────────── */}
+        <div
+          ref={editorRef}
+          className="flex-1 overflow-y-auto p-10 bg-gray-50 print:p-0 print:bg-white"
+          style={{ fontFamily: designFont, fontSize: designFontSize }}
+        >
+          <div className="max-w-5xl mx-auto space-y-8 print:max-w-none print:space-y-4">
+            {/* ── Contact Section ─────────────────── */}
+            {sections.find((s) => s.id === "contact")?.visible && (
+              <div
+                id="section-contact"
+                onClick={() => setActiveSection("contact")}
+                className={`rounded-xl border p-8 transition-all cursor-pointer ${
+                  activeSection === "contact"
+                    ? "border-brand-cyan/40 bg-white shadow-lg shadow-brand-cyan/10"
+                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <User className="w-6 h-6" style={{ color: designAccent }} />
+                  <h3 className="text-base font-bold text-gray-800 uppercase tracking-wider">Contact Information</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-5">
+                  <div>
+                    <label className="text-sm text-gray-500 uppercase tracking-wider font-semibold">Full Name</label>
+                    <input
+                      value={resume.name}
+                      onChange={(e) => updateResume((r) => ({ ...r, name: e.target.value }))}
+                      className="w-full mt-2 px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500 uppercase tracking-wider font-semibold">Professional Title</label>
+                    <input
+                      value={resume.title}
+                      onChange={(e) => updateResume((r) => ({ ...r, title: e.target.value }))}
+                      className="w-full mt-2 px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500 uppercase tracking-wider font-semibold flex items-center gap-1.5"><Mail className="w-4 h-4" /> Email</label>
+                    <input
+                      value={resume.email}
+                      onChange={(e) => updateResume((r) => ({ ...r, email: e.target.value }))}
+                      className="w-full mt-2 px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500 uppercase tracking-wider font-semibold flex items-center gap-1.5"><Phone className="w-4 h-4" /> Phone</label>
+                    <input
+                      value={resume.phone}
+                      onChange={(e) => updateResume((r) => ({ ...r, phone: e.target.value }))}
+                      className="w-full mt-2 px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500 uppercase tracking-wider font-semibold flex items-center gap-1.5"><MapPin className="w-4 h-4" /> Location</label>
+                    <input
+                      value={resume.location}
+                      onChange={(e) => updateResume((r) => ({ ...r, location: e.target.value }))}
+                      className="w-full mt-2 px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500 uppercase tracking-wider font-semibold flex items-center gap-1.5"><Linkedin className="w-4 h-4" /> LinkedIn</label>
+                    <input
+                      value={resume.linkedin}
+                      onChange={(e) => updateResume((r) => ({ ...r, linkedin: e.target.value }))}
+                      className="w-full mt-2 px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20 transition"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Summary Section ─────────────────── */}
+            {sections.find((s) => s.id === "summary")?.visible && (
+              <div
+                id="section-summary"
+                onClick={() => setActiveSection("summary")}
+                className={`rounded-xl border p-8 transition-all cursor-pointer ${
+                  activeSection === "summary"
+                    ? "border-brand-cyan/40 bg-white shadow-lg shadow-brand-cyan/10"
+                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <FileText className="w-6 h-6" style={{ color: designAccent }} />
+                  <h3 className="text-base font-bold text-gray-800 uppercase tracking-wider">Professional Summary</h3>
+                </div>
+                <textarea
+                  value={resume.summary}
+                  onChange={(e) => updateResume((r) => ({ ...r, summary: e.target.value }))}
+                  rows={5}
+                  className="w-full px-4 py-3.5 rounded-lg bg-gray-50 border border-gray-300 text-lg text-gray-900 outline-none resize-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20 transition leading-relaxed"
+                />
+              </div>
+            )}
+
+            {/* ── Experience Section ──────────────── */}
+            {sections.find((s) => s.id === "experience")?.visible && (
+              <div
+                id="section-experience"
+                onClick={() => setActiveSection("experience")}
+                className={`rounded-xl border p-8 transition-all cursor-pointer ${
+                  activeSection === "experience"
+                    ? "border-brand-cyan/40 bg-white shadow-lg shadow-brand-cyan/10"
+                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <Briefcase className="w-6 h-6" style={{ color: designAccent }} />
+                    <h3 className="text-base font-bold text-gray-800 uppercase tracking-wider">Professional Experience</h3>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateResume((r) => ({
+                        ...r,
+                        experience: [...r.experience, {
+                          company: "Company Name",
+                          role: "Job Title",
+                          dateRange: "MM/YYYY – MM/YYYY",
+                          location: "City, State",
+                          description: "",
+                          bullets: ["Describe your achievement..."],
+                        }],
+                      }));
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm text-brand-cyan hover:bg-brand-cyan/10 transition font-semibold"
+                  >
+                    <Plus className="w-4 h-4" /> Add Position
+                  </button>
+                </div>
+                <div className="space-y-7">
+                  {resume.experience.map((exp, idx) => (
+                    <div key={idx} className="relative group rounded-lg border border-gray-200 p-6 hover:border-gray-300 transition shadow-sm">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateResume((r) => ({ ...r, experience: r.experience.filter((_, i) => i !== idx) }));
+                        }}
+                        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-1.5 rounded text-gray-400 hover:text-red-500 transition"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                      <div className="grid grid-cols-2 gap-5 mb-5">
+                        <div>
+                          <label className="text-sm text-gray-500 font-semibold">Company</label>
+                          <input
+                            value={exp.company}
+                            onChange={(e) => updateResume((r) => ({
+                              ...r,
+                              experience: r.experience.map((x, i) => i === idx ? { ...x, company: e.target.value } : x),
+                            }))}
+                            className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 font-semibold">Role</label>
+                          <input
+                            value={exp.role}
+                            onChange={(e) => updateResume((r) => ({
+                              ...r,
+                              experience: r.experience.map((x, i) => i === idx ? { ...x, role: e.target.value } : x),
+                            }))}
+                            className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 font-semibold">Date Range</label>
+                          <input
+                            value={exp.dateRange}
+                            onChange={(e) => updateResume((r) => ({
+                              ...r,
+                              experience: r.experience.map((x, i) => i === idx ? { ...x, dateRange: e.target.value } : x),
+                            }))}
+                            className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 font-semibold">Location</label>
+                          <input
+                            value={exp.location}
+                            onChange={(e) => updateResume((r) => ({
+                              ...r,
+                              experience: r.experience.map((x, i) => i === idx ? { ...x, location: e.target.value } : x),
+                            }))}
+                            className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-sm text-gray-500 font-semibold">Key Achievements</label>
+                        {exp.bullets.map((bullet, bIdx) => (
+                          <div key={bIdx} className="flex items-start gap-2.5 group/bullet">
+                            <span className="text-gray-400 mt-3 text-base">•</span>
+                            <input
+                              value={bullet}
+                              onChange={(e) => updateResume((r) => ({
+                                ...r,
+                                experience: r.experience.map((x, i) =>
+                                  i === idx ? { ...x, bullets: x.bullets.map((b, bi) => bi === bIdx ? e.target.value : b) } : x
+                                ),
+                              }))}
+                              className="flex-1 px-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-base text-gray-700 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateResume((r) => ({
+                                  ...r,
+                                  experience: r.experience.map((x, i) =>
+                                    i === idx ? { ...x, bullets: x.bullets.filter((_, bi) => bi !== bIdx) } : x
+                                  ),
+                                }));
+                              }}
+                              className="opacity-0 group-hover/bullet:opacity-100 p-1 text-gray-400 hover:text-red-500 transition mt-2"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateResume((r) => ({
+                              ...r,
+                              experience: r.experience.map((x, i) =>
+                                i === idx ? { ...x, bullets: [...x.bullets, ""] } : x
+                              ),
+                            }));
+                          }}
+                          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-brand-cyan transition ml-6 font-semibold"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add bullet
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Education Section ──────────────── */}
+            {sections.find((s) => s.id === "education")?.visible && (
+              <div
+                id="section-education"
+                onClick={() => setActiveSection("education")}
+                className={`rounded-xl border p-8 transition-all cursor-pointer ${
+                  activeSection === "education"
+                    ? "border-brand-cyan/40 bg-white shadow-lg shadow-brand-cyan/10"
+                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <GraduationCap className="w-6 h-6" style={{ color: designAccent }} />
+                    <h3 className="text-base font-bold text-gray-800 uppercase tracking-wider">Education</h3>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateResume((r) => ({
+                        ...r,
+                        education: [...r.education, { school: "School Name", degree: "Degree", year: "Year" }],
+                      }));
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm text-brand-cyan hover:bg-brand-cyan/10 transition font-semibold"
+                  >
+                    <Plus className="w-4 h-4" /> Add Education
+                  </button>
+                </div>
+                <div className="space-y-5">
+                  {resume.education.map((edu, idx) => (
+                    <div key={idx} className="relative group grid grid-cols-3 gap-5 rounded-lg border border-gray-200 p-5 hover:border-gray-300 transition shadow-sm">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateResume((r) => ({ ...r, education: r.education.filter((_, i) => i !== idx) }));
+                        }}
+                        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-1.5 rounded text-gray-400 hover:text-red-500 transition"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                      <div>
+                        <label className="text-sm text-gray-500 font-semibold">School</label>
+                        <input
+                          value={edu.school}
+                          onChange={(e) => updateResume((r) => ({
+                            ...r,
+                            education: r.education.map((x, i) => i === idx ? { ...x, school: e.target.value } : x),
+                          }))}
+                          className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-500 font-semibold">Degree</label>
+                        <input
+                          value={edu.degree}
+                          onChange={(e) => updateResume((r) => ({
+                            ...r,
+                            education: r.education.map((x, i) => i === idx ? { ...x, degree: e.target.value } : x),
+                          }))}
+                          className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-500 font-semibold">Year</label>
+                        <input
+                          value={edu.year}
+                          onChange={(e) => updateResume((r) => ({
+                            ...r,
+                            education: r.education.map((x, i) => i === idx ? { ...x, year: e.target.value } : x),
+                          }))}
+                          className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Skills Section ─────────────────── */}
+            {sections.find((s) => s.id === "skills")?.visible && (
+              <div
+                id="section-skills"
+                onClick={() => setActiveSection("skills")}
+                className={`rounded-xl border p-8 transition-all cursor-pointer ${
+                  activeSection === "skills"
+                    ? "border-brand-cyan/40 bg-white shadow-lg shadow-brand-cyan/10"
+                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <Code className="w-6 h-6" style={{ color: designAccent }} />
+                  <h3 className="text-base font-bold text-gray-800 uppercase tracking-wider">Skills</h3>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {resume.skills.map((skill, idx) => (
+                    <div key={idx} className="group flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-lg px-4 py-2.5">
+                      <input
+                        value={skill}
+                        onChange={(e) => updateResume((r) => ({
+                          ...r,
+                          skills: r.skills.map((s, i) => i === idx ? e.target.value : s),
+                        }))}
+                        className="bg-transparent text-base text-gray-700 outline-none w-32 focus:w-48 transition-all"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateResume((r) => ({ ...r, skills: r.skills.filter((_, i) => i !== idx) }));
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateResume((r) => ({ ...r, skills: [...r.skills, "New Skill"] }));
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-base text-gray-400 hover:text-brand-cyan hover:border-brand-cyan/40 transition"
+                  >
+                    <Plus className="w-4 h-4" /> Add
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Certifications Section ─────────── */}
+            {sections.find((s) => s.id === "certifications")?.visible && (
+              <div
+                id="section-certifications"
+                onClick={() => setActiveSection("certifications")}
+                className={`rounded-xl border p-8 transition-all cursor-pointer ${
+                  activeSection === "certifications"
+                    ? "border-brand-cyan/40 bg-white shadow-lg shadow-brand-cyan/10"
+                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <Award className="w-6 h-6" style={{ color: designAccent }} />
+                  <h3 className="text-base font-bold text-gray-800 uppercase tracking-wider">Certifications</h3>
+                </div>
+                <div className="space-y-3.5">
+                  {resume.certifications.map((cert, idx) => (
+                    <div key={idx} className="group flex items-center gap-3">
+                      <input
+                        value={cert}
+                        onChange={(e) => updateResume((r) => ({
+                          ...r,
+                          certifications: r.certifications.map((c, i) => i === idx ? e.target.value : c),
+                        }))}
+                        className="flex-1 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateResume((r) => ({ ...r, certifications: r.certifications.filter((_, i) => i !== idx) }));
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateResume((r) => ({ ...r, certifications: [...r.certifications, "New Certification"] }));
+                    }}
+                    className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-brand-cyan transition font-semibold"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add certification
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Projects Section ───────────────── */}
+            {sections.find((s) => s.id === "projects")?.visible && (
+              <div
+                id="section-projects"
+                onClick={() => setActiveSection("projects")}
+                className={`rounded-xl border p-8 transition-all cursor-pointer ${
+                  activeSection === "projects"
+                    ? "border-brand-cyan/40 bg-white shadow-lg shadow-brand-cyan/10"
+                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-6 h-6" style={{ color: designAccent }} />
+                    <h3 className="text-base font-bold text-gray-800 uppercase tracking-wider">Projects</h3>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateResume((r) => ({
+                        ...r,
+                        projects: [...r.projects, { name: "Project Name", description: "Description", tech: "Technologies" }],
+                      }));
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm text-brand-cyan hover:bg-brand-cyan/10 transition font-semibold"
+                  >
+                    <Plus className="w-4 h-4" /> Add Project
+                  </button>
+                </div>
+                <div className="space-y-5">
+                  {resume.projects.map((proj, idx) => (
+                    <div key={idx} className="relative group rounded-lg border border-gray-200 p-6 hover:border-gray-300 transition shadow-sm space-y-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateResume((r) => ({ ...r, projects: r.projects.filter((_, i) => i !== idx) }));
+                        }}
+                        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-1.5 rounded text-gray-400 hover:text-red-500 transition"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                      <div className="grid grid-cols-2 gap-5">
+                        <div>
+                          <label className="text-sm text-gray-500 font-semibold">Project Name</label>
+                          <input
+                            value={proj.name}
+                            onChange={(e) => updateResume((r) => ({
+                              ...r,
+                              projects: r.projects.map((p, i) => i === idx ? { ...p, name: e.target.value } : p),
+                            }))}
+                            className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-gray-500 font-semibold">Technologies</label>
+                          <input
+                            value={proj.tech}
+                            onChange={(e) => updateResume((r) => ({
+                              ...r,
+                              projects: r.projects.map((p, i) => i === idx ? { ...p, tech: e.target.value } : p),
+                            }))}
+                            className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-500 font-semibold">Description</label>
+                        <textarea
+                          value={proj.description}
+                          onChange={(e) => updateResume((r) => ({
+                            ...r,
+                            projects: r.projects.map((p, i) => i === idx ? { ...p, description: e.target.value } : p),
+                          }))}
+                          rows={3}
+                          className="w-full mt-1.5 px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-lg text-gray-900 outline-none resize-none focus:border-brand-cyan focus:ring-2 focus:ring-brand-cyan/20"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Right Preview Panel (always-on by default) ── */}
+        {showPreview && (
+          <div className="w-[400px] flex-shrink-0 bg-white border-l border-gray-200 overflow-y-auto p-5 print:hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-700">Live Preview</h3>
+              <button onClick={() => setShowPreview(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="rounded-lg overflow-hidden shadow-xl ring-1 ring-gray-200">
+              <TemplatePreview id={activeTemplateId} />
+            </div>
+            <p className="text-xs text-gray-400 text-center mt-3">
+              Using: <span className="text-gray-600 font-medium">{templateInfo.name}</span>
+            </p>
+            {/* Template quick-switch */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs text-gray-500 font-semibold mb-2">Quick Switch Template</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {TEMPLATE_REGISTRY.slice(0, 8).map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => selectTemplate(t.id)}
+                    className={`rounded border overflow-hidden transition-all ${
+                      t.id === activeTemplateId ? "border-brand-cyan ring-1 ring-brand-cyan/30" : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <TemplatePreview id={t.id} />
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => { setShowTemplates(true); setActiveTool(null); }}
+                className="w-full mt-2 text-xs text-brand-cyan hover:underline font-medium text-center py-1"
+              >
+                View all {TEMPLATE_REGISTRY.length} templates →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

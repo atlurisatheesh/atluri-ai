@@ -113,6 +113,44 @@ class InterviewSession(Base):
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+
+# ── 10. ResumeAnalysis (ARIA) ────────────────────────────
+class ResumeAnalysis(Base):
+    __tablename__ = "resume_analyses"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_gen_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+
+    # Input fields
+    resume_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    job_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    target_company: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    current_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    years_experience: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    career_situation: Mapped[str] = mapped_column(String(30), default="standard")
+    company_culture: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    tone_mode: Mapped[str] = mapped_column(String(30), default="corporate")
+
+    # ARIA analysis output (JSON blobs)
+    intake_analysis: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Full 5-pass intake
+    generated_resume: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Complete resume JSON
+    score_card: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # 16-check scoring
+    keyword_matrix: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    gap_brief: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    precision_edits: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # Scores (denormalized for quick queries)
+    ats_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    content_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    # Versioning
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    is_latest: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
     user = relationship("User", back_populates="sessions")
     ai_responses = relationship("AIResponse", back_populates="session", lazy="selectin")
 

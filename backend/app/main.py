@@ -54,8 +54,17 @@ from app.api.document_routes import router as document_router
 from app.api.duo_routes import router as duo_router
 from app.api.mock_routes import router as mock_router
 from app.api.resume_routes import router as resume_analysis_router
+from app.api.aria_routes import router as aria_router
+from app.api.aria_v2_routes import router as aria_v2_router
 from app.api.session_routes import router as session_router
 from app.api.analytics_routes import router as analytics_router
+from app.api.capture_routes import router as capture_router
+from app.api.stealth_routes import router as stealth_router
+from app.api.intelligence_routes import router as intelligence_router
+from app.api.career_routes import router as career_router
+from app.api.company_intel_routes import router as company_intel_router
+from app.api.learning_routes import router as learning_router
+from app.api.desktop_downloads import router as desktop_downloads_router
 from app.db.database import init_db
 from app.company_modes import list_company_modes
 from app.system_metrics import set_metric, get_metrics_snapshot
@@ -87,6 +96,10 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=False,
 )
+
+# ARIA rate limiting middleware
+from app.resume.rate_limiter import ARIARateLimitMiddleware
+app.add_middleware(ARIARateLimitMiddleware)
 
 interview_engine = AIInterviewEngine()
 _share_tokens: dict[str, dict] = {}
@@ -887,6 +900,15 @@ app.include_router(document_router)
 app.include_router(duo_router)
 app.include_router(mock_router)
 app.include_router(resume_analysis_router)
+app.include_router(aria_router)
+app.include_router(aria_v2_router)
 app.include_router(session_router)
 app.include_router(analytics_router)
+app.include_router(capture_router)
+app.include_router(stealth_router)
+app.include_router(intelligence_router)
+app.include_router(career_router)
+app.include_router(company_intel_router)
+app.include_router(learning_router)
+app.include_router(desktop_downloads_router)
 register_me_endpoint(app, get_user_id_async)

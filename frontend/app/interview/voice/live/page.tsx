@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest } from "../../../../lib/api";
@@ -212,7 +212,7 @@ export default function LiveVoiceInterview() {
       items.push(`Ownership clarity dropped ${drop}% during pressure moments.`);
     }
     if (items.length === 0 && miniScores.structure < 65) {
-      items.push("Your structure weakened under pressure. Use a fixed frame: decision → action → measurable result.");
+      items.push("Your structure weakened under pressure. Use a fixed frame: decision â†’ action â†’ measurable result.");
     }
     if (items.length === 0 && miniScores.depth < 65) {
       items.push("Depth is inconsistent. Add constraints, trade-offs, and explicit risk handling.");
@@ -245,7 +245,7 @@ export default function LiveVoiceInterview() {
     if (miniScores.structure < 65) {
       return {
         label: "Answer structure",
-        goal: "Use decision → action → measurable result.",
+        goal: "Use decision â†’ action â†’ measurable result.",
       };
     }
     return {
@@ -263,9 +263,9 @@ export default function LiveVoiceInterview() {
     if (!liveGeneratedAnswer) return;
     try {
       await navigator.clipboard.writeText(liveGeneratedAnswer);
-      pushLog("📋 Answer copied to clipboard");
+      pushLog("ðŸ“‹ Answer copied to clipboard");
     } catch {
-      pushLog("❌ Failed to copy to clipboard");
+      pushLog("âŒ Failed to copy to clipboard");
     }
   };
 
@@ -276,7 +276,7 @@ export default function LiveVoiceInterview() {
     setLiveAnswerStreaming(false);
     setCanStopGeneration(false);
     setLiveAnswerMode("idle");
-    pushLog("⏹️ Stopped answer generation");
+    pushLog("â¹ï¸ Stopped answer generation");
   };
 
   // ========== PHASE 1: ADD TO HISTORY ==========
@@ -292,7 +292,7 @@ export default function LiveVoiceInterview() {
   const speakAnswer = () => {
     if (!liveGeneratedAnswer || ttsPlaying) return;
     if (!window.speechSynthesis) {
-      pushLog("⚠️ TTS not supported in this browser");
+      pushLog("âš ï¸ TTS not supported in this browser");
       return;
     }
     
@@ -308,12 +308,12 @@ export default function LiveVoiceInterview() {
     utterance.onend = () => setTtsPlaying(false);
     utterance.onerror = () => {
       setTtsPlaying(false);
-      pushLog("❌ TTS error");
+      pushLog("âŒ TTS error");
     };
     
     ttsUtteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
-    pushLog("🔊 Reading answer aloud");
+    pushLog("ðŸ”Š Reading answer aloud");
   };
 
   const stopTts = () => {
@@ -326,7 +326,7 @@ export default function LiveVoiceInterview() {
   // ========== PHASE 2: EXPORT SESSION ==========
   const exportSessionAsMarkdown = () => {
     if (answerHistory.length === 0 && !liveGeneratedAnswer) {
-      pushLog("⚠️ No session data to export");
+      pushLog("âš ï¸ No session data to export");
       return;
     }
     setExportingSession(true);
@@ -378,7 +378,7 @@ export default function LiveVoiceInterview() {
     URL.revokeObjectURL(url);
     
     setExportingSession(false);
-    pushLog("📄 Session exported as Markdown");
+    pushLog("ðŸ“„ Session exported as Markdown");
   };
 
   const setCaptureState = (enabled: boolean) => {
@@ -402,7 +402,7 @@ export default function LiveVoiceInterview() {
     streamTimeoutRef.current = window.setTimeout(() => {
       setLiveAnswerStreaming(false);
       setLiveAnswerMode("fallback");
-      pushLog("⚠️ Answer stream timed out, finalized safely");
+      pushLog("âš ï¸ Answer stream timed out, finalized safely");
     }, STREAM_TIMEOUT_MS);
   };
 
@@ -582,7 +582,7 @@ export default function LiveVoiceInterview() {
     } catch {
       setRunning(false);
       setConnected(false);
-      pushLog("🔒 Sign in required. Please log in and retry Live Mode.");
+      pushLog("ðŸ”’ Sign in required. Please log in and retry Live Mode.");
       return;
     }
 
@@ -641,7 +641,7 @@ export default function LiveVoiceInterview() {
     const normalizedRoomId = isUuidV4(roomId) ? roomId : createRoomId();
     if (normalizedRoomId !== roomId) {
       setRoomId(normalizedRoomId);
-      pushLog("🔐 Room ID normalized to UUID for secure room mode");
+      pushLog("ðŸ” Room ID normalized to UUID for secure room mode");
     }
 
     const roomParam = encodeURIComponent(normalizedRoomId.trim());
@@ -655,7 +655,7 @@ export default function LiveVoiceInterview() {
       setConnected(true);
       setReconnecting(false);
       setReconnectAttempts(0);
-      pushLog("🟢 Connected");
+      pushLog("ðŸŸ¢ Connected");
       ws.current?.send(JSON.stringify({ type: "sync_state_request" }));
     };
 
@@ -671,13 +671,13 @@ export default function LiveVoiceInterview() {
       
       // Stealth mode: User-friendly error messages (hide raw errors)
       if (closeCode === 1008 || closeCode === 4401) {
-        pushLog("🔒 Session expired. Please refresh and try again.");
+        pushLog("ðŸ”’ Session expired. Please refresh and try again.");
         shouldReconnectRef.current = false;
       } else if (closeCode === 1006 || closeCode === 1001) {
         // Auto-reconnect on network issues
         if (shouldReconnectRef.current && reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !finalSummary) {
           setReconnecting(true);
-          pushLog(`🔄 Reconnecting (${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
+          pushLog(`ðŸ”„ Reconnecting (${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
           reconnectTimeoutRef.current = setTimeout(() => {
             setReconnectAttempts(prev => prev + 1);
             start();  // Reconnect using start() function
@@ -687,43 +687,43 @@ export default function LiveVoiceInterview() {
         // Max retries exhausted - show clear failure state
         if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
           setReconnecting(false);
-          pushLog("❌ Connection failed. Please refresh the page.");
+          pushLog("âŒ Connection failed. Please refresh the page.");
         } else {
-          pushLog("🛜 Connection lost. Please try again.");
+          pushLog("ðŸ›œ Connection lost. Please try again.");
         }
       } else if (closeCode && closeCode !== 1000) {
-        pushLog("⚠️ Connection closed unexpectedly.");
+        pushLog("âš ï¸ Connection closed unexpectedly.");
       }
 
       if (finalSummary) {
-        pushLog("🏁 Interview completed");
+        pushLog("ðŸ Interview completed");
       } else if (!reconnecting) {
-        pushLog("🛑 Session ended");
+        pushLog("ðŸ›‘ Session ended");
       }
       shouldReconnectRef.current = false;
     };
 
     ws.current.onerror = () => {
       // Stealth mode: Hide raw error messages
-      pushLog("⚠️ Connection issue. Retrying...");
+      pushLog("âš ï¸ Connection issue. Retrying...");
     };
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("📩 WS MESSAGE:", data);
+      console.log("ðŸ“© WS MESSAGE:", data);
       if (typeof data.session_id === "string" && data.session_id.trim()) {
         setFinalSessionId(data.session_id.trim());
       }
 
       if (data.type === "partial_transcript") {
         setLog((l) => {
-          const withoutLastPartial = l.filter((x) => !x.startsWith("🎤 You (speaking):"));
-          return [...withoutLastPartial, `🎤 You (speaking): ${data.text}`];
+          const withoutLastPartial = l.filter((x) => !x.startsWith("ðŸŽ¤ You (speaking):"));
+          return [...withoutLastPartial, `ðŸŽ¤ You (speaking): ${data.text}`];
         });
       }
 
       if (data.type === "transcript") {
-        pushLog(`🎤 You said: ${data.text}`);
+        pushLog(`ðŸŽ¤ You said: ${data.text}`);
       }
 
       if (data.type === "waiting_for_interviewer") {
@@ -732,12 +732,12 @@ export default function LiveVoiceInterview() {
         setLiveAnswerStreaming(false);
         clearStreamTimeout();
         // Only log if we don't have an answer showing
-        // pushLog("⏳ Ready for next interviewer question.");
+        // pushLog("â³ Ready for next interviewer question.");
       }
 
       if (data.type === "stt_warning") {
         const message = String(data.message || "Speech pipeline warning");
-        pushLog(`⚠️ STT: ${message}`);
+        pushLog(`âš ï¸ STT: ${message}`);
       }
 
       if (data.type === "ping") {
@@ -757,7 +757,7 @@ export default function LiveVoiceInterview() {
         }
 
         if (data.decision?.message) {
-          pushLog(`🤖 AI: ${data.decision.message}`);
+          pushLog(`ðŸ¤– AI: ${data.decision.message}`);
         }
 
         if (
@@ -771,7 +771,7 @@ export default function LiveVoiceInterview() {
             structure: Number(data.decision?.structure_score || 0),
           });
           pushLog(
-            `📊 Score → Clarity: ${data.decision?.clarity_score ?? 0}% | Depth: ${data.decision?.depth_score ?? 0}% | Structure: ${data.decision?.structure_score ?? 0}%`
+            `ðŸ“Š Score â†’ Clarity: ${data.decision?.clarity_score ?? 0}% | Depth: ${data.decision?.depth_score ?? 0}% | Structure: ${data.decision?.structure_score ?? 0}%`
           );
         }
 
@@ -803,7 +803,7 @@ export default function LiveVoiceInterview() {
 
         if (data.decision?.verdict || data.decision?.explanation) {
           pushLog(
-            `🧾 Verdict: ${data.decision?.verdict ?? "Average"}${data.decision?.explanation ? ` — ${data.decision.explanation}` : ""}`
+            `ðŸ§¾ Verdict: ${data.decision?.verdict ?? "Average"}${data.decision?.explanation ? ` â€” ${data.decision.explanation}` : ""}`
           );
         }
       }
@@ -826,13 +826,13 @@ export default function LiveVoiceInterview() {
 
         if (shouldShowHint(severity, priority)) {
           showAssistHint({ rule_id: ruleId, text, severity, priority, confidence, key });
-          pushLog(`💡 Hint (${severity}): ${text}`);
+          pushLog(`ðŸ’¡ Hint (${severity}): ${text}`);
         }
       }
 
       if (data.type === "live_coaching" && Array.isArray(data.tips)) {
         data.tips.forEach((tip: string) => {
-          pushLog(`🧠 Coach: ${tip}`);
+          pushLog(`ðŸ§  Coach: ${tip}`);
         });
       }
 
@@ -847,7 +847,7 @@ export default function LiveVoiceInterview() {
         setQuestionIndex((q) => Math.min(TOTAL_QUESTIONS, q + 1));
         setConfidence(0);
         setHesitation(0);
-        pushLog(`🤖 Next Question: ${nextQuestion}`);
+        pushLog(`ðŸ¤– Next Question: ${nextQuestion}`);
 
         if (participantMode === "candidate" && ws.current?.readyState === WebSocket.OPEN) {
           ws.current.send(JSON.stringify({ type: "set_question", question: nextQuestion }));
@@ -877,7 +877,7 @@ export default function LiveVoiceInterview() {
         setQuestionIndex((q) => Math.min(TOTAL_QUESTIONS, q + 1));
         setConfidence(0);
         setHesitation(0);
-        pushLog(`🧑 Interviewer: ${liveQuestion}`);
+        pushLog(`ðŸ§‘ Interviewer: ${liveQuestion}`);
         setCurrentQuestion(liveQuestion);
         setLiveAnswerStreaming(true);
         armStreamTimeout();
@@ -888,19 +888,19 @@ export default function LiveVoiceInterview() {
       if (data.type === "tone_shift_event") {
         const message = String(data?.payload?.message || "Tone shifted to increase interview pressure.");
         setEmotionalEvent({ type: "tone", message });
-        pushLog(`🎭 Tone Shift: ${message}`);
+        pushLog(`ðŸŽ­ Tone Shift: ${message}`);
       }
 
       if (data.type === "interruption_simulation") {
         const message = String(data?.payload?.message || "Interviewer interruption simulated.");
         setEmotionalEvent({ type: "interrupt", message });
-        pushLog(`⛔ Interruption: ${message}`);
+        pushLog(`â›” Interruption: ${message}`);
       }
 
       if (data.type === "pressure_spike_event") {
         const message = String(data?.payload?.message || "Pressure spike injected.");
         setEmotionalEvent({ type: "pressure", message });
-        pushLog(`🔥 Pressure Spike: ${message}`);
+        pushLog(`ðŸ”¥ Pressure Spike: ${message}`);
       }
 
       if (data.type === "answer_suggestion_start") {
@@ -934,7 +934,7 @@ export default function LiveVoiceInterview() {
           setLiveGeneratedAnswer((prev) => {
             // If previous was thinking indicator, replace it; otherwise append
             const prevText = prev || "";
-            if (prevText === "Analyzing question..." || prevText.startsWith("▸")) {
+            if (prevText === "Analyzing question..." || prevText.startsWith("â–¸")) {
               return chunk; // Replace thinking with first real content
             }
             const newVal = prevText ? `${prevText} ${chunk}` : chunk;
@@ -957,10 +957,10 @@ export default function LiveVoiceInterview() {
         // Only show fallback mode for actual model failures (timeout_fallback, error_fallback)
         if (reason === "timeout_fallback" || reason === "error_fallback") {
           setLiveAnswerMode("fallback");
-          pushLog("⚠️ Using fallback answer mode (model provider unavailable)");
+          pushLog("âš ï¸ Using fallback answer mode (model provider unavailable)");
         } else {
           setLiveAnswerMode("live");
-          pushLog(`✅ Answer done (reason=${reason}, len=${fullSuggestion.length})`);
+          pushLog(`âœ… Answer done (reason=${reason}, len=${fullSuggestion.length})`);
         }
         if (fullSuggestion) {
           setLiveGeneratedAnswer(fullSuggestion);
@@ -981,7 +981,7 @@ export default function LiveVoiceInterview() {
         setCanStopGeneration(false);
         clearStreamTimeout();
         setCaptureState(true);
-        pushLog("🎙 Listening for next interviewer question.");
+        pushLog("ðŸŽ™ Listening for next interviewer question.");
       }
 
       if (data.type === "answer_suggestion" && data.suggestion) {
@@ -1009,9 +1009,9 @@ export default function LiveVoiceInterview() {
             severity: "medium",
             confidence: 0.92,
           });
-          pushLog("💡 AI generated answer draft from interviewer question");
+          pushLog("ðŸ’¡ AI generated answer draft from interviewer question");
           setCaptureState(true);
-          pushLog("🎙 Listening for next interviewer question.");
+          pushLog("ðŸŽ™ Listening for next interviewer question.");
         }
       }
 
@@ -1019,7 +1019,7 @@ export default function LiveVoiceInterview() {
         const assigned = String(data.room_id);
         if (assigned && assigned !== roomId) {
           setRoomId(assigned);
-          pushLog(`🔐 Assigned secure room ID: ${assigned}`);
+          pushLog(`ðŸ” Assigned secure room ID: ${assigned}`);
         }
       }
 
@@ -1050,7 +1050,7 @@ export default function LiveVoiceInterview() {
       if (data.type === "final_summary") {
         setFinalSummary(data.data);
         setRunning(false);
-        pushLog("🏁 Final summary received");
+        pushLog("ðŸ Final summary received");
       }
     };
 
@@ -1145,7 +1145,7 @@ export default function LiveVoiceInterview() {
 
             lastQuestionTriggerRef.current = { key, ts: now };
             ws.current.send(JSON.stringify({ type: "interviewer_question", text: transcript }));
-            pushLog(`⚡ Question detected: ${transcript}`);
+            pushLog(`âš¡ Question detected: ${transcript}`);
           }
         };
 
@@ -1159,13 +1159,13 @@ export default function LiveVoiceInterview() {
         speechRecognitionRef.current = recognition;
         try {
           recognition.start();
-          pushLog("🧭 Browser question-detect assist enabled");
+          pushLog("ðŸ§­ Browser question-detect assist enabled");
         } catch {}
       }
       */
-      pushLog("🎙 Deepgram streaming STT active");
+      pushLog("ðŸŽ™ Deepgram streaming STT active");
     } catch {
-      pushLog("⚠️ Audio capture unavailable. Enable mic permission and restart session.");
+      pushLog("âš ï¸ Audio capture unavailable. Enable mic permission and restart session.");
     }
   };
 
@@ -1182,7 +1182,7 @@ export default function LiveVoiceInterview() {
     setReconnecting(false);
     setReconnectAttempts(0);
 
-    pushLog("🛑 Stopping session...");
+    pushLog("ðŸ›‘ Stopping session...");
 
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ type: "stop" }));
@@ -1211,42 +1211,44 @@ export default function LiveVoiceInterview() {
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.interviewLayout}>
-        <div style={styles.card}>
-          <h2 style={styles.title}>Live Mode</h2>
-          <p style={styles.subtitle}>Real-time decision signal. Keep answers compact and evidence-backed.</p>
+    <div className="min-h-screen p-[22px] flex justify-center bg-[var(--bg)] text-[var(--text-primary)]">
+      <div className="w-full max-w-[1320px] grid grid-cols-[minmax(0,7fr)_minmax(280px,3fr)] gap-[18px] items-start">
+        <div className="flex-1 min-w-0 min-h-[calc(100vh-48px)] bg-[var(--surface-1)] rounded-xl p-6 flex flex-col gap-4">
+          <h2 className="m-0 text-4xl leading-none tracking-[-0.6px] text-[var(--text-primary)]">Live Mode</h2>
+          <p className="m-0 text-[var(--text-muted)] text-sm">Real-time decision signal. Keep answers compact and evidence-backed.</p>
 
-          <div style={styles.collabRow}>
-            <div style={styles.fieldGroup}>
-              <label style={styles.fieldLabel}>Room ID</label>
+          <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-2.5">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-[#4b5563] font-semibold">Room ID</label>
               <input
                 value={roomId}
                 onChange={(e) => setRoomId(e.target.value)}
-                style={styles.fieldInput}
+                className="border border-[#d1d5db] rounded-lg px-2.5 py-2 text-[13px] text-[#111827] bg-white"
                 placeholder="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
                 disabled={running}
               />
             </div>
-            <div style={styles.fieldGroup}>
-              <label style={styles.fieldLabel}>Participant</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-[#4b5563] font-semibold">Participant</label>
               <select
                 value={participantMode}
                 onChange={(e) => setParticipantMode(e.target.value as "candidate" | "interviewer")}
-                style={styles.fieldInput}
+                className="border border-[#d1d5db] rounded-lg px-2.5 py-2 text-[13px] text-[#111827] bg-white"
                 disabled={running}
+                title="Participant mode"
               >
                 <option value="candidate">Candidate</option>
                 <option value="interviewer">Interviewer</option>
               </select>
             </div>
-            <div style={styles.fieldGroup}>
-              <label style={styles.fieldLabel}>Answer Language</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-[#4b5563] font-semibold">Answer Language</label>
               <select
                 value={answerLanguage}
                 onChange={(e) => setAnswerLanguage(e.target.value as "english" | "detected")}
-                style={styles.fieldInput}
+                className="border border-[#d1d5db] rounded-lg px-2.5 py-2 text-[13px] text-[#111827] bg-white"
                 disabled={running}
+                title="Answer language"
               >
                 <option value="english">English Only</option>
                 <option value="detected">Match Detected Language</option>
@@ -1255,158 +1257,158 @@ export default function LiveVoiceInterview() {
           </div>
 
           {participantMode === "interviewer" && (
-            <div style={styles.interviewerModeHint}>
+            <div className="border border-dashed border-[#bfdbfe] bg-[#eff6ff] text-[#1e3a8a] rounded-[10px] px-3 py-2.5 text-[13px] font-semibold">
               Interviewer mode is voice-only. Speak your question and it will be broadcast live.
             </div>
           )}
 
-          <div style={styles.statusRow}>
-            <span style={styles.statusLabel}>Live Status</span>
-            <span style={styles.statusValue}>
-              {reconnecting ? "🔄 Reconnecting..." : running ? "🎙 Listening" : finalSummary ? "🏁 Completed" : connected ? "🟢 Connected" : "🔴 Idle"}
+          <div className="flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-[10px] bg-[#f7f9fb] border border-[#e5e7eb]">
+            <span className="font-semibold text-[#374151]">Live Status</span>
+            <span className="font-semibold text-[#111827]">
+              {reconnecting ? "ðŸ”„ Reconnecting..." : running ? "ðŸŽ™ Listening" : finalSummary ? "ðŸ Completed" : connected ? "ðŸŸ¢ Connected" : "ðŸ”´ Idle"}
             </span>
             {running && connected && (
-              <span style={styles.livePulse}>●</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] shadow-[0_0_8px_2px_rgba(34,197,94,0.6)] ml-2">â—</span>
             )}
           </div>
 
           {running && (
-            <div style={styles.micLevelRow}>
-              <span style={styles.micLevelLabel}>Mic Input</span>
-              <div style={styles.micLevelTrack}>
-                <div style={{ ...styles.micLevelFill, width: `${Math.max(0, Math.min(100, audioLevel))}%` }} />
+            <div className="grid grid-cols-[78px_1fr_44px] items-center gap-2.5 px-3 py-2 rounded-[10px] bg-[var(--surface-2)]">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-[0.03em]">Mic Input</span>
+              <div className="h-2 w-full rounded-full overflow-hidden bg-[rgba(255,255,255,0.08)]">
+                <div className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-[120ms]" ref={(el) => { if (el) el.style.width = `${Math.max(0, Math.min(100, audioLevel))}%`; }} />
               </div>
-              <span style={styles.micLevelValue}>{audioLevel}%</span>
+              <span className="text-xs font-bold text-[var(--text-primary)] text-right">{audioLevel}%</span>
             </div>
           )}
 
           {activeRoundGoal && running && (
-            <div style={styles.roundGoalCard}>Goal for this round: {activeRoundGoal}</div>
+            <div className="border border-[#bfdbfe] bg-[#eff6ff] text-[#1e3a8a] rounded-[10px] px-[11px] py-[9px] text-[13px] font-bold">Goal for this round: {activeRoundGoal}</div>
           )}
 
-          <div style={styles.liveFocusRow}>
-            <span style={improvementNeeded ? styles.improvementBadgeWarn : styles.improvementBadgeGood}>
+          <div className="flex items-center justify-between gap-2">
+            <span className={improvementNeeded ? "border border-[#fecaca] bg-[#fff1f2] text-[#9f1239] rounded-full px-2.5 py-[5px] text-xs font-bold" : "border border-[#bbf7d0] bg-[#f0fdf4] text-[#166534] rounded-full px-2.5 py-[5px] text-xs font-bold"}>
               {improvementNeeded ? "Focus Needed" : "On Track"}
             </span>
-            <button style={styles.detailsToggle} onClick={() => setShowLiveDetails((prev) => !prev)}>
+            <button className="border-0 bg-[var(--surface-2)] text-[var(--text-muted)] rounded-lg px-2.5 py-1.5 cursor-pointer text-xs font-bold" onClick={() => setShowLiveDetails((prev) => !prev)}>
               {showLiveDetails ? "Collapse diagnostics" : "Diagnostics"}
             </button>
           </div>
-          <div style={styles.focusHint}>{focusMessage}</div>
+          <div className="-mt-1.5 text-[13px] leading-[1.45] text-[#374151]">{focusMessage}</div>
 
           {showLiveDetails && (
             <>
-              <div style={styles.liveIntensityRow}>
-                <span style={styles.timerChip}>Session {formatClock(sessionSeconds)}</span>
-                <span style={styles.timerChip}>Speaking {formatClock(speakingSeconds)}</span>
-                <span style={speakingNow ? styles.liveBadgeActive : styles.liveBadgeIdle}>{speakingNow ? "Speaking now" : "Waiting for voice"}</span>
-                <span style={metricUsageDetected ? styles.metricBadgeOn : styles.metricBadgeOff}>
+              <div className="flex gap-2 flex-wrap">
+                <span className="border border-[#cbd5e1] bg-[#f8fafc] text-[#334155] rounded-full px-2.5 py-[5px] text-xs font-bold">Session {formatClock(sessionSeconds)}</span>
+                <span className="border border-[#cbd5e1] bg-[#f8fafc] text-[#334155] rounded-full px-2.5 py-[5px] text-xs font-bold">Speaking {formatClock(speakingSeconds)}</span>
+                <span className={speakingNow ? "border border-[#bbf7d0] bg-[#f0fdf4] text-[#166534] rounded-full px-2.5 py-[5px] text-xs font-bold" : "border border-[#e2e8f0] bg-[#f8fafc] text-[#475569] rounded-full px-2.5 py-[5px] text-xs font-bold"}>{speakingNow ? "Speaking now" : "Waiting for voice"}</span>
+                <span className={metricUsageDetected ? "border border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8] rounded-full px-2.5 py-[5px] text-xs font-bold" : "border border-[#fde68a] bg-[#fffbeb] text-[#92400e] rounded-full px-2.5 py-[5px] text-xs font-bold"}>
                   {metricUsageDetected ? "Metric usage detected" : "Add concrete numbers"}
                 </span>
               </div>
 
               {driftDetected && (
-                <div style={styles.driftAlert}>⚠️ Drift detected. Tighten answer to outcomes, ownership, and measurable impact.</div>
+                <div className="border border-[#fecaca] bg-[#fff1f2] text-[#9f1239] rounded-[10px] px-[11px] py-[9px] text-[13px] font-bold">âš ï¸ Drift detected. Tighten answer to outcomes, ownership, and measurable impact.</div>
               )}
             </>
           )}
 
-          <div style={styles.modeChipRow}>
-            <span style={styles.modeChip}>Mode: {companyMode}</span>
+          <div className="flex gap-2 flex-wrap">
+            <span className="border border-[#bfdbfe] bg-[#eff6ff] text-[#1e3a8a] rounded-full px-2.5 py-1 text-[11px] font-bold uppercase">Mode: {companyMode}</span>
             {(companyMode === "amazon" || companyMode === "google" || companyMode === "meta") && (
-              <span style={styles.modeChipStrong}>
+              <span className="border border-[#fecaca] bg-[#fff1f2] text-[#9f1239] rounded-full px-2.5 py-1 text-[11px] font-bold uppercase">
                 {companyMode === "amazon" ? "LP depth weighting" : companyMode === "google" ? "Rigor weighting" : "Impact-pressure weighting"}
               </span>
             )}
           </div>
 
           {emotionalEvent && showLiveDetails && (
-            <div style={styles.emotionCard}>
-              <div style={styles.emotionTitle}>Pressure Cue</div>
-              <div style={styles.emotionText}>{emotionalEvent.message}</div>
+            <div className="border border-[#fcd34d] bg-[#fffbeb] rounded-[10px] px-3 py-2.5">
+              <div className="text-xs font-extrabold tracking-[0.03em] uppercase text-[#92400e]">Pressure Cue</div>
+              <div className="mt-1 text-[13px] leading-[1.45] text-[#78350f]">{emotionalEvent.message}</div>
             </div>
           )}
 
-          <div style={styles.snapshotCard}>
-            <div style={styles.snapshotHeaderRow}>
-              <div style={styles.snapshotTitle}>Persisted Snapshot</div>
-              <button style={styles.snapshotRefreshButton} onClick={refreshSnapshot} disabled={snapshotLoading}>
+          <div className="border border-[#e5e7eb] rounded-[10px] bg-[#fafafa] px-3 py-2.5">
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <div className="text-xs font-bold text-[#374151] uppercase tracking-[0.03em]">Persisted Snapshot</div>
+              <button className="border border-[#cbd5e1] bg-white text-[#334155] rounded-lg px-[9px] py-1 text-xs cursor-pointer font-bold" onClick={refreshSnapshot} disabled={snapshotLoading}>
                 {snapshotLoading ? "Refreshing..." : "Refresh"}
               </button>
             </div>
-            <div style={styles.snapshotLine}>
+            <div className="text-xs text-[#374151] leading-[1.4]">
               Resume: {snapshot?.resume?.loaded ? `Loaded (${snapshot.resume.chars} chars)` : "Not loaded"}
             </div>
-            <div style={styles.snapshotLine}>
+            <div className="text-xs text-[#374151] leading-[1.4]">
               JD: {snapshot?.job?.loaded ? `Loaded (${snapshot.job.chars} chars)` : "Not loaded"}
             </div>
-            <div style={styles.snapshotLine}>
+            <div className="text-xs text-[#374151] leading-[1.4]">
               Interview: {snapshot?.interview?.active ? "Active" : snapshot?.interview?.done ? "Completed" : "Not started"}
             </div>
-            <div style={styles.snapshotLine}>Role: {snapshot?.interview?.role || "—"}</div>
-            <div style={styles.snapshotLine}>Credibility: {snapshot?.credibility?.has_snapshot ? "Available" : "Unavailable"}</div>
-            <div style={styles.snapshotSubLine}>
-              Updated: {snapshot?.interview?.updated_at ? new Date(snapshot.interview.updated_at * 1000).toLocaleString() : "—"}
+            <div className="text-xs text-[#374151] leading-[1.4]">Role: {snapshot?.interview?.role || "â€”"}</div>
+            <div className="text-xs text-[#374151] leading-[1.4]">Credibility: {snapshot?.credibility?.has_snapshot ? "Available" : "Unavailable"}</div>
+            <div className="mt-1 text-[11px] text-[#6b7280]">
+              Updated: {snapshot?.interview?.updated_at ? new Date(snapshot.interview.updated_at * 1000).toLocaleString() : "â€”"}
             </div>
           </div>
 
-          <div style={running ? styles.questionCardFocused : styles.questionCard}>
-            <div style={styles.questionMeta}>
+          <div className={running ? "rounded-xl bg-[var(--surface-2)] p-5" : "p-5 rounded-xl bg-[var(--surface-2)]"}>
+            <div className="text-[13px] font-bold text-[#0a66c2]">
               Question {questionIndex} of {TOTAL_QUESTIONS}
             </div>
-            <div style={styles.questionText}>{currentQuestion}</div>
-            <div style={styles.evaluatorLine}>{recruiterState}</div>
+            <div className="mt-2 leading-[1.5] text-[#111827]">{currentQuestion}</div>
+            <div className="mt-2 text-xs text-[#1d4ed8] font-bold">{recruiterState}</div>
           </div>
 
           {liveInterviewerQuestion && (
-            <div style={running ? styles.qaCardFocused : styles.qaCard}>
-              <div style={styles.qaTitle}>Interviewer Question</div>
-              <div style={styles.qaText}>{liveInterviewerQuestion}</div>
-              <div style={styles.qaTitle}>Generated Answer</div>
-              <div style={liveAnswerMode === "fallback" ? styles.answerModeFallback : liveAnswerMode === "live" ? styles.answerModeLive : styles.answerModeGenerating}>
+            <div className={running ? "rounded-xl bg-[var(--surface-2)] p-3 flex flex-col gap-2" : "rounded-[10px] bg-[var(--surface-2)] p-3 flex flex-col gap-2"}>
+              <div className="text-xs font-extrabold tracking-[0.03em] uppercase text-[#1d4ed8]">Interviewer Question</div>
+              <div className="text-[13px] leading-[1.45] text-[#1f2937]">{liveInterviewerQuestion}</div>
+              <div className="text-xs font-extrabold tracking-[0.03em] uppercase text-[#1d4ed8]">Generated Answer</div>
+              <div className={liveAnswerMode === "fallback" ? "self-start border border-[#fde68a] bg-[#fffbeb] text-[#92400e] rounded-full px-2 py-[3px] text-[11px] font-bold" : liveAnswerMode === "live" ? "self-start border border-[#bbf7d0] bg-[#f0fdf4] text-[#166534] rounded-full px-2 py-[3px] text-[11px] font-bold" : "self-start border border-[#dbeafe] bg-[#eff6ff] text-[#1d4ed8] rounded-full px-2 py-[3px] text-[11px] font-bold"}>
                 {liveAnswerMode === "fallback" ? "Fallback answer mode" : liveAnswerMode === "live" ? "Live model mode" : liveAnswerMode === "generating" ? "Generating answer" : "Waiting for answer"}
               </div>
-              <div style={styles.qaAnswer}>
+              <div className="text-[13px] leading-[1.5] text-[#0f172a] whitespace-pre-wrap bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-2.5">
                 {liveGeneratedAnswer || (liveAnswerStreaming && previousAnswer ? (
-                  <span><em style={{opacity: 0.6}}>(Previous) {previousAnswer.slice(0, 200)}...</em><br/><br/>Generating new answer...</span>
+                  <span><em className="opacity-60">(Previous) {previousAnswer.slice(0, 200)}...</em><br/><br/>Generating new answer...</span>
                 ) : liveAnswerStreaming ? "Generating answer..." : "Waiting for generated answer...")}
               </div>
               
               {/* Action buttons for answer */}
-              <div style={styles.answerActions}>
+              <div className="flex gap-2 mt-2 flex-wrap items-center">
                 {/* Copy button */}
                 <button
-                  style={styles.actionButton}
+                  className="border border-[#d1d5db] bg-white text-[#374151] rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-150"
                   onClick={copyAnswerToClipboard}
                   disabled={!liveGeneratedAnswer}
                   title="Copy answer to clipboard"
                 >
-                  📋 Copy
+                  ðŸ“‹ Copy
                 </button>
                 
                 {/* Stop Generation button */}
                 {liveAnswerStreaming && canStopGeneration && (
                   <button
-                    style={styles.actionButtonDanger}
+                    className="border border-[#f87171] bg-[#fef2f2] text-[#dc2626] rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer"
                     onClick={stopGeneration}
                     title="Stop generating answer"
                   >
-                    ⏹️ Stop
+                    â¹ï¸ Stop
                   </button>
                 )}
                 
                 {/* TTS button */}
                 <button
-                  style={ttsPlaying ? styles.actionButtonActive : styles.actionButton}
+                  className={ttsPlaying ? "border border-[#3b82f6] bg-[#eff6ff] text-[#1d4ed8] rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer" : "border border-[#d1d5db] bg-white text-[#374151] rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-150"}
                   onClick={ttsPlaying ? stopTts : speakAnswer}
                   disabled={!liveGeneratedAnswer}
                   title={ttsPlaying ? "Stop reading" : "Read answer aloud"}
                 >
-                  {ttsPlaying ? "🔇 Stop" : "🔊 Read"}
+                  {ttsPlaying ? "ðŸ”‡ Stop" : "ðŸ”Š Read"}
                 </button>
                 
                 {/* TTS Auto toggle */}
-                <label style={styles.ttsToggle}>
+                <label className="flex items-center gap-1 text-xs text-[#6b7280] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={ttsEnabled}
@@ -1417,11 +1419,11 @@ export default function LiveVoiceInterview() {
               </div>
               
               <button
-                style={captureEnabled ? styles.captureButtonOn : styles.captureButtonOff}
+                className={captureEnabled ? "mt-1.5 border border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-primary)] rounded-lg px-2.5 py-[7px] text-xs font-bold cursor-pointer self-start" : "mt-1.5 border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] rounded-lg px-2.5 py-[7px] text-xs font-bold cursor-pointer self-start"}
                 onClick={() => {
                   const next = !captureEnabled;
                   setCaptureState(next);
-                  pushLog(next ? "🎙 Listening resumed for next interviewer question." : "⏸ Mic paused while you read.");
+                  pushLog(next ? "ðŸŽ™ Listening resumed for next interviewer question." : "â¸ Mic paused while you read.");
                 }}
               >
                 {captureEnabled ? "Pause mic while I read" : "Listen for next question"}
@@ -1429,140 +1431,140 @@ export default function LiveVoiceInterview() {
             </div>
           )}
 
-          <div style={styles.controls}>
-            <button onClick={start} disabled={running} style={styles.primaryButton}>
+          <div className="flex gap-2.5">
+            <button onClick={start} disabled={running} className="bg-[#202733] text-[var(--text-primary)] border-none px-3.5 py-2.5 rounded-[10px] cursor-pointer font-semibold">
               {running ? "Listening..." : "Start"}
             </button>
 
-            <button onClick={stop} style={styles.secondaryButton}>
+            <button onClick={stop} className="bg-[var(--surface-2)] text-[var(--text-muted)] border-none px-3.5 py-2.5 rounded-[10px] cursor-pointer font-semibold">
               Stop
             </button>
             
             {/* History toggle button */}
             <button 
               onClick={() => setShowHistory(!showHistory)} 
-              style={styles.secondaryButton}
+              className="bg-[var(--surface-2)] text-[var(--text-muted)] border-none px-3.5 py-2.5 rounded-[10px] cursor-pointer font-semibold"
               title="Show answer history"
             >
-              📜 History ({answerHistory.length})
+              ðŸ“œ History ({answerHistory.length})
             </button>
             
             {/* Export button */}
             <button 
               onClick={exportSessionAsMarkdown}
-              style={styles.secondaryButton}
+              className="bg-[var(--surface-2)] text-[var(--text-muted)] border-none px-3.5 py-2.5 rounded-[10px] cursor-pointer font-semibold"
               disabled={exportingSession || (answerHistory.length === 0 && !liveGeneratedAnswer)}
               title="Export session as Markdown"
             >
-              {exportingSession ? "📄 Exporting..." : "📄 Export"}
+              {exportingSession ? "ðŸ“„ Exporting..." : "ðŸ“„ Export"}
             </button>
           </div>
           
           {/* Answer History Panel */}
           {showHistory && answerHistory.length > 0 && (
-            <div style={styles.historyCard}>
-              <div style={styles.historyTitle}>📜 Answer History (Last 5)</div>
+            <div className="border border-[#e5e7eb] rounded-[10px] bg-[#fafafa] p-3 flex flex-col gap-2.5 max-h-[400px] overflow-y-auto">
+              <div className="text-[13px] font-bold text-[#374151] border-b border-b-[#e5e7eb] pb-2">ðŸ“œ Answer History (Last 5)</div>
               {answerHistory.map((item, idx) => (
-                <div key={idx} style={styles.historyItem}>
-                  <div style={styles.historyQuestion}>Q: {item.question}</div>
-                  <div style={styles.historyAnswer}>{item.answer.slice(0, 200)}{item.answer.length > 200 ? "..." : ""}</div>
+                <div key={idx} className="border border-[#e2e8f0] rounded-lg bg-white p-2.5 flex flex-col gap-1.5">
+                  <div className="text-xs font-bold text-[#1d4ed8]">Q: {item.question}</div>
+                  <div className="text-xs text-[#374151] leading-[1.4]">{item.answer.slice(0, 200)}{item.answer.length > 200 ? "..." : ""}</div>
                   <button 
-                    style={styles.historyCopyBtn}
+                    className="self-start border border-[#d1d5db] bg-white text-[#374151] rounded-[6px] px-2 py-1 text-[11px] font-semibold cursor-pointer"
                     onClick={async () => {
                       await navigator.clipboard.writeText(item.answer);
-                      pushLog(`📋 Copied answer ${idx + 1} to clipboard`);
+                      pushLog(`ðŸ“‹ Copied answer ${idx + 1} to clipboard`);
                     }}
                   >
-                    📋 Copy
+                    ðŸ“‹ Copy
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          <div style={styles.metrics}>
-            <div style={styles.metricCard}>
-              <div style={styles.metricLabel}>Confidence</div>
-              <div style={styles.metricValue}>{confidence}%</div>
-              <div style={styles.progressTrack}>
-                <div style={{ ...styles.progressFill, width: `${Math.max(0, Math.min(100, confidence))}%` }} />
+          <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-2.5">
+            <div className="rounded-[10px] px-3 py-2.5 bg-[var(--surface-2)]">
+              <div className="text-xs text-[#6b7280]">Confidence</div>
+              <div className="mt-1 text-lg font-bold text-[#111827]">{confidence}%</div>
+              <div className="mt-2 w-full h-2 rounded-full bg-[rgba(255,255,255,0.08)] overflow-hidden">
+                <div className="h-full bg-[#6ea8ff] rounded-full transition-[width] duration-[250ms]" ref={(el) => { if (el) el.style.width = `${Math.max(0, Math.min(100, confidence))}%`; }} />
               </div>
             </div>
-            <div style={styles.metricCard}>
-              <div style={styles.metricLabel}>Hesitation</div>
-              <div style={styles.metricValue}>{hesitation}</div>
+            <div className="rounded-[10px] px-3 py-2.5 bg-[var(--surface-2)]">
+              <div className="text-xs text-[#6b7280]">Hesitation</div>
+              <div className="mt-1 text-lg font-bold text-[#111827]">{hesitation}</div>
             </div>
           </div>
 
           {showLiveDetails && (
-            <div style={styles.miniScoreCard}>
-              <div style={styles.miniScoreTitle}>Live Score Updates</div>
-              <div style={styles.miniScoreRow}>
-                <span style={styles.miniScoreLabel}>Clarity</span>
-                <div style={styles.progressTrack}><div style={{ ...styles.progressFill, width: `${Math.max(0, Math.min(100, miniScores.clarity))}%` }} /></div>
-                <span style={styles.miniScoreValue}>{Math.round(miniScores.clarity)}%</span>
+            <div className="border border-[#e5e7eb] rounded-[10px] bg-[#fafafa] px-3 py-2.5 flex flex-col gap-2">
+              <div className="text-xs font-bold text-[#334155] uppercase tracking-[0.03em]">Live Score Updates</div>
+              <div className="grid grid-cols-[78px_1fr_44px] items-center gap-2">
+                <span className="text-xs text-[#475569] font-semibold">Clarity</span>
+                <div className="mt-2 w-full h-2 rounded-full bg-[rgba(255,255,255,0.08)] overflow-hidden"><div className="h-full bg-[#6ea8ff] rounded-full transition-[width] duration-[250ms]" ref={(el) => { if (el) el.style.width = `${Math.max(0, Math.min(100, miniScores.clarity))}%`; }} /></div>
+                <span className="text-xs text-[#111827] font-bold text-right">{Math.round(miniScores.clarity)}%</span>
               </div>
-              <div style={styles.miniScoreRow}>
-                <span style={styles.miniScoreLabel}>Depth</span>
-                <div style={styles.progressTrack}><div style={{ ...styles.progressFill, width: `${Math.max(0, Math.min(100, miniScores.depth))}%` }} /></div>
-                <span style={styles.miniScoreValue}>{Math.round(miniScores.depth)}%</span>
+              <div className="grid grid-cols-[78px_1fr_44px] items-center gap-2">
+                <span className="text-xs text-[#475569] font-semibold">Depth</span>
+                <div className="mt-2 w-full h-2 rounded-full bg-[rgba(255,255,255,0.08)] overflow-hidden"><div className="h-full bg-[#6ea8ff] rounded-full transition-[width] duration-[250ms]" ref={(el) => { if (el) el.style.width = `${Math.max(0, Math.min(100, miniScores.depth))}%`; }} /></div>
+                <span className="text-xs text-[#111827] font-bold text-right">{Math.round(miniScores.depth)}%</span>
               </div>
-              <div style={styles.miniScoreRow}>
-                <span style={styles.miniScoreLabel}>Structure</span>
-                <div style={styles.progressTrack}><div style={{ ...styles.progressFill, width: `${Math.max(0, Math.min(100, miniScores.structure))}%` }} /></div>
-                <span style={styles.miniScoreValue}>{Math.round(miniScores.structure)}%</span>
+              <div className="grid grid-cols-[78px_1fr_44px] items-center gap-2">
+                <span className="text-xs text-[#475569] font-semibold">Structure</span>
+                <div className="mt-2 w-full h-2 rounded-full bg-[rgba(255,255,255,0.08)] overflow-hidden"><div className="h-full bg-[#6ea8ff] rounded-full transition-[width] duration-[250ms]" ref={(el) => { if (el) el.style.width = `${Math.max(0, Math.min(100, miniScores.structure))}%`; }} /></div>
+                <span className="text-xs text-[#111827] font-bold text-right">{Math.round(miniScores.structure)}%</span>
               </div>
             </div>
           )}
 
           {finalSummary && (
-            <div style={styles.coachingCard}>
-              <div style={styles.coachingTitle}>Session Verdict</div>
-              <div style={styles.verdictValueRow}>
-                <span style={styles.verdictPercent}>{finalOfferProbability}%</span>
-                <span style={styles.verdictChip}>{finalVerdict}</span>
+            <div className="border border-[#dbeafe] rounded-[10px] bg-[#f8fbff] p-3 flex flex-col gap-2">
+              <div className="text-[13px] font-extrabold tracking-[0.03em] uppercase text-[#1d4ed8]">Session Verdict</div>
+              <div className="mt-1.5 flex items-baseline gap-2">
+                <span className="text-[30px] text-[#0f172a] font-black">{finalOfferProbability}%</span>
+                <span className="border border-[#86efac] bg-[#ecfdf5] text-[#166534] rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase">{finalVerdict}</span>
               </div>
-              <div style={styles.verdictBand}>Confidence band: {finalBandLow}% – {finalBandHigh}%</div>
-              <div style={styles.verdictInterpretation}>{finalInterpretation}</div>
+              <div className="mt-0.5 text-xs text-[#475569] font-bold">Confidence band: {finalBandLow}% â€“ {finalBandHigh}%</div>
+              <div className="mt-1 text-[13px] text-[#0f172a] font-bold">{finalInterpretation}</div>
 
-              <div style={styles.coachingSubTitle}>Why</div>
-              {finalWhyItems.length === 0 ? <div style={styles.coachingItem}>No high-risk blockers detected.</div> : null}
+              <div className="mt-2 text-xs text-[#334155] font-extrabold uppercase tracking-[0.3px]">Why</div>
+              {finalWhyItems.length === 0 ? <div className="text-[13px] leading-[1.45] text-[#1f2937]">No high-risk blockers detected.</div> : null}
               {finalWhyItems.map((item, idx) => (
-                <div key={`${item}-${idx}`} style={styles.coachingItem}>• {item}</div>
+                <div key={`${item}-${idx}`} className="text-[13px] leading-[1.45] text-[#1f2937]">â€¢ {item}</div>
               ))}
 
-              <div style={styles.coachingSubTitle}>What changed</div>
-              <div style={styles.coachingItem}>• Offer probability delta: {finalDeltaValue >= 0 ? "+" : ""}{Math.round(finalDeltaValue)} points</div>
-              <div style={styles.coachingItem}>• Trajectory focus: {nextSessionFocus.label}</div>
+              <div className="mt-2 text-xs text-[#334155] font-extrabold uppercase tracking-[0.3px]">What changed</div>
+              <div className="text-[13px] leading-[1.45] text-[#1f2937]">â€¢ Offer probability delta: {finalDeltaValue >= 0 ? "+" : ""}{Math.round(finalDeltaValue)} points</div>
+              <div className="text-[13px] leading-[1.45] text-[#1f2937]">â€¢ Trajectory focus: {nextSessionFocus.label}</div>
 
-              <div style={styles.coachingSubTitle}>What to fix next</div>
+              <div className="mt-2 text-xs text-[#334155] font-extrabold uppercase tracking-[0.3px]">What to fix next</div>
               {(finalFixItems.length ? finalFixItems : coachingItems).map((item, idx) => (
-                <div key={`fix-${idx}`} style={styles.coachingItem}>• {item}</div>
+                <div key={`fix-${idx}`} className="text-[13px] leading-[1.45] text-[#1f2937]">â€¢ {item}</div>
               ))}
 
-              <div style={styles.nextFocusLine}>Next priority: {nextSessionFocus.goal}</div>
-              <div style={styles.coachingFooter}>
-                <button onClick={start} disabled={running} style={styles.primaryButton}>
+              <div className="mt-0.5 text-[13px] font-bold text-[#1d4ed8]">Next priority: {nextSessionFocus.goal}</div>
+              <div className="mt-1.5 flex justify-start">
+                <button onClick={start} disabled={running} className="bg-[#202733] text-[var(--text-primary)] border-none px-3.5 py-2.5 rounded-[10px] cursor-pointer font-semibold">
                   Start Next Session
                 </button>
                 {finalSessionId && (
-                  <a href={`/interview/report/${encodeURIComponent(finalSessionId)}`} style={styles.reportLink}>
+                  <a href={`/interview/report/${encodeURIComponent(finalSessionId)}`} className="mt-2.5 inline-block text-[#0a66c2] font-bold no-underline">
                     Open Session Report
                   </a>
                 )}
-                <button onClick={() => setShowRawSummary((v) => !v)} style={styles.secondaryButton}>
+                <button onClick={() => setShowRawSummary((v) => !v)} className="bg-[var(--surface-2)] text-[var(--text-muted)] border-none px-3.5 py-2.5 rounded-[10px] cursor-pointer font-semibold">
                   {showRawSummary ? "Hide detailed JSON" : "Show detailed JSON"}
                 </button>
               </div>
-              {showRawSummary ? <pre style={styles.summaryPre}>{JSON.stringify(finalSummary, null, 2)}</pre> : null}
+              {showRawSummary ? <pre className="mt-2.5 whitespace-pre-wrap break-words text-[13px] leading-[1.45]">{JSON.stringify(finalSummary, null, 2)}</pre> : null}
             </div>
           )}
 
-          <div style={styles.logCard}>
-            <div style={styles.logTitle}>Session Transcript</div>
-            <div style={styles.logBody}>
+          <div className="rounded-[10px] bg-[var(--surface-2)] flex flex-col min-h-[220px]">
+            <div className="px-3 py-2.5 border-b border-b-[var(--border-subtle)] font-bold text-[var(--text-muted)]">Session Transcript</div>
+            <div className="p-3 flex flex-col gap-2 overflow-y-auto whitespace-pre-wrap">
               {log.map((l, i) => (
-                <div key={i} style={styles.logLine}>{l}</div>
+                <div key={i} className="text-[13px] leading-[1.45] text-[var(--text-primary)]">{l}</div>
               ))}
             </div>
           </div>
@@ -1579,898 +1581,3 @@ export default function LiveVoiceInterview() {
   );
 }
 
-const styles: any = {
-  page: {
-    minHeight: "100vh",
-    padding: 22,
-    display: "flex",
-    justifyContent: "center",
-    background: "var(--bg)",
-    color: "var(--text-primary)",
-  },
-  interviewLayout: {
-    width: "100%",
-    maxWidth: 1320,
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 7fr) minmax(280px, 3fr)",
-    gap: 18,
-    alignItems: "flex-start",
-  },
-  card: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: "calc(100vh - 48px)",
-    background: "var(--surface-1)",
-    borderRadius: 12,
-    padding: 24,
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  title: {
-    margin: 0,
-    fontSize: 36,
-    lineHeight: 1,
-    letterSpacing: -0.6,
-    color: "var(--text-primary)",
-  },
-  subtitle: {
-    margin: 0,
-    color: "var(--text-muted)",
-    fontSize: 14,
-  },
-  collabRow: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 10,
-  },
-  fieldGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-  },
-  fieldLabel: {
-    fontSize: 12,
-    color: "#4b5563",
-    fontWeight: 600,
-  },
-  fieldInput: {
-    border: "1px solid #d1d5db",
-    borderRadius: 8,
-    padding: "8px 10px",
-    fontSize: 13,
-    color: "#111827",
-    background: "#fff",
-  },
-  interviewerModeHint: {
-    border: "1px dashed #bfdbfe",
-    background: "#eff6ff",
-    color: "#1e3a8a",
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontSize: 13,
-    fontWeight: 600,
-  },
-  statusRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-    padding: "10px 12px",
-    borderRadius: 10,
-    background: "#f7f9fb",
-    border: "1px solid #e5e7eb",
-  },
-  statusLabel: {
-    fontWeight: 600,
-    color: "#374151",
-  },
-  statusValue: {
-    fontWeight: 600,
-    color: "#111827",
-  },
-  livePulse: {
-    width: 10,
-    height: 10,
-    borderRadius: "50%",
-    background: "#22c55e",
-    boxShadow: "0 0 8px 2px rgba(34, 197, 94, 0.6)",
-    marginLeft: 8,
-  },
-  micLevelRow: {
-    display: "grid",
-    gridTemplateColumns: "78px 1fr 44px",
-    alignItems: "center",
-    gap: 10,
-    padding: "8px 12px",
-    borderRadius: 10,
-    background: "var(--surface-2)",
-  },
-  micLevelLabel: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "var(--text-muted)",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.03em",
-  },
-  micLevelTrack: {
-    height: 8,
-    width: "100%",
-    borderRadius: 999,
-    overflow: "hidden",
-    background: "rgba(255,255,255,0.08)",
-  },
-  micLevelFill: {
-    height: "100%",
-    borderRadius: 999,
-    background: "var(--accent)",
-    transition: "width 120ms linear",
-  },
-  micLevelValue: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "var(--text-primary)",
-    textAlign: "right" as const,
-  },
-  roundGoalCard: {
-    border: "1px solid #bfdbfe",
-    background: "#eff6ff",
-    color: "#1e3a8a",
-    borderRadius: 10,
-    padding: "9px 11px",
-    fontSize: 13,
-    fontWeight: 700,
-  },
-  liveIntensityRow: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  liveFocusRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  focusHint: {
-    marginTop: -6,
-    fontSize: 13,
-    lineHeight: 1.45,
-    color: "#374151",
-  },
-  improvementBadgeWarn: {
-    border: "1px solid #fecaca",
-    background: "#fff1f2",
-    color: "#9f1239",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  improvementBadgeGood: {
-    border: "1px solid #bbf7d0",
-    background: "#f0fdf4",
-    color: "#166534",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  detailsToggle: {
-    border: 0,
-    background: "var(--surface-2)",
-    color: "var(--text-muted)",
-    borderRadius: 8,
-    padding: "6px 10px",
-    cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  timerChip: {
-    border: "1px solid #cbd5e1",
-    background: "#f8fafc",
-    color: "#334155",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  liveBadgeActive: {
-    border: "1px solid #bbf7d0",
-    background: "#f0fdf4",
-    color: "#166534",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  liveBadgeIdle: {
-    border: "1px solid #e2e8f0",
-    background: "#f8fafc",
-    color: "#475569",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  metricBadgeOn: {
-    border: "1px solid #bfdbfe",
-    background: "#eff6ff",
-    color: "#1d4ed8",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  metricBadgeOff: {
-    border: "1px solid #fde68a",
-    background: "#fffbeb",
-    color: "#92400e",
-    borderRadius: 999,
-    padding: "5px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  driftAlert: {
-    border: "1px solid #fecaca",
-    background: "#fff1f2",
-    color: "#9f1239",
-    borderRadius: 10,
-    padding: "9px 11px",
-    fontSize: 13,
-    fontWeight: 700,
-  },
-  modeChipRow: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  modeChip: {
-    border: "1px solid #bfdbfe",
-    background: "#eff6ff",
-    color: "#1e3a8a",
-    borderRadius: 999,
-    padding: "4px 10px",
-    fontSize: 11,
-    fontWeight: 700,
-    textTransform: "uppercase" as const,
-  },
-  modeChipStrong: {
-    border: "1px solid #fecaca",
-    background: "#fff1f2",
-    color: "#9f1239",
-    borderRadius: 999,
-    padding: "4px 10px",
-    fontSize: 11,
-    fontWeight: 700,
-    textTransform: "uppercase" as const,
-  },
-  emotionCard: {
-    border: "1px solid #fcd34d",
-    background: "#fffbeb",
-    borderRadius: 10,
-    padding: "10px 12px",
-  },
-  emotionTitle: {
-    fontSize: 12,
-    fontWeight: 800,
-    letterSpacing: "0.03em",
-    textTransform: "uppercase" as const,
-    color: "#92400e",
-  },
-  emotionText: {
-    marginTop: 4,
-    fontSize: 13,
-    lineHeight: 1.45,
-    color: "#78350f",
-  },
-  snapshotCard: {
-    border: "1px solid #e5e7eb",
-    borderRadius: 10,
-    background: "#fafafa",
-    padding: "10px 12px",
-  },
-  snapshotHeaderRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    marginBottom: 6,
-  },
-  snapshotTitle: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#374151",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.03em",
-  },
-  snapshotRefreshButton: {
-    border: "1px solid #cbd5e1",
-    background: "#fff",
-    color: "#334155",
-    borderRadius: 8,
-    padding: "4px 9px",
-    fontSize: 12,
-    cursor: "pointer",
-    fontWeight: 700,
-  },
-  snapshotLine: {
-    fontSize: 12,
-    color: "#374151",
-    lineHeight: 1.4,
-  },
-  snapshotSubLine: {
-    marginTop: 4,
-    fontSize: 11,
-    color: "#6b7280",
-  },
-  intensityRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  intensityLabel: {
-    fontSize: 13,
-    color: "#4b5563",
-    fontWeight: 600,
-  },
-  intensityButtons: {
-    display: "flex",
-    gap: 6,
-  },
-  intensityButton: {
-    border: "1px solid #cbd5e1",
-    background: "#fff",
-    color: "#334155",
-    borderRadius: 8,
-    padding: "6px 10px",
-    fontSize: 12,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  intensityButtonActive: {
-    background: "#0a66c2",
-    borderColor: "#0a66c2",
-    color: "#fff",
-  },
-  assistStrip: {
-    border: "1px solid",
-    borderRadius: 10,
-    padding: "10px 12px",
-    transition: "opacity 0.35s ease",
-    minHeight: 58,
-  },
-  assistHeaderRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  assistHeaderLabel: {
-    fontSize: 12,
-    color: "#4b5563",
-    fontWeight: 700,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.03em",
-  },
-  pinButton: {
-    border: "1px solid #cbd5e1",
-    background: "#fff",
-    color: "#334155",
-    borderRadius: 8,
-    padding: "4px 9px",
-    fontSize: 12,
-    cursor: "pointer",
-    fontWeight: 700,
-  },
-  pinButtonActive: {
-    background: "#0a66c2",
-    borderColor: "#0a66c2",
-    color: "#fff",
-  },
-  assistTitle: {
-    fontSize: 13,
-    fontWeight: 700,
-  },
-  assistMessage: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#1f2937",
-    lineHeight: 1.4,
-  },
-  assistPlaceholder: {
-    fontSize: 13,
-    color: "#6b7280",
-  },
-  hintHistoryCard: {
-    border: "1px solid #e5e7eb",
-    borderRadius: 10,
-    background: "#fff",
-    padding: "10px 12px",
-  },
-  hintHistoryTitle: {
-    fontSize: 13,
-    fontWeight: 700,
-    color: "#374151",
-    marginBottom: 8,
-  },
-  hintHistoryEmpty: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  hintHistoryList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  hintHistoryItem: {
-    border: "1px solid #edf0f2",
-    borderRadius: 8,
-    padding: "8px 10px",
-    display: "grid",
-    gridTemplateColumns: "auto 1fr",
-    gap: 8,
-    alignItems: "start",
-  },
-  hintChip: {
-    borderRadius: 999,
-    padding: "2px 8px",
-    fontSize: 11,
-    fontWeight: 700,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.02em",
-  },
-  hintChipHigh: {
-    background: "#fff1f2",
-    color: "#9f1239",
-    border: "1px solid #fecdd3",
-  },
-  hintChipMedium: {
-    background: "#eff6ff",
-    color: "#1d4ed8",
-    border: "1px solid #bfdbfe",
-  },
-  hintChipLow: {
-    background: "#f0fdf4",
-    color: "#166534",
-    border: "1px solid #bbf7d0",
-  },
-  hintItemTitle: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#1f2937",
-  },
-  hintItemMessage: {
-    marginTop: 2,
-    fontSize: 12,
-    color: "#4b5563",
-    lineHeight: 1.4,
-  },
-  questionCard: {
-    padding: 20,
-    borderRadius: 12,
-    background: "var(--surface-2)",
-  },
-  questionMeta: {
-    fontSize: 13,
-    fontWeight: 700,
-    color: "#0a66c2",
-  },
-  questionText: {
-    marginTop: 8,
-    lineHeight: 1.5,
-    color: "#111827",
-  },
-  questionCardFocused: {
-    borderRadius: 12,
-    background: "var(--surface-2)",
-    padding: 20,
-  },
-  evaluatorLine: {
-    marginTop: 8,
-    fontSize: 12,
-    color: "#1d4ed8",
-    fontWeight: 700,
-  },
-  qaCard: {
-    borderRadius: 10,
-    background: "var(--surface-2)",
-    padding: 12,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  qaCardFocused: {
-    borderRadius: 12,
-    background: "var(--surface-2)",
-    padding: 12,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  qaTitle: {
-    fontSize: 12,
-    fontWeight: 800,
-    letterSpacing: "0.03em",
-    textTransform: "uppercase" as const,
-    color: "#1d4ed8",
-  },
-  qaText: {
-    fontSize: 13,
-    lineHeight: 1.45,
-    color: "#1f2937",
-  },
-  qaAnswer: {
-    fontSize: 13,
-    lineHeight: 1.5,
-    color: "#0f172a",
-    whiteSpace: "pre-wrap" as const,
-    background: "#ffffff",
-    border: "1px solid #e2e8f0",
-    borderRadius: 8,
-    padding: "10px 11px",
-  },
-  answerModeLive: {
-    alignSelf: "flex-start" as const,
-    border: "1px solid #bbf7d0",
-    background: "#f0fdf4",
-    color: "#166534",
-    borderRadius: 999,
-    padding: "3px 8px",
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  answerModeFallback: {
-    alignSelf: "flex-start" as const,
-    border: "1px solid #fde68a",
-    background: "#fffbeb",
-    color: "#92400e",
-    borderRadius: 999,
-    padding: "3px 8px",
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  answerModeGenerating: {
-    alignSelf: "flex-start" as const,
-    border: "1px solid #dbeafe",
-    background: "#eff6ff",
-    color: "#1d4ed8",
-    borderRadius: 999,
-    padding: "3px 8px",
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  captureButtonOn: {
-    marginTop: 6,
-    border: "1px solid var(--border-subtle)",
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    borderRadius: 8,
-    padding: "7px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-    alignSelf: "flex-start" as const,
-  },
-  captureButtonOff: {
-    marginTop: 6,
-    border: "1px solid var(--border-subtle)",
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    borderRadius: 8,
-    padding: "7px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-    alignSelf: "flex-start" as const,
-  },
-  // ========== NEW STYLES FOR PHASES ==========
-  answerActions: {
-    display: "flex",
-    gap: 8,
-    marginTop: 8,
-    flexWrap: "wrap" as const,
-    alignItems: "center",
-  },
-  actionButton: {
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    color: "#374151",
-    borderRadius: 8,
-    padding: "6px 12px",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-  },
-  actionButtonActive: {
-    border: "1px solid #3b82f6",
-    background: "#eff6ff",
-    color: "#1d4ed8",
-    borderRadius: 8,
-    padding: "6px 12px",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  actionButtonDanger: {
-    border: "1px solid #f87171",
-    background: "#fef2f2",
-    color: "#dc2626",
-    borderRadius: 8,
-    padding: "6px 12px",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  ttsToggle: {
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    fontSize: 12,
-    color: "#6b7280",
-    cursor: "pointer",
-  },
-  historyCard: {
-    border: "1px solid #e5e7eb",
-    borderRadius: 10,
-    background: "#fafafa",
-    padding: 12,
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: 10,
-    maxHeight: 400,
-    overflowY: "auto" as const,
-  },
-  historyTitle: {
-    fontSize: 13,
-    fontWeight: 700,
-    color: "#374151",
-    borderBottom: "1px solid #e5e7eb",
-    paddingBottom: 8,
-  },
-  historyItem: {
-    border: "1px solid #e2e8f0",
-    borderRadius: 8,
-    background: "#fff",
-    padding: 10,
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: 6,
-  },
-  historyQuestion: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#1d4ed8",
-  },
-  historyAnswer: {
-    fontSize: 12,
-    color: "#374151",
-    lineHeight: 1.4,
-  },
-  historyCopyBtn: {
-    alignSelf: "flex-start" as const,
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    color: "#374151",
-    borderRadius: 6,
-    padding: "4px 8px",
-    fontSize: 11,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  controls: {
-    display: "flex",
-    gap: 10,
-  },
-  primaryButton: {
-    background: "#202733",
-    color: "var(--text-primary)",
-    border: "none",
-    padding: "10px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  secondaryButton: {
-    background: "var(--surface-2)",
-    color: "var(--text-muted)",
-    border: "none",
-    padding: "10px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  metrics: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 10,
-  },
-  metricCard: {
-    borderRadius: 10,
-    padding: "10px 12px",
-    background: "var(--surface-2)",
-  },
-  metricLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  metricValue: {
-    marginTop: 4,
-    fontSize: 18,
-    fontWeight: 700,
-    color: "#111827",
-  },
-  progressTrack: {
-    marginTop: 8,
-    width: "100%",
-    height: 8,
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.08)",
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    background: "#6ea8ff",
-    borderRadius: 999,
-    transition: "width 250ms ease",
-  },
-  miniScoreCard: {
-    border: "1px solid #e5e7eb",
-    borderRadius: 10,
-    background: "#fafafa",
-    padding: "10px 12px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  miniScoreTitle: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#334155",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.03em",
-  },
-  miniScoreRow: {
-    display: "grid",
-    gridTemplateColumns: "78px 1fr 44px",
-    alignItems: "center",
-    gap: 8,
-  },
-  miniScoreLabel: {
-    fontSize: 12,
-    color: "#475569",
-    fontWeight: 600,
-  },
-  miniScoreValue: {
-    fontSize: 12,
-    color: "#111827",
-    fontWeight: 700,
-    textAlign: "right" as const,
-  },
-  summaryCard: {
-    border: "1px solid #d9e2ec",
-    borderRadius: 10,
-    background: "#eef3f8",
-    padding: 12,
-  },
-  summaryTitle: {
-    margin: 0,
-    fontSize: 16,
-    color: "#0a66c2",
-  },
-  summaryPre: {
-    margin: "10px 0 0",
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
-    fontSize: 13,
-    lineHeight: 1.45,
-  },
-  reportLink: {
-    marginTop: 10,
-    display: "inline-block",
-    color: "#0a66c2",
-    fontWeight: 700,
-    textDecoration: "none",
-  },
-  coachingCard: {
-    border: "1px solid #dbeafe",
-    borderRadius: 10,
-    background: "#f8fbff",
-    padding: 12,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  coachingTitle: {
-    fontSize: 13,
-    fontWeight: 800,
-    letterSpacing: "0.03em",
-    textTransform: "uppercase" as const,
-  coachingSubTitle: {
-    marginTop: 8,
-    fontSize: 12,
-    color: "#334155",
-    fontWeight: 800,
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
-  },
-  verdictValueRow: {
-    marginTop: 6,
-    display: "flex",
-    alignItems: "baseline",
-    gap: 8,
-  },
-  verdictPercent: {
-    fontSize: 30,
-    color: "#0f172a",
-    fontWeight: 900,
-  },
-  verdictChip: {
-    border: "1px solid #86efac",
-    background: "#ecfdf5",
-    color: "#166534",
-    borderRadius: 999,
-    padding: "4px 10px",
-    fontSize: 11,
-    fontWeight: 800,
-    textTransform: "uppercase",
-  },
-  verdictBand: {
-    marginTop: 2,
-    fontSize: 12,
-    color: "#475569",
-    fontWeight: 700,
-  },
-  verdictInterpretation: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#0f172a",
-    fontWeight: 700,
-  },
-    color: "#1d4ed8",
-  },
-  coachingItem: {
-    fontSize: 13,
-    lineHeight: 1.45,
-    color: "#1f2937",
-  },
-  nextFocusLine: {
-    marginTop: 2,
-    fontSize: 13,
-    fontWeight: 700,
-    color: "#1d4ed8",
-  },
-  coachingFooter: {
-    marginTop: 6,
-    display: "flex",
-    justifyContent: "flex-start",
-  },
-  logCard: {
-    borderRadius: 10,
-    background: "var(--surface-2)",
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 220,
-  },
-  logTitle: {
-    padding: "10px 12px",
-    borderBottom: "1px solid var(--border-subtle)",
-    fontWeight: 700,
-    color: "var(--text-muted)",
-  },
-  logBody: {
-    padding: 12,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    overflowY: "auto",
-    whiteSpace: "pre-wrap",
-  },
-  logLine: {
-    fontSize: 13,
-    lineHeight: 1.45,
-    color: "var(--text-primary)",
-  },
-};

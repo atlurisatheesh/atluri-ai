@@ -1,0 +1,143 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  RENDER.COM DEPLOYMENT BLUEPRINT
+#
+#  Deploys:
+#    - Backend (FastAPI + WebSocket) — Web Service (Docker)
+#    - Frontend (Next.js) — Web Service (Node)
+#    - PostgreSQL — Managed Database
+#    - Redis — Managed Key-Value Store
+#
+#  Usage:
+#    1. Push repo to GitHub
+#    2. Go to https://dashboard.render.com/blueprints
+#    3. Click "New Blueprint Instance"
+#    4. Connect your repo → Render auto-detects this file
+#    5. Fill in env var values (API keys)
+#    6. Click "Apply"
+#
+#  Desktop downloads: served from backend /api/desktop/latest
+#  Desktop .exe files: uploaded to backend/desktop-releases/ or
+#    served via the frontend API route /api/desktop-installer
+# ═══════════════════════════════════════════════════════════════════════
+
+databases:
+  - name: atluriin-db
+    plan: starter     # Free tier: 1GB, 97 days. Use "standard" for production
+    databaseName: linkedin_ai
+    user: atluriin
+    ipAllowList: []   # Only internal access
+
+services:
+  # ─── Backend API (FastAPI + WebSocket) ─────────────────────────────
+  - type: web
+    name: atluriin-backend
+    runtime: docker
+    plan: standard     # Standard ($7/mo) required for WebSocket support
+    region: oregon
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      # ── Server config ──────────────────────────────────────────────
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 9010
+      - key: WORKERS
+        value: 2
+      - key: LOG_LEVEL
+        value: info
+
+      # ── Database (auto-wired from Render managed DB) ───────────────
+      - key: DATABASE_URL
+        fromDatabase:
+          name: atluriin-db
+          property: connectionString
+        # Render gives postgres:// but asyncpg needs postgresql+asyncpg://
+        # We handle this transformation in the start command
+
+      # ── Redis (auto-wired from Render managed Redis) ───────────────
+      - key: REDIS_URL
+        fromService:
+          name: atluriin-redis
+          type: redis
+          property: connectionString
+      - key: USE_REDIS_ROOM_STATE
+        value: "true"
+      - key: ROOM_EVENT_BUS_ENABLED
+        value: "true"
+
+      # ── WebSocket limits ───────────────────────────────────────────
+      - key: WS_MAX_CONCURRENT
+        value: "100"
+      - key: WS_QUEUE_SIZE
+        value: "200"
+      - key: WS_QUEUE_MAX_WAIT
+        value: "10"
+
+      # ── Rate limiting ──────────────────────────────────────────────
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "300"
+      - key: SESSION_CLEANUP_TTL_SEC
+        value: "1800"
+
+      # ── CORS (set after frontend deploys — use Render URL) ─────────
+      - key: CORS_ALLOW_ORIGINS
+        sync: false   # Set manually after first deploy
+
+      # ── LLM API Keys (set in Render dashboard) ─────────────────────
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: MODEL_NAME
+        value: gpt-4.1-mini
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+
+      # ── Supabase Auth ──────────────────────────────────────────────
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+
+      # ── Dev mode (set to true for testing without Supabase) ────────
+      - key: ALLOW_UNVERIFIED_JWT_DEV
+        value: "true"
+      - key: QA_MODE
+        value: "false"
+
+  # ─── Frontend (Next.js) ───────────────────────────────────────────
+  - type: web
+    name: atluriin-frontend
+    runtime: node
+    plan: starter      # Free tier works for static-ish Next.js
+    region: oregon
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- -p $PORT
+    healthCheckPath: /
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: atluriin-backend
+          type: web
+          property: url
+      - key: NODE_ENV
+        value: production
+
+  # ─── Redis ─────────────────────────────────────────────────────────
+  - type: redis
+    name: atluriin-redis
+    plan: starter      # Free tier: 25MB. Use "standard" for production
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []    # Only internal access

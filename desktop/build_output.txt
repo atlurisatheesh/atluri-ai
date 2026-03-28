@@ -1,0 +1,4 @@
+
+> atluriin-desktop-practice@0.1.0 build
+> tsc -p tsconfig.json && cpx "src/renderer/index.html" dist/renderer
+

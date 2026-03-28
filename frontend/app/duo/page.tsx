@@ -111,7 +111,7 @@ export default function DuoPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-textMuted">Session:</span>
                     <span className="font-mono text-textPrimary tracking-[0.2em] bg-white/5 px-3 py-1 rounded">{sessionCode}</span>
-                    <button onClick={() => navigator.clipboard.writeText(sessionCode)} className="text-textMuted hover:text-brand-cyan transition"><Copy className="w-4 h-4" /></button>
+                    <button title="Copy session code" onClick={() => navigator.clipboard.writeText(sessionCode)} className="text-textMuted hover:text-brand-cyan transition"><Copy className="w-4 h-4" /></button>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ export default function DuoPage() {
                   {/* Chat input */}
                   <div className="flex gap-2">
                     <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendChat()} placeholder={mode === "helper" ? "Type a hint..." : "Type a message..."} className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/[0.06] text-sm text-textPrimary placeholder-textMuted outline-none focus:border-brand-amber/30" />
-                    <button onClick={sendChat} className="p-2 rounded-lg bg-brand-amber/20 text-brand-amber hover:bg-brand-amber/30 transition"><Send className="w-4 h-4" /></button>
+                    <button title="Send message" onClick={sendChat} className="p-2 rounded-lg bg-brand-amber/20 text-brand-amber hover:bg-brand-amber/30 transition"><Send className="w-4 h-4" /></button>
                   </div>
                 </GlassCard>
               </div>

@@ -1,6 +1,5 @@
-"use client";
+﻿"use client";
 
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -67,44 +66,44 @@ export default function DemoPage() {
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.wrap}>
-        <header style={styles.header}>
-          <div style={styles.brand}>AtluriIn</div>
-          <div style={styles.links}>
-            <Link href="/" style={styles.link}>Home</Link>
-            <Link href="/dashboard" style={styles.link}>App</Link>
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] px-[clamp(14px,2.5vw,36px)] pt-5 pb-9">
+      <div className="max-w-[980px] mx-auto flex flex-col gap-[18px]">
+        <header className="flex justify-between items-center">
+          <div className="text-xl font-bold">AtluriIn</div>
+          <div className="flex gap-3">
+            <Link href="/" className="no-underline text-[var(--text-muted)] text-[13px]">Home</Link>
+            <Link href="/dashboard" className="no-underline text-[var(--text-muted)] text-[13px]">App</Link>
           </div>
         </header>
 
-        <section style={styles.hero}>
-          <div style={styles.kicker}>Two-Minute Simulation</div>
-          <h1 style={styles.title}>Watch the decision engine work.</h1>
-          <p style={styles.subtitle}>Question. Signal. Trajectory. Next move.</p>
-          <div style={styles.actions}>
-            <button style={styles.primary} onClick={runDemo} disabled={running}>{running ? "Running" : "Start Demo"}</button>
-            <button style={styles.secondary} onClick={resetDemo}>Reset</button>
+        <section className="pt-4 flex flex-col gap-2">
+          <div className="text-xs uppercase tracking-[0.1em] text-[var(--text-muted)]">Two-Minute Simulation</div>
+          <h1 className="m-0 text-[clamp(32px,6vw,58px)] leading-[1.03] tracking-[-0.8px]">Watch the decision engine work.</h1>
+          <p className="m-0 text-[var(--text-muted)] text-[15px]">Question. Signal. Trajectory. Next move.</p>
+          <div className="mt-1.5 flex gap-2.5">
+            <button className="border-0 rounded-[9px] bg-[var(--surface-2)] text-[var(--text-primary)] py-2.5 px-[13px] cursor-pointer font-semibold" onClick={runDemo} disabled={running}>{running ? "Running" : "Start Demo"}</button>
+            <button className="border-0 rounded-[9px] bg-[var(--surface-1)] text-[var(--text-muted)] py-2.5 px-[13px] cursor-pointer" onClick={resetDemo}>Reset</button>
           </div>
         </section>
 
-        <section style={styles.timeline}>
-          {visibleEvents.length === 0 && <div style={styles.empty}>Start demo to run the full signal loop.</div>}
+        <section className="border-t border-b border-[var(--border-subtle)] py-2.5">
+          {visibleEvents.length === 0 && <div className="text-[var(--text-muted)] text-[13px] py-2">Start demo to run the full signal loop.</div>}
           {visibleEvents.map((event) => (
-            <div key={event.id} style={styles.eventRow}>
-              <span style={styles.eventType}>{event.type}</span>
-              <span style={styles.eventText}>{event.text}</span>
+            <div key={event.id} className="grid grid-cols-[110px_1fr] gap-2.5 py-[7px]">
+              <span className="text-[11px] uppercase tracking-[0.08em] text-[var(--text-muted)]">{event.type}</span>
+              <span className="text-[13px] text-[var(--text-primary)]">{event.text}</span>
             </div>
           ))}
         </section>
 
         {complete && (
-          <section style={styles.result}>
-            <div style={styles.resultTitle}>Demo Verdict</div>
-            <div style={styles.resultText}>Signal improved through measurable ownership and tighter structure.</div>
-            <div style={styles.resultActions}>
-              <button style={styles.primary} onClick={() => openRealFlow("resume")}>Upload Resume</button>
-              <button style={styles.secondary} onClick={() => openRealFlow("job")}>Set Role</button>
-              <button style={styles.secondary} onClick={() => openRealFlow("interview")}>Run Session</button>
+          <section className="bg-[var(--surface-1)] rounded-[10px] p-[13px] flex flex-col gap-2">
+            <div className="text-xs uppercase tracking-[0.08em] text-[var(--text-muted)]">Demo Verdict</div>
+            <div className="text-sm leading-[1.45]">Signal improved through measurable ownership and tighter structure.</div>
+            <div className="flex gap-2 flex-wrap">
+              <button className="border-0 rounded-[9px] bg-[var(--surface-2)] text-[var(--text-primary)] py-2.5 px-[13px] cursor-pointer font-semibold" onClick={() => openRealFlow("resume")}>Upload Resume</button>
+              <button className="border-0 rounded-[9px] bg-[var(--surface-1)] text-[var(--text-muted)] py-2.5 px-[13px] cursor-pointer" onClick={() => openRealFlow("job")}>Set Role</button>
+              <button className="border-0 rounded-[9px] bg-[var(--surface-1)] text-[var(--text-muted)] py-2.5 px-[13px] cursor-pointer" onClick={() => openRealFlow("interview")}>Run Session</button>
             </div>
           </section>
         )}
@@ -113,130 +112,3 @@ export default function DemoPage() {
   );
 }
 
-const styles: Record<string, CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    background: "var(--bg)",
-    color: "var(--text-primary)",
-    padding: "20px clamp(14px, 2.5vw, 36px) 36px",
-  },
-  wrap: {
-    maxWidth: 980,
-    margin: "0 auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: 18,
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  brand: {
-    fontSize: 20,
-    fontWeight: 700,
-  },
-  links: {
-    display: "flex",
-    gap: 12,
-  },
-  link: {
-    textDecoration: "none",
-    color: "var(--text-muted)",
-    fontSize: 13,
-  },
-  hero: {
-    paddingTop: 16,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  kicker: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: "0.1em",
-    color: "var(--text-muted)",
-  },
-  title: {
-    margin: 0,
-    fontSize: "clamp(32px, 6vw, 58px)",
-    lineHeight: 1.03,
-    letterSpacing: -0.8,
-  },
-  subtitle: {
-    margin: 0,
-    color: "var(--text-muted)",
-    fontSize: 15,
-  },
-  actions: {
-    marginTop: 6,
-    display: "flex",
-    gap: 10,
-  },
-  primary: {
-    border: 0,
-    borderRadius: 9,
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    padding: "10px 13px",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  secondary: {
-    border: 0,
-    borderRadius: 9,
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    padding: "10px 13px",
-    cursor: "pointer",
-  },
-  timeline: {
-    borderTop: "1px solid var(--border-subtle)",
-    borderBottom: "1px solid var(--border-subtle)",
-    padding: "10px 0",
-  },
-  eventRow: {
-    display: "grid",
-    gridTemplateColumns: "110px 1fr",
-    gap: 10,
-    padding: "7px 0",
-  },
-  eventType: {
-    fontSize: 11,
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    color: "var(--text-muted)",
-  },
-  eventText: {
-    fontSize: 13,
-    color: "var(--text-primary)",
-  },
-  empty: {
-    color: "var(--text-muted)",
-    fontSize: 13,
-    padding: "8px 0",
-  },
-  result: {
-    background: "var(--surface-1)",
-    borderRadius: 10,
-    padding: "13px 13px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  resultTitle: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    color: "var(--text-muted)",
-  },
-  resultText: {
-    fontSize: 14,
-    lineHeight: 1.45,
-  },
-  resultActions: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-};

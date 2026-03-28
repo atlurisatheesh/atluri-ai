@@ -75,26 +75,29 @@ export default function ResumeRewriteAssistant() {
   };
 
   return (
-    <div style={styles.card}>
-      <div style={styles.header}>Resume Rewrite Assistant</div>
-      <div style={styles.subheader}>Paste one bullet and choose a rewrite style.</div>
+    <div className="mt-4 border border-[#e4e7ec] rounded-[14px] p-4 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+      <div className="text-base font-extrabold text-[#0a66c2]">Resume Rewrite Assistant</div>
+      <div className="mt-1 mb-2.5 text-[13px] text-[#64748b]">Paste one bullet and choose a rewrite style.</div>
 
-      <div style={styles.label}>Resume Bullet</div>
+      <div className="mb-1.5 text-xs font-bold text-[#334155]">Resume Bullet</div>
 
       <textarea
         value={bullet}
         onChange={(e) => setBullet(e.target.value)}
         placeholder="Example: Worked on API improvements for customer platform."
-        style={styles.input}
+        className="w-full min-h-[90px] border border-[#cbd5e1] rounded-[10px] py-2.5 px-3 text-[13px] resize-y outline-none bg-white"
       />
 
-      <div style={styles.actions}>
+      <div className="mt-2.5 flex gap-2 flex-wrap mb-0.5">
         {(Object.keys(actionLabels) as RewriteAction[]).map((action) => (
           <button
             key={action}
             onClick={() => runRewrite(action)}
             disabled={Boolean(loadingAction)}
-            style={loadingAction === action ? styles.actionButtonActive : styles.actionButton}
+            className={loadingAction === action
+              ? "border border-[#0a66c2] bg-[#0a66c2] text-white rounded-full py-[7px] px-[11px] text-xs font-extrabold cursor-pointer"
+              : "border border-[#cbd5e1] bg-white text-[#1f2937] rounded-full py-[7px] px-[11px] text-xs font-bold cursor-pointer"
+            }
           >
             {loadingAction === action ? "Working..." : actionLabels[action]}
           </button>
@@ -102,9 +105,9 @@ export default function ResumeRewriteAssistant() {
       </div>
 
       {rewritten && (
-        <div style={styles.outputCard}>
-          <div style={styles.outputTitle}>Suggested rewrite</div>
-          <pre style={styles.outputText}>{rewritten}</pre>
+        <div className="mt-3 border border-[#dbeafe] rounded-[10px] py-2.5 px-[11px] bg-[#eff6ff]">
+          <div className="text-xs font-extrabold text-[#1e3a8a] mb-1.5">Suggested rewrite</div>
+          <pre className="m-0 whitespace-pre-wrap break-words text-[13px] leading-[1.45] text-[#1f2937]">{rewritten}</pre>
         </div>
       )}
 
@@ -113,89 +116,3 @@ export default function ResumeRewriteAssistant() {
   );
 }
 
-const styles: any = {
-  card: {
-    marginTop: 16,
-    border: "1px solid #e4e7ec",
-    borderRadius: 14,
-    padding: 16,
-    background: "#fff",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
-  },
-  header: {
-    fontSize: 16,
-    fontWeight: 800,
-    color: "#0a66c2",
-  },
-  subheader: {
-    marginTop: 4,
-    marginBottom: 10,
-    fontSize: 13,
-    color: "#64748b",
-  },
-  label: {
-    marginBottom: 6,
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#334155",
-  },
-  input: {
-    width: "100%",
-    minHeight: 90,
-    border: "1px solid #cbd5e1",
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontSize: 13,
-    resize: "vertical" as const,
-    outline: "none",
-    background: "#fff",
-  },
-  actions: {
-    marginTop: 10,
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap" as const,
-    marginBottom: 2,
-  },
-  actionButton: {
-    border: "1px solid #cbd5e1",
-    background: "#fff",
-    color: "#1f2937",
-    borderRadius: 999,
-    padding: "7px 11px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  actionButtonActive: {
-    border: "1px solid #0a66c2",
-    background: "#0a66c2",
-    color: "#fff",
-    borderRadius: 999,
-    padding: "7px 11px",
-    fontSize: 12,
-    fontWeight: 800,
-    cursor: "pointer",
-  },
-  outputCard: {
-    marginTop: 12,
-    border: "1px solid #dbeafe",
-    borderRadius: 10,
-    padding: "10px 11px",
-    background: "#eff6ff",
-  },
-  outputTitle: {
-    fontSize: 12,
-    fontWeight: 800,
-    color: "#1e3a8a",
-    marginBottom: 6,
-  },
-  outputText: {
-    margin: 0,
-    whiteSpace: "pre-wrap" as const,
-    wordBreak: "break-word" as const,
-    fontSize: 13,
-    lineHeight: 1.45,
-    color: "#1f2937",
-  },
-};

@@ -1,6 +1,5 @@
-"use client";
+﻿"use client";
 
-import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -310,26 +309,26 @@ export default function AppShell() {
 
   return (
     <AuthGate>
-      <div style={styles.page}>
-        <div style={styles.main}>
-          <div style={styles.topRow}>
-            <div style={styles.brand}>AtluriIn</div>
-            <div style={styles.topActions}>
+      <div className="min-h-screen bg-[var(--bg)]">
+        <div className="w-full max-w-[1120px] mx-auto px-[clamp(16px,2.8vw,40px)] pt-7 pb-10 flex flex-col gap-[26px]">
+          <div className="flex justify-between items-center gap-3 flex-wrap">
+            <div className="text-xl font-bold tracking-[0.2px]">AtluriIn</div>
+            <div className="flex gap-2 items-center">
               {authResolved && !displayName && (
                 <>
-                  <Link href="/login?next=/app" style={styles.topLink}>
+                  <Link href="/login?next=/app" className="no-underline text-[var(--text-muted)] py-[7px] px-[11px] rounded-lg text-xs font-medium">
                     Login
                   </Link>
-                  <Link href="/signup?next=/app" style={styles.topButton}>
+                  <Link href="/signup?next=/app" className="border-0 bg-[var(--surface-2)] text-[var(--text-primary)] rounded-md py-2 px-3 text-xs font-semibold cursor-pointer">
                     Sign Up
                   </Link>
                 </>
               )}
               {authResolved && Boolean(displayName) && (
                 <>
-                  <div style={styles.userPill}>{displayName}</div>
+                  <div className="rounded-full px-[11px] py-1.5 bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-medium">{displayName}</div>
                   <button
-                    style={styles.topButton}
+                    className="border-0 bg-[var(--surface-2)] text-[var(--text-primary)] rounded-md py-2 px-3 text-xs font-semibold cursor-pointer"
                     onClick={handleSignOut}
                     disabled={signingOut}
                   >
@@ -340,8 +339,8 @@ export default function AppShell() {
             </div>
           </div>
 
-          <div style={styles.modeBar}>
-            <div style={styles.modeButtons}>
+          <div className="pt-2 border-t border-[var(--border-subtle)]">
+            <div className="flex gap-2 flex-wrap relative">
               {headerPrimaryModeItems.map((item) => (
                 <button
                   key={item.id}
@@ -349,30 +348,30 @@ export default function AppShell() {
                     setMode(item.id);
                     setShowMoreTools(false);
                   }}
-                  style={mode === item.id ? styles.modeButtonActive : styles.modeButton}
+                  className={mode === item.id ? "border-0 bg-[var(--surface-2)] text-[var(--text-primary)] rounded-lg py-2 px-3 text-xs font-semibold cursor-pointer" : "border-0 bg-[var(--surface-1)] text-[var(--text-muted)] rounded-lg py-2 px-3 text-xs font-medium cursor-pointer"}
                 >
                   {item.label}
                 </button>
               ))}
-              <div style={styles.moreWrap} ref={moreMenuRef}>
+              <div className="relative" ref={moreMenuRef}>
                 <button
-                  style={
+                  className={
                     headerMoreModeItems.some((item) => item.id === mode)
-                      ? styles.modeButtonActive
-                      : styles.modeButton
+                      ? "border-0 bg-[var(--surface-2)] text-[var(--text-primary)] rounded-lg py-2 px-3 text-xs font-semibold cursor-pointer"
+                      : "border-0 bg-[var(--surface-1)] text-[var(--text-muted)] rounded-lg py-2 px-3 text-xs font-medium cursor-pointer"
                   }
                   onClick={() => setShowMoreTools((v) => !v)}
                 >
                   {headerMoreModeItems.some((item) => item.id === mode)
-                    ? `${headerMoreModeItems.find((item) => item.id === mode)?.label} ▾`
-                    : "More ▾"}
+                    ? `${headerMoreModeItems.find((item) => item.id === mode)?.label} â–¾`
+                    : "More â–¾"}
                 </button>
                 {showMoreTools && (
-                  <div style={styles.moreMenu}>
+                  <div className="absolute top-[calc(100%+8px)] left-0 min-w-[170px] bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-[10px] p-1.5 flex flex-col gap-1.5 z-20">
                     {headerMoreModeItems.map((item) => (
                       <button
                         key={item.id}
-                        style={mode === item.id ? styles.moreItemActive : styles.moreItem}
+                        className={mode === item.id ? "text-left border-0 bg-[var(--surface-2)] text-[var(--text-primary)] rounded-lg py-2 px-2.5 text-xs font-semibold cursor-pointer" : "text-left border-0 bg-[var(--surface-1)] text-[var(--text-muted)] rounded-lg py-2 px-2.5 text-xs font-medium cursor-pointer"}
                         onClick={() => {
                           setMode(item.id);
                           setShowMoreTools(false);
@@ -382,7 +381,7 @@ export default function AppShell() {
                       </button>
                     ))}
                     <button
-                      style={styles.moreItem}
+                      className="text-left border-0 bg-[var(--surface-1)] text-[var(--text-muted)] rounded-lg py-2 px-2.5 text-xs font-medium cursor-pointer"
                       onClick={() => {
                         setShowMoreTools(false);
                         router.push("/demo");
@@ -397,14 +396,14 @@ export default function AppShell() {
           </div>
 
           {showDecisionHome && (
-            <section style={styles.hero}>
-              <div style={styles.heroLeft}>
-                <div style={styles.heroKicker}>{trackCopy[strategyTrack].label}</div>
-                <h1 style={styles.heroTitle}>One screen. One decision.</h1>
-                <p style={styles.heroSub}>{trackCopy[strategyTrack].sub}</p>
-                <div style={styles.heroPrimaryRow}>
+            <section className="grid grid-cols-[minmax(0,7fr)_minmax(180px,3fr)] gap-[18px] pt-9 pb-3.5">
+              <div className="flex flex-col gap-3">
+                <div className="text-xs uppercase text-[var(--text-muted)] tracking-[0.08em]">{trackCopy[strategyTrack].label}</div>
+                <h1 className="m-0 text-[clamp(34px,6vw,62px)] leading-[1.02] tracking-[-1px] font-bold">One screen. One decision.</h1>
+                <p className="m-0 text-[13px] text-[var(--text-muted)]">{trackCopy[strategyTrack].sub}</p>
+                <div className="mt-0.5 flex">
                   <button
-                    style={styles.actionPrimary}
+                    className="border-0 bg-[var(--accent)] text-[var(--bg)] rounded-md min-h-[44px] py-2.5 px-5 text-sm font-semibold cursor-pointer"
                     onClick={() => {
                       setMode("interview");
                       setInterviewAutoStartNonce((v) => v + 1);
@@ -413,11 +412,11 @@ export default function AppShell() {
                     Start Pressure Lab
                   </button>
                 </div>
-                <div style={styles.heroUtilityRow}>
+                <div className="mt-0.5 flex gap-2.5 flex-wrap">
                   {heroUtilityActions.map((item) => (
                     <button
                       key={item.mode}
-                      style={styles.actionSurface}
+                      className="border-0 bg-transparent text-[var(--text-muted)] rounded py-1.5 px-0.5 text-left cursor-pointer text-xs"
                       onClick={() => setMode(item.mode)}
                     >
                       {item.label}
@@ -425,9 +424,9 @@ export default function AppShell() {
                   ))}
                 </div>
               </div>
-              <aside style={styles.heroRightRail}>
+              <aside className="border-l border-[var(--border-subtle)] pl-3.5 flex flex-col gap-2 self-center">
                 {heroSignals.map((item) => (
-                  <span key={item} style={styles.signal}>
+                  <span key={item} className="text-[11px] text-[var(--text-muted)] uppercase tracking-[0.04em] opacity-[0.82]">
                     {item}
                   </span>
                 ))}
@@ -436,9 +435,9 @@ export default function AppShell() {
           )}
 
           {(mode === "chat" || mode === "interview" || mode === "coding") && (
-            <section style={styles.modeStrip}>
-              <div style={styles.modeStripTitle}>Company Context</div>
-              <div style={styles.modeChips}>
+            <section className="border-t border-[var(--border-subtle)] pt-3.5 flex flex-col gap-2.5">
+              <div className="text-[11px] uppercase text-[var(--text-muted)] tracking-[0.08em] font-semibold">Company Context</div>
+              <div className="flex gap-2 flex-wrap">
                 {companyModes
                   .filter((item) => ["general", "amazon", "google", "meta"].includes(String(item.id).toLowerCase()))
                   .map((item) => (
@@ -446,14 +445,14 @@ export default function AppShell() {
                       key={item.id}
                       onClick={() => selectCompanyMode(item.id)}
                       disabled={modeSaving}
-                      style={companyMode === item.id ? styles.modeChipActive : styles.modeChip}
+                      className={companyMode === item.id ? "border-0 rounded-full py-1.5 px-[11px] bg-[var(--surface-2)] text-[var(--text-primary)] text-xs font-semibold cursor-pointer" : "border-0 rounded-full py-1.5 px-[11px] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-medium cursor-pointer opacity-[0.82]"}
                     >
                       {item.label}
                     </button>
                   ))}
               </div>
-              <div style={styles.modeFocus}>Focus: {modeFocusText}</div>
-              <div style={styles.trackRow}>
+              <div className="text-[13px] text-[var(--text-muted)]">Focus: {modeFocusText}</div>
+              <div className="flex gap-2 flex-wrap">
                 {([
                   { id: "launch", label: "Senior SWE" },
                   { id: "depth", label: "PM L6" },
@@ -470,7 +469,7 @@ export default function AppShell() {
                       selectStrategyTrack(track.id);
                     }}
                     disabled={track.id === "stealth" && stealthDownloading}
-                    style={strategyTrack === track.id ? styles.trackButtonActive : styles.trackButton}
+                    className={strategyTrack === track.id ? "border-0 rounded-full py-1.5 px-[11px] bg-[var(--surface-2)] text-[var(--text-primary)] text-xs font-semibold cursor-pointer" : "border-0 rounded-full py-1.5 px-[11px] bg-[var(--surface-1)] text-[var(--text-muted)] text-xs font-medium cursor-pointer"}
                   >
                     {track.label}
                   </button>
@@ -497,22 +496,22 @@ export default function AppShell() {
         </div>
 
         {showStealthModal && (
-          <div style={styles.stealthModalBackdrop} onClick={() => setShowStealthModal(false)}>
-            <div style={styles.stealthModalCard} onClick={(event) => event.stopPropagation()}>
-              <div style={styles.stealthModalTitle}>Install Stealth Mode locally?</div>
-              <p style={styles.stealthModalText}>
+          <div className="fixed inset-0 bg-[color-mix(in_srgb,var(--bg)_58%,transparent)] flex items-center justify-center z-[80] p-4" onClick={() => setShowStealthModal(false)}>
+            <div className="w-full max-w-[420px] rounded-xl bg-[var(--surface-2)] border border-[var(--border-subtle)] p-[18px] flex flex-col gap-3" onClick={(event) => event.stopPropagation()}>
+              <div className="text-base font-bold text-[var(--text-primary)]">Install Stealth Mode locally?</div>
+              <p className="m-0 text-[13px] text-[var(--text-muted)] leading-[1.5]">
                 This will download the AtluriIn Desktop installer (.exe).
               </p>
-              <div style={styles.stealthModalActions}>
+              <div className="flex justify-end gap-2">
                 <button
-                  style={styles.stealthModalCancel}
+                  className="border-0 rounded-md py-2.5 px-3.5 bg-[var(--surface-1)] text-[var(--text-muted)] text-xs cursor-pointer"
                   onClick={() => setShowStealthModal(false)}
                   disabled={stealthDownloading}
                 >
                   Not now
                 </button>
                 <button
-                  style={styles.stealthModalConfirm}
+                  className="border-0 rounded-md py-2.5 px-3.5 bg-[var(--accent)] text-[var(--bg)] text-xs font-semibold cursor-pointer"
                   onClick={() => {
                     setShowStealthModal(false);
                     void downloadStealthInstaller();
@@ -532,330 +531,3 @@ export default function AppShell() {
   );
 }
 
-const styles: Record<string, CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    background: "var(--bg)",
-  },
-  main: {
-    width: "100%",
-    maxWidth: 1120,
-    margin: "0 auto",
-    padding: "28px clamp(16px, 2.8vw, 40px) 40px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 26,
-  },
-  topRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  brand: {
-    fontSize: 20,
-    fontWeight: 700,
-    letterSpacing: 0.2,
-  },
-  topActions: {
-    display: "flex",
-    gap: 8,
-    alignItems: "center",
-  },
-  userPill: {
-    borderRadius: 999,
-    padding: "6px 11px",
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    fontSize: 12,
-    fontWeight: 500,
-  },
-  topLink: {
-    textDecoration: "none",
-    color: "var(--text-muted)",
-    padding: "7px 11px",
-    borderRadius: 8,
-    fontSize: 12,
-    fontWeight: 500,
-  },
-  topButton: {
-    border: 0,
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    borderRadius: 6,
-    padding: "8px 12px",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  modeBar: {
-    paddingTop: 8,
-    borderTop: "1px solid var(--border-subtle)",
-  },
-  modeButtons: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-    position: "relative",
-  },
-  modeButton: {
-    border: 0,
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    borderRadius: 8,
-    padding: "8px 12px",
-    fontSize: 12,
-    fontWeight: 500,
-    cursor: "pointer",
-  },
-  modeButtonActive: {
-    border: 0,
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    borderRadius: 8,
-    padding: "8px 12px",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  moreWrap: {
-    position: "relative",
-  },
-  moreMenu: {
-    position: "absolute",
-    top: "calc(100% + 8px)",
-    left: 0,
-    minWidth: 170,
-    background: "var(--surface-2)",
-    border: "1px solid var(--border-subtle)",
-    borderRadius: 10,
-    padding: 6,
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-    zIndex: 20,
-  },
-  moreItem: {
-    textAlign: "left",
-    border: 0,
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    borderRadius: 8,
-    padding: "8px 10px",
-    fontSize: 12,
-    fontWeight: 500,
-    cursor: "pointer",
-  },
-  moreItemActive: {
-    textAlign: "left",
-    border: 0,
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    borderRadius: 8,
-    padding: "8px 10px",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  hero: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 7fr) minmax(180px, 3fr)",
-    gap: 18,
-    padding: "36px 0 14px",
-  },
-  heroLeft: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  heroKicker: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    color: "var(--text-muted)",
-    letterSpacing: "0.08em",
-  },
-  heroTitle: {
-    margin: 0,
-    fontSize: "clamp(34px, 6vw, 62px)",
-    lineHeight: 1.02,
-    letterSpacing: -1,
-    fontWeight: 700,
-  },
-  heroSub: {
-    margin: 0,
-    fontSize: 13,
-    color: "var(--text-muted)",
-  },
-  heroPrimaryRow: {
-    marginTop: 2,
-    display: "flex",
-  },
-  heroUtilityRow: {
-    marginTop: 2,
-    display: "flex",
-    gap: 10,
-    flexWrap: "wrap",
-  },
-  heroRightRail: {
-    borderLeft: "1px solid var(--border-subtle)",
-    paddingLeft: 14,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    alignSelf: "center",
-  },
-  signal: {
-    fontSize: 11,
-    color: "var(--text-muted)",
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-    opacity: 0.82,
-  },
-  actionPrimary: {
-    border: 0,
-    background: "var(--accent)",
-    color: "var(--bg)",
-    borderRadius: 6,
-    minHeight: 44,
-    padding: "10px 20px",
-    fontSize: 14,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  actionSurface: {
-    border: 0,
-    background: "transparent",
-    color: "var(--text-muted)",
-    borderRadius: 4,
-    padding: "6px 2px",
-    textAlign: "left",
-    cursor: "pointer",
-    fontSize: 12,
-  },
-  modeStrip: {
-    borderTop: "1px solid var(--border-subtle)",
-    paddingTop: 14,
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  modeStripTitle: {
-    fontSize: 11,
-    textTransform: "uppercase",
-    color: "var(--text-muted)",
-    letterSpacing: "0.08em",
-    fontWeight: 600,
-  },
-  modeChips: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  modeChip: {
-    border: 0,
-    borderRadius: 999,
-    padding: "6px 11px",
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    fontSize: 12,
-    fontWeight: 500,
-    cursor: "pointer",
-    opacity: 0.82,
-  },
-  modeChipActive: {
-    border: 0,
-    borderRadius: 999,
-    padding: "6px 11px",
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  modeFocus: {
-    fontSize: 13,
-    color: "var(--text-muted)",
-  },
-  trackRow: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  trackButton: {
-    border: 0,
-    borderRadius: 999,
-    padding: "6px 11px",
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    fontSize: 12,
-    fontWeight: 500,
-    cursor: "pointer",
-  },
-  trackButtonActive: {
-    border: 0,
-    borderRadius: 999,
-    padding: "6px 11px",
-    background: "var(--surface-2)",
-    color: "var(--text-primary)",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  stealthModalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    background: "color-mix(in srgb, var(--bg) 58%, transparent)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 80,
-    padding: 16,
-  },
-  stealthModalCard: {
-    width: "100%",
-    maxWidth: 420,
-    borderRadius: 12,
-    background: "var(--surface-2)",
-    border: "1px solid var(--border-subtle)",
-    padding: 18,
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  stealthModalTitle: {
-    fontSize: 16,
-    fontWeight: 700,
-    color: "var(--text-primary)",
-  },
-  stealthModalText: {
-    margin: 0,
-    fontSize: 13,
-    color: "var(--text-muted)",
-    lineHeight: 1.5,
-  },
-  stealthModalActions: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: 8,
-  },
-  stealthModalCancel: {
-    border: 0,
-    borderRadius: 6,
-    padding: "10px 14px",
-    background: "var(--surface-1)",
-    color: "var(--text-muted)",
-    fontSize: 12,
-    cursor: "pointer",
-  },
-  stealthModalConfirm: {
-    border: 0,
-    borderRadius: 6,
-    padding: "10px 14px",
-    background: "var(--accent)",
-    color: "var(--bg)",
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-};

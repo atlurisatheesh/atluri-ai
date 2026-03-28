@@ -40,6 +40,17 @@ from app.turn_lifecycle import TurnLifecycle, TurnState
 from app.services.openai_service import get_ai_reply, stream_answer_live
 from app.analytics.session_analytics_builder import build_session_analytics
 from app.analytics.session_analytics_store import save_session_analytics
+from app.interview_intelligence.question_classifier import classify_question
+from app.interview_intelligence.followup_predictor import predict_followups, predictions_to_dict
+from app.interview_intelligence.key_phrase_extractor import extract_key_phrase
+from app.interview_intelligence.speech_metrics import SpeechMetricsEngine, snapshot_to_coaching_chips
+from app.interview_intelligence.recovery_engine import RecoveryEngine, recovery_to_dict
+from app.services.session_snapshot import get_snapshot_store, SessionSnapshot
+from app.services.silence_coaching import SilenceCoachingEngine
+from app.services.response_accelerator import get_response_accelerator
+from app.personalization.profile_store import get_profile_store
+from app.personalization.style_injector import get_style_injector
+from app.learning import get_learning_engine
 from app.system_metrics import (
     decrement_metric,
     increment_metric,
@@ -823,6 +834,25 @@ async def _voice_ws_inner(websocket: WebSocket):
     alignment_engine = dependency_provider.create_alignment_engine()
     controller.ai_engine = are
 
+    # ── Interview Intelligence Engines ──
+    speech_metrics_engine = SpeechMetricsEngine()
+    recovery_engine = RecoveryEngine()
+    silence_coach = SilenceCoachingEngine()
+    last_classification = None
+
+    # ── Voice Personalization ──
+    voice_profile = None
+    voice_signature = ""
+    try:
+        _profile_store = get_profile_store()
+        voice_profile = await _profile_store.load(session_id)
+        if voice_profile and voice_profile.voice_signature:
+            voice_signature = voice_profile.voice_signature
+            logger.info("VOICE_PROFILE loaded | user=%s maturity=%s", session_id, voice_profile.maturity)
+    except Exception as vp_exc:
+        logger.debug("Voice profile load skipped: %s", vp_exc)
+
+
     # ================= DEEPGRAM =================
     dg = None
     if not QA_MODE:
@@ -1053,6 +1083,37 @@ async def _voice_ws_inner(websocket: WebSocket):
                 await _safe_send(thinking_payload)
             await _broadcast_room(room_id, thinking_payload, exclude=websocket)
             
+            # HOT CACHE CHECK: Serve pre-computed answer for common questions (~100ms)
+            accelerator = get_response_accelerator()
+            cached_answer = await accelerator.check_cache(smoothed_question)
+            if cached_answer:
+                logger.info("HOT_CACHE_SERVED | question=%s", question_text[:50])
+                built_answer = cached_answer.answer_template
+                # Stream the cached answer in chunks for natural feel
+                words = built_answer.split(" ")
+                chunk_size = 3  # 3 words per chunk
+                chunk_index = 1
+                for i in range(0, len(words), chunk_size):
+                    chunk_text = " ".join(words[i:i + chunk_size]) + " "
+                    chunk_payload = {
+                        "type": "answer_suggestion_chunk",
+                        "session_id": session_id,
+                        "question": question_text,
+                        "chunk": chunk_text,
+                        "index": chunk_index,
+                        "room_id": room_id,
+                        "cached": True,
+                    }
+                    chunk_index += 1
+                    if websocket.client_state == WebSocketState.CONNECTED:
+                        await _safe_send(chunk_payload)
+                    await _broadcast_room(room_id, chunk_payload, exclude=websocket)
+                    await asyncio.sleep(0.02)  # Slight delay for natural streaming feel
+
+                await emit_answer_done(question_text, built_answer, "cached")
+                await emit_suggestion_payload(built_answer, "cached")
+                return
+
             # TRUE STREAMING: Send chunks as they arrive from OpenAI
             # This gives ~200-500ms time-to-first-word (like Locked In AI, Paraqeet)
             built_answer = ""
@@ -1067,6 +1128,14 @@ async def _voice_ws_inner(websocket: WebSocket):
                 resume_loaded=resume_loaded,
                 jd_loaded=jd_loaded,
                 answer_language=answer_language,
+                company=getattr(se, "_session_company", ""),
+                position=getattr(se, "_session_position", ""),
+                industry=getattr(se, "_session_industry", ""),
+                experience=getattr(se, "_session_experience", ""),
+                objective=getattr(se, "_session_objective", ""),
+                company_research=getattr(se, "_session_companyResearch", ""),
+                coach_style=getattr(se, "_session_coachStyle", ""),
+                voice_signature=voice_signature,
             ):
                 if first_chunk_at is None:
                     first_chunk_at = time.perf_counter()
@@ -1115,6 +1184,38 @@ async def _voice_ws_inner(websocket: WebSocket):
 
             await emit_answer_done(question_text, suggestion_text, "completed")
             await emit_suggestion_payload(suggestion_text, "completed")
+
+            # ── Interview Intelligence: post-answer enrichment (async, non-blocking) ──
+            try:
+                q_type = last_classification.question_type.value if last_classification else "general"
+                fw = last_classification.framework.value if last_classification else "STAR"
+                kp_result = await extract_key_phrase(suggestion_text, q_type, fw)
+                if kp_result and kp_result.get("key_phrase"):
+                    await _safe_send({
+                        "type": "key_phrase",
+                        "session_id": session_id,
+                        "key_phrase": kp_result["key_phrase"],
+                        "follow_with": kp_result.get("follow_with", ""),
+                    })
+            except Exception as exc:
+                logger.debug("Key phrase extraction failed (non-fatal): %s", exc)
+
+            try:
+                current_role = str(getattr(se, "role", role) or role or "general")
+                followups = await predict_followups(
+                    current_question=question_text,
+                    answer_summary=suggestion_text[:500],
+                    role=current_role,
+                )
+                if followups and followups.predictions:
+                    await _safe_send({
+                        "type": "followup_predictions",
+                        "session_id": session_id,
+                        "predictions": predictions_to_dict(followups),
+                    })
+            except Exception as exc:
+                logger.debug("Follow-up prediction failed (non-fatal): %s", exc)
+
         except asyncio.TimeoutError:
             logger.warning("Answer suggestion generation timed out")
             _log_event(
@@ -1150,7 +1251,7 @@ async def _voice_ws_inner(websocket: WebSocket):
             observe_stream_duration(time.time() - stream_started_at)
 
     async def start_answer_suggestion(question_text: str):
-        nonlocal active_suggestion_task, active_suggestion_question_key
+        nonlocal active_suggestion_task, active_suggestion_question_key, last_classification
         question_key = question_text.lower()[:50].strip()
         
         # CRITICAL: Only cancel if this is a DIFFERENT question
@@ -1161,7 +1262,31 @@ async def _voice_ws_inner(websocket: WebSocket):
                 return
             # Different question - cancel the old one
             await cancel_active_suggestion(reason="superseded")
-        
+
+        # ── Interview Intelligence: classify question (<1ms, no LLM) ──
+        try:
+            last_classification = classify_question(question_text)
+            from app.interview_intelligence.question_classifier import get_framework_instructions
+            # Update silence coach with new question context
+            silence_coach.on_new_question(
+                question_text,
+                question_type=last_classification.question_type.value if last_classification else "general",
+            )
+            await _safe_send({
+                "type": "question_intelligence",
+                "session_id": session_id,
+                "question_type": last_classification.question_type.value,
+                "difficulty": last_classification.difficulty.value,
+                "framework": last_classification.framework.value,
+                "framework_instructions": get_framework_instructions(last_classification.framework),
+                "max_answer_seconds": last_classification.max_answer_seconds,
+                "coaching_note": last_classification.coaching_note,
+            })
+            # Start speech metrics tracking for this answer
+            speech_metrics_engine.start_answer(last_classification.question_type.value)
+        except Exception as exc:
+            logger.debug("Question classification failed (non-fatal): %s", exc)
+
         active_suggestion_question_key = question_key
         active_suggestion_task = asyncio.create_task(emit_answer_suggestion(question_text))
 
@@ -1219,6 +1344,17 @@ async def _voice_ws_inner(websocket: WebSocket):
                             se.set_role_context(role_builder.from_ui_role(selected_role))
                             se.set_assist_profile(_assist_profile_for_role(selected_role))
                             logger.info("Updated role context from payload: %s", se.role)
+
+                        # Extract extended session context from desktop setup wizard
+                        for ctx_key in ("company", "position", "objective", "industry", "experience", "companyResearch", "imageContext", "model", "coachStyle", "mode"):
+                            ctx_val = payload.get(ctx_key)
+                            if ctx_val:
+                                setattr(se, f"_session_{ctx_key}", str(ctx_val).strip())
+                        if payload.get("company") or payload.get("position"):
+                            logger.info("Session context updated: company=%s position=%s industry=%s",
+                                        getattr(se, "_session_company", ""),
+                                        getattr(se, "_session_position", ""),
+                                        getattr(se, "_session_industry", ""))
 
                         if payload.get("type") == "stop":
                             await request_stop("stop command")
@@ -1628,6 +1764,7 @@ async def _voice_ws_inner(websocket: WebSocket):
                         ts=now,
                     )
                     last_transcript_activity_ts = now
+                    silence_coach.on_speech_activity()
                     # Track VAD signals for partials too (speech_final can be True for partials)
                     last_transcript_was_final = False
                     last_transcript_speech_final = speech_final
@@ -1647,6 +1784,23 @@ async def _voice_ws_inner(websocket: WebSocket):
                         speech_final=speech_final,
                         word_count=dg_word_count,
                     )
+
+                    # ── Speech metrics: update on each partial ──
+                    try:
+                        combined_text = (transcript_buffer + " " + text).strip() if transcript_buffer else text
+                        snapshot = speech_metrics_engine.update_transcript(combined_text)
+                        if snapshot and (snapshot.pace_alert or snapshot.length_alert):
+                            chips = snapshot_to_coaching_chips(snapshot)
+                            if chips:
+                                await _safe_send({
+                                    "type": "speech_coaching",
+                                    "session_id": session_id,
+                                    "chips": chips,
+                                    "wpm": snapshot.wpm,
+                                    "elapsed_seconds": snapshot.elapsed_seconds,
+                                })
+                    except Exception:
+                        pass
                     
                     # Feed adaptive VAD engine for threshold learning
                     if ADAPTIVE_VAD_ENABLED:
@@ -1990,16 +2144,49 @@ async def _voice_ws_inner(websocket: WebSocket):
                     "type": "stt_warning",
                     "session_id": session_id,
                     "code": "deepgram_stream_error",
-                    "message": "Deepgram stream interrupted. Reconnecting may be required; session kept alive.",
+                    "message": "Speech recognition reconnecting — session stays active.",
                 })
             except Exception:
                 pass
+
+            # Auto-reconnect Deepgram instead of dying
             try:
                 if dg:
                     await dg.close()
             except Exception:
                 pass
-            dg = None
+
+            dg_reconnect_ok = False
+            for attempt in range(1, 4):  # 3 retry attempts with backoff
+                await asyncio.sleep(min(attempt * 1.5, 5.0))
+                if stop_event.is_set():
+                    break
+                try:
+                    dg_language = "english" if answer_language == "english" else "multi"
+                    dg = dependency_provider.create_deepgram_service(language_mode=dg_language)
+                    await asyncio.wait_for(dg.connect(), timeout=WS_DEEPGRAM_CONNECT_TIMEOUT_SEC * 2)
+                    if dg and dg.is_active():
+                        dg.send_audio(b"\x00" * 640)
+                        dg_reconnect_ok = True
+                        logger.info("Deepgram reconnected on attempt %d", attempt)
+                        await _safe_send({
+                            "type": "stt_reconnected",
+                            "session_id": session_id,
+                            "message": "Speech recognition restored.",
+                        })
+                        break
+                except Exception as reconnect_exc:
+                    logger.warning("Deepgram reconnect attempt %d failed: %s", attempt, reconnect_exc)
+
+            if not dg_reconnect_ok:
+                logger.error("Deepgram reconnect exhausted — STT unavailable for session")
+                dg = None
+                await _safe_send({
+                    "type": "stt_warning",
+                    "session_id": session_id,
+                    "code": "deepgram_unavailable",
+                    "message": "Speech recognition unavailable. Use manual transcript input.",
+                })
             return
 
     async def _compute_decision(transcript_text: str):
@@ -2220,6 +2407,12 @@ async def _voice_ws_inner(websocket: WebSocket):
                     final_summary=final_summary if isinstance(final_summary, dict) else {},
                 )
                 await asyncio.to_thread(save_session_analytics, session_id=session_id, payload=analytics_payload)
+                # Record session in cross-session learning engine
+                try:
+                    _learning = get_learning_engine()
+                    await _learning.record_session(session_id, analytics_payload)
+                except Exception as learn_exc:
+                    logger.debug("Learning engine record skipped: %s", learn_exc)
             except Exception as analytics_exc:
                 logger.warning("Failed to build WS session analytics: %s", analytics_exc)
 
@@ -2300,6 +2493,32 @@ async def _voice_ws_inner(websocket: WebSocket):
             current_turn.turn_id,
             reason,
         )
+
+        # ── Speech metrics: end answer tracking ──
+        try:
+            speech_metrics_engine.end_answer()
+        except Exception:
+            pass
+
+        # ── Recovery engine: check if candidate struggled ──
+        try:
+            silence_duration = time.time() - last_transcript_activity_ts
+            recovery_packet = recovery_engine.check_all(
+                question_text=str(getattr(se, "current_turn", {}).get("question", "") if isinstance(getattr(se, "current_turn", None), dict) else ""),
+                answer_text=final_text,
+                answer_duration=time.time() - turn_start_ts,
+            )
+            if recovery_packet:
+                await _safe_send({
+                    "type": "recovery_assist",
+                    "session_id": session_id,
+                    "trigger": recovery_packet.trigger,
+                    "bridge_phrase": recovery_packet.bridge_phrase,
+                    "redirect": recovery_packet.redirect_suggestion,
+                    "buy_time": recovery_packet.buy_time_phrase,
+                })
+        except Exception:
+            pass
 
         allowed = await current_turn.try_finalize(reason)
         if not allowed:
@@ -2526,6 +2745,25 @@ async def _voice_ws_inner(websocket: WebSocket):
                     pending_partial_question_ts = 0.0
             
             # ============ EXISTING SILENCE WATCHER LOGIC ============
+            # ============ SILENCE COACHING (proactive prompts) ============
+            silence_prompt = silence_coach.check_silence()
+            if silence_prompt and websocket.client_state == WebSocketState.CONNECTED:
+                coaching_payload = {
+                    "type": "silence_coaching",
+                    "session_id": session_id,
+                    "level": silence_prompt.level,
+                    "message": silence_prompt.message,
+                    "seconds_silent": round(silence_prompt.seconds_silent, 1),
+                }
+                if silence_prompt.suggested_opener:
+                    coaching_payload["suggested_opener"] = silence_prompt.suggested_opener
+                if silence_prompt.framework_hint:
+                    coaching_payload["framework_hint"] = silence_prompt.framework_hint
+                await _safe_send(coaching_payload)
+                await _broadcast_room(room_id, coaching_payload, exclude=websocket)
+                logger.info("SILENCE_COACHING | level=%d silence=%.1fs",
+                           silence_prompt.level, silence_prompt.seconds_silent)
+
             if waiting_for_next_turn or turn_closed:
                 continue
 
@@ -2661,12 +2899,91 @@ async def _voice_ws_inner(websocket: WebSocket):
             })
 
     # ================= RUN TASKS =================
+    # ================= SESSION SNAPSHOT (Reconnection Support) =================
+    snapshot_store = get_snapshot_store()
+
+    async def save_session_snapshot():
+        """Persist session state for reconnection."""
+        try:
+            current_question_text = ""
+            try:
+                if isinstance(se.current_turn, dict):
+                    current_question_text = str(se.current_turn.get("question") or "")
+            except Exception:
+                pass
+
+            snapshot = SessionSnapshot(
+                session_id=session_id,
+                room_id=room_id,
+                transcript_buffer=transcript_buffer,
+                current_question=current_question_text,
+                turn_count=completed_turns,
+                assist_intensity=assist_intensity,
+                role=str(getattr(se, "role", role) or role),
+                participant=participant,
+                last_answer_suggestion="",
+                coaching_emitted_turn_ids=list(coaching_emitted_turn_ids),
+                active_question=current_question_text,
+                is_streaming=bool(active_suggestion_task and not active_suggestion_task.done()),
+                answer_language=answer_language,
+                company=str(getattr(se, "_session_company", "")),
+                position=str(getattr(se, "_session_position", "")),
+            )
+            await snapshot_store.save(snapshot)
+        except Exception as snap_exc:
+            logger.debug("Session snapshot save failed (non-fatal): %s", snap_exc)
+
+    async def periodic_snapshot():
+        """Save snapshot every 5 seconds for reconnection resilience."""
+        while not stop_event.is_set():
+            await asyncio.sleep(5.0)
+            await save_session_snapshot()
+
+    # Check for reconnection — restore state if snapshot exists
+    reconnect_session_id = str(websocket.query_params.get("reconnect_session") or "").strip()
+    if reconnect_session_id:
+        existing_snapshot = await snapshot_store.get(reconnect_session_id)
+        if existing_snapshot:
+            # Restore state from snapshot
+            transcript_buffer = existing_snapshot.transcript_buffer
+            completed_turns = existing_snapshot.turn_count
+            coaching_emitted_turn_ids = set(existing_snapshot.coaching_emitted_turn_ids)
+            logger.info("SESSION_RECONNECTED | old_session=%s turns_restored=%d",
+                       reconnect_session_id, existing_snapshot.turn_count)
+
+            # Notify client of restored state
+            await _safe_send({
+                "type": "session_restored",
+                "session_id": session_id,
+                "previous_session_id": reconnect_session_id,
+                "restored_state": {
+                    "transcript_buffer": existing_snapshot.transcript_buffer[:500],
+                    "current_question": existing_snapshot.current_question,
+                    "turn_count": existing_snapshot.turn_count,
+                    "active_question": existing_snapshot.active_question,
+                },
+            })
+
+            # If there was an active question, restart answer generation
+            if existing_snapshot.active_question and not _is_waiting_question(existing_snapshot.active_question):
+                try:
+                    se.start_turn(existing_snapshot.active_question)
+                    current_turn = TurnLifecycle()
+                    if isinstance(se.current_turn, dict):
+                        se.current_turn["turn_id"] = current_turn.turn_id
+                except Exception:
+                    pass
+                await start_answer_suggestion(existing_snapshot.active_question)
+
+            await snapshot_store.remove(reconnect_session_id)
+
     controller.create_task(receive_audio())
     controller.create_task(send_transcripts())
     if participant != "interviewer":
         controller.create_task(silence_watcher())
     controller.create_task(deepgram_keepalive())
     controller.create_task(websocket_heartbeat())
+    controller.create_task(periodic_snapshot())
 
     try:
         _log_event("session_started", participant=participant)
@@ -2674,6 +2991,22 @@ async def _voice_ws_inner(websocket: WebSocket):
         await obs_dashboard.record_session_start(session_id)
         await stop_event.wait()
     finally:
+        # Save final snapshot for reconnection window
+        await save_session_snapshot()
+        
+        # Update voice profile with this session's answers
+        try:
+            if transcript_buffer:
+                user_answers = [
+                    t.text for t in transcript_buffer
+                    if getattr(t, "speaker", "") != "interviewer" and len(t.text) > 20
+                ]
+                if user_answers:
+                    _ps = get_profile_store()
+                    await _ps.update_from_session(session_id, new_answers=user_answers)
+        except Exception as vp_save_exc:
+            logger.debug("Voice profile update skipped: %s", vp_save_exc)
+        
         # Record session end in observability dashboard
         await obs_dashboard.record_session_end(session_id)
         await cancel_active_suggestion(reason="session_stopped")

@@ -11,6 +11,9 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import IntelligencePanel from './IntelligencePanel';
+import PhantomOverlay from '@/components/stealth/PhantomOverlay';
+import { usePhantomOverlay } from '@/lib/hooks/usePhantomOverlay';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -52,9 +55,62 @@ export function InterviewPage({ sessionId, onEnd }: InterviewPageProps) {
   const [micLevel, setMicLevel] = useState(0);
   const [isThinking, setIsThinking] = useState(false);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  
+  // Intelligence state (populated via WebSocket messages)
+  const [questionIntelligence, setQuestionIntelligence] = useState<any>(null);
+  const [keyPhrase, setKeyPhrase] = useState<any>(null);
+  const [followUpPredictions, setFollowUpPredictions] = useState<any[]>([]);
+  const [speechCoaching, setSpeechCoaching] = useState<any>(null);
+  const [recoveryAssist, setRecoveryAssist] = useState<any>(null);
+
+  // ── PhantomVeil Stealth Overlay ──
+  const phantom = usePhantomOverlay();
+  const [overlayVisible, setOverlayVisible] = useState(true);
+  const [micOn, setMicOn] = useState(true);
+
+  // Feed WebSocket messages to the overlay hook (called from your WS handler)
+  const handleWSForOverlay = useCallback((type: string, data: any) => {
+    phantom.handleWSMessage(type, data);
+    // Also update InterviewPage's own state for the main UI
+    if (type === 'partial_transcript' && data?.text) {
+      const entry: TranscriptEntry = {
+        id: `t-${Date.now()}`,
+        speaker: data.speaker || 'interviewer',
+        text: data.text,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isFinal: data.is_final ?? false,
+      };
+      setTranscript((prev) => [...prev, entry]);
+    }
+  }, [phantom]);
 
   return (
     <div className="h-screen w-screen bg-neutral-950 text-neutral-100 flex flex-col overflow-hidden select-none">
+
+      {/* ── PhantomVeil Overlay ── */}
+      <PhantomOverlay
+        visible={overlayVisible}
+        onClose={() => setOverlayVisible(false)}
+        onToggleVisibility={() => setOverlayVisible((v) => !v)}
+        transcript={phantom.transcript}
+        aiResponse={phantom.aiResponse}
+        coach={phantom.coach}
+        isListening={micOn}
+        onToggleMic={() => setMicOn((v) => !v)}
+        opacity={phantom.settings.opacity}
+        position={phantom.settings.position}
+        size={phantom.settings.size}
+        streamingText={phantom.streamingText}
+        isStreaming={phantom.isStreaming}
+        elapsedSeconds={phantom.elapsedSeconds}
+        offerProbability={phantom.offerProbability}
+        answerHistory={phantom.answerHistory}
+        historyIndex={phantom.historyIndex}
+        onNavigateHistory={phantom.navigateHistory}
+        stealthHealth={phantom.stealthHealth}
+        threatToast={phantom.threatToast}
+        onUpdateSettings={phantom.updateSettings}
+      />
       
       {/* ═══════════════════════════════════════════════════════════
           TOP BAR — Fixed, h-14, never moves
@@ -120,6 +176,15 @@ export function InterviewPage({ sessionId, onEnd }: InterviewPageProps) {
             current={currentSuggestion} 
             previous={previousSuggestions}
           />
+          
+          {/* Intelligence Overlay — Auto-dismissing chips */}
+          <IntelligencePanel
+            questionIntelligence={questionIntelligence}
+            keyPhrase={keyPhrase}
+            followUpPredictions={followUpPredictions}
+            speechCoaching={speechCoaching}
+            recoveryAssist={recoveryAssist}
+          />
         </section>
       </main>
 
@@ -174,8 +239,7 @@ function ThinkingIndicator({ isActive }: { isActive: boolean }) {
       {[0, 1, 2].map((i) => (
         <span 
           key={i}
-          className="w-1 h-1 rounded-full bg-neutral-500 animate-pulse"
-          style={{ animationDelay: `${i * 150}ms` }}
+          className={`w-1 h-1 rounded-full bg-neutral-500 animate-pulse ${i === 1 ? '[animation-delay:150ms]' : i === 2 ? '[animation-delay:300ms]' : ''}`}
         />
       ))}
     </div>
@@ -441,7 +505,7 @@ function MicLevelIndicator({ level }: { level: number }) {
       <div className="w-16 h-1.5 bg-neutral-800 rounded-full overflow-hidden">
         <div 
           className="h-full bg-emerald-500/60 transition-all duration-75 ease-out"
-          style={{ width: `${Math.min(100, Math.max(0, level))}%` }}
+          ref={(el) => { if (el) el.style.width = `${Math.min(100, Math.max(0, level))}%`; }}
         />
       </div>
     </div>

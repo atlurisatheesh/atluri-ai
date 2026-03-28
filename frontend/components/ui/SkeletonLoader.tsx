@@ -17,7 +17,7 @@ export default function SkeletonLoader({ className = "", lines = 3, circle = fal
         <div
           key={i}
           className="h-4 rounded-lg shimmer"
-          style={{ width: i === lines - 1 ? "60%" : `${85 + Math.random() * 15}%` }}
+          ref={(el) => { if (el) el.style.width = i === lines - 1 ? "60%" : `${85 + Math.random() * 15}%`; }}
         />
       ))}
     </div>
