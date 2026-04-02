@@ -1,11 +1,11 @@
 import "./globals.css";
 import ToastProvider from "../components/ToastProvider";
+import type { Viewport } from "next";
 
 export const metadata = {
   title: "InterviewGenius AI — The Most Advanced AI Interview Platform",
   description: "Real-time AI interview copilot with stealth overlay, 100+ resume templates, coding analysis, and adaptive coaching. Beat every interview.",
   manifest: "/manifest.json",
-  themeColor: "#00D4FF",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -14,12 +14,14 @@ export const metadata = {
   icons: {
     apple: "/icons/icon-192.png",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    viewportFit: "cover",
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#00D4FF",
 };
 
 export default function RootLayout({
