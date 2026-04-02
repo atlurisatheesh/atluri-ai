@@ -113,6 +113,9 @@ class InterviewSession(Base):
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    user = relationship("User", back_populates="sessions")
+    ai_responses = relationship("AIResponse", back_populates="session", lazy="selectin")
+
 
 # ── 10. ResumeAnalysis (ARIA) ────────────────────────────
 class ResumeAnalysis(Base):
@@ -150,9 +153,6 @@ class ResumeAnalysis(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
-
-    user = relationship("User", back_populates="sessions")
-    ai_responses = relationship("AIResponse", back_populates="session", lazy="selectin")
 
 
 # ── 3. AIResponse ────────────────────────────────────────
