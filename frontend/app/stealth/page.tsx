@@ -170,27 +170,12 @@ export default function StealthPage() {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  const handleDownload = useCallback(async () => {
-    if (downloading) return;
-    try {
-      setDownloading(true);
-      const response = await fetch("/api/desktop-installer");
-      if (!response.ok) throw new Error("unavailable");
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "PhantomVeil-Setup.exe";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch {
-      setShowDownloadModal(true);
-    } finally {
-      setDownloading(false);
-    }
-  }, [downloading]);
+  const handleDownload = useCallback(() => {
+    window.open(
+      "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/AtluriIn.Practice-0.1.0-Setup.exe",
+      "_blank",
+    );
+  }, []);
 
   const startDemo = useCallback(() => {
     setDemoMode(true);

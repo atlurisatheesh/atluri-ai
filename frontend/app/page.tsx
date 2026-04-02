@@ -40,30 +40,12 @@ export default function LandingPage() {
     }, durationMs);
   };
 
-  const downloadStealthInstaller = async () => {
-    if (stealthDownloading) return;
-    try {
-      setStealthDownloading(true);
-      const response = await fetch("/api/desktop-installer");
-      if (!response.ok) throw new Error(`installer_unavailable_${response.status}`);
-      const blob = await response.blob();
-      const disposition = response.headers.get("content-disposition") || "";
-      const filenameMatch = disposition.match(/filename="?([^\"]+)"?/i);
-      const filename = filenameMatch?.[1] || "AtluriIn-Practice-Setup.exe";
-      const objectUrl = window.URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = objectUrl;
-      anchor.download = filename;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      window.URL.revokeObjectURL(objectUrl);
-      showToast("Installer download started.", 2600);
-    } catch {
-      showToast("Installer unavailable. Build desktop with npm run dist:win.", 4200);
-    } finally {
-      setStealthDownloading(false);
-    }
+  const downloadStealthInstaller = () => {
+    window.open(
+      "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/AtluriIn.Practice-0.1.0-Setup.exe",
+      "_blank",
+    );
+    showToast("Installer download started.", 2600);
   };
 
   useEffect(() => {
