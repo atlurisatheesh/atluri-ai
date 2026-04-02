@@ -182,7 +182,7 @@ let overlayContentProtectionEnabled = OVERLAY_CONTENT_PROTECTION;
 let overlayStealthEnabled = false;
 let overlayOpacity = 1.0;
 
-let loopbackSession: { stop: () => Promise<void>; onMessage: (handler: (type: string, data: any) => void) => void; injectTranscript: (text: string) => void; _sendScreenshot: (base64: string) => void } | null = null;
+let loopbackSession: { stop: () => Promise<void>; onMessage: (handler: (type: string, data: any) => void) => void; injectTranscript: (text: string) => void; _sendScreenshot: (base64: string) => void; _sendScreenMonitor: (base64: string) => void } | null = null;
 
 // (Auto-capture is now question-triggered — see loopbackSession.onMessage handler)
 
