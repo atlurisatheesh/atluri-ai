@@ -99,8 +99,9 @@ async def oauth_redirect(provider: str, request: Request):
             f"Set {provider.upper()}_CLIENT_ID and {provider.upper()}_CLIENT_SECRET in .env",
         )
 
-    # Build callback URL
-    callback_url = str(request.base_url).rstrip("/") + f"/api/auth/oauth/{provider}/callback"
+    # Build callback URL — use FRONTEND_URL so OAuth flows through Vercel proxy
+    _public_base = os.getenv("BACKEND_PUBLIC_URL", "").rstrip("/") or FRONTEND_URL.rstrip("/")
+    callback_url = _public_base + f"/api/auth/oauth/{provider}/callback"
 
     # CSRF state token
     state = secrets.token_urlsafe(32)
@@ -157,7 +158,8 @@ async def oauth_callback(
         return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=no_code")
 
     cfg = _provider_cfg(provider)
-    callback_url = str(request.base_url).rstrip("/") + f"/api/auth/oauth/{provider}/callback"
+    _public_base = os.getenv("BACKEND_PUBLIC_URL", "").rstrip("/") or FRONTEND_URL.rstrip("/")
+    callback_url = _public_base + f"/api/auth/oauth/{provider}/callback"
 
     # ── Exchange code for access token ────────────────────────
     token_data = {

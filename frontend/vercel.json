@@ -16,8 +16,20 @@
   ],
   "rewrites": [
     {
-      "source": "/api/ws/:path*",
-      "destination": "${NEXT_PUBLIC_API_URL}/ws/:path*"
+      "source": "/api/:path*",
+      "destination": "https://atluriin-backend-production.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/ws/:path*",
+      "destination": "https://atluriin-backend-production.up.railway.app/ws/:path*"
+    },
+    {
+      "source": "/docs",
+      "destination": "https://atluriin-backend-production.up.railway.app/docs"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "https://atluriin-backend-production.up.railway.app/openapi.json"
     }
   ]
 }
