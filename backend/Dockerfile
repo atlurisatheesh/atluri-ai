@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install system deps (gcc for C extensions, weasyprint deps for PDF export)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc libffi-dev libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 \
+    gcc libffi-dev libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
     libcairo2 libgirepository1.0-dev gir1.2-pango-1.0 && \
     rm -rf /var/lib/apt/lists/*
 
