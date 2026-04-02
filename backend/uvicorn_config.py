@@ -27,7 +27,9 @@ _default_workers = min(max(2, multiprocessing.cpu_count()), 8)
 workers = int(os.getenv("WORKERS", str(_default_workers)))
 
 # ─── Bind ─────────────────────────────────────────────────────────────
-host = os.getenv("HOST", "0.0.0.0")
+# Railway injects HOST=[::]  — strip brackets so getaddrinfo resolves it.
+_raw_host = os.getenv("HOST", "0.0.0.0")
+host = _raw_host.strip("[]") if _raw_host.startswith("[") else _raw_host
 port = int(os.getenv("PORT", "9010"))
 bind = f"{host}:{port}"
 
