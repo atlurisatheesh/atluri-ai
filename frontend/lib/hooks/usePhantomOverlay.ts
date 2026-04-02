@@ -73,6 +73,8 @@ export interface PhantomOverlayState {
 
     // Data
     transcript: TranscriptLine[];
+    currentQuestion: string;
+    partialQuestion: string;
     currentResponse: AIResponseData | null;
     streamingText: string;
     isStreaming: boolean;
@@ -125,6 +127,8 @@ export function usePhantomOverlay() {
 
     // Data
     const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
+    const [currentQuestion, setCurrentQuestion] = useState<string>("");
+    const [partialQuestion, setPartialQuestion] = useState<string>("");
     const [currentResponse, setCurrentResponse] = useState<AIResponseData | null>(null);
     const [streamingText, setStreamingText] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
@@ -147,6 +151,11 @@ export function usePhantomOverlay() {
 
     // Offer probability
     const [offerProbability, setOfferProbability] = useState<number | null>(null);
+
+    // Screenshot analysis
+    const [screenshotAnalysis, setScreenshotAnalysis] = useState<string>("");
+    const [isAnalyzingScreenshot, setIsAnalyzingScreenshot] = useState(false);
+    const screenshotBufferRef = useRef("");
 
     // Refs for streaming
     const streamBufferRef = useRef("");
@@ -301,6 +310,15 @@ export function usePhantomOverlay() {
                     timestamp: data.timestamp || new Date().toLocaleTimeString(),
                     isQuestion: data.isQuestion || data.speaker === "interviewer",
                 };
+                // Track live interviewer question text
+                if (line.isQuestion || line.speaker === "interviewer") {
+                    if (msgType === "partial_transcript") {
+                        setPartialQuestion(line.text);
+                    } else {
+                        setCurrentQuestion(line.text);
+                        setPartialQuestion("");
+                    }
+                }
                 setTranscript((prev) => {
                     // Update last entry if same speaker partial, else append
                     if (msgType === "partial_transcript" && prev.length > 0 && prev[prev.length - 1].speaker === line.speaker) {
@@ -373,6 +391,31 @@ export function usePhantomOverlay() {
 
             case "deep_think":
                 setDeepThink(data.active ?? true);
+                break;
+
+            case "screenshot_analysis_start":
+                setIsAnalyzingScreenshot(true);
+                screenshotBufferRef.current = "";
+                setScreenshotAnalysis("");
+                break;
+
+            case "screenshot_analysis_chunk":
+                screenshotBufferRef.current += (data.chunk || data.text || "");
+                setScreenshotAnalysis(screenshotBufferRef.current);
+                break;
+
+            case "screenshot_analysis":
+                setScreenshotAnalysis(data.analysis || screenshotBufferRef.current);
+                setIsAnalyzingScreenshot(false);
+                screenshotBufferRef.current = "";
+                break;
+
+            case "screen_question_detected":
+                // Screen monitor detected a question from chat/shared screen
+                if (data.question) {
+                    setCurrentQuestion(data.question);
+                    setPartialQuestion("");
+                }
                 break;
         }
     }, [startStreaming, appendStreamChunk, finishStreaming, transcript]);
@@ -473,6 +516,8 @@ export function usePhantomOverlay() {
         elapsedSeconds,
         isListening,
         transcript,
+        currentQuestion,
+        partialQuestion,
         currentResponse,
         streamingText,
         isStreaming,
@@ -485,7 +530,8 @@ export function usePhantomOverlay() {
         offerProbability,
     }), [
         visible, collapsed, minimalMode, settings, sessionStartTime,
-        elapsedSeconds, isListening, transcript, currentResponse,
+        elapsedSeconds, isListening, transcript, currentQuestion,
+        partialQuestion, currentResponse,
         streamingText, isStreaming, coach, deepThink, answerHistory,
         historyIndex, stealthHealth, threatToast, offerProbability,
     ]);
@@ -500,6 +546,8 @@ export function usePhantomOverlay() {
         elapsedSeconds,
         isListening,
         transcript,
+        currentQuestion,
+        partialQuestion,
         aiResponse: currentResponse,
         currentResponse,
         streamingText,
@@ -511,6 +559,8 @@ export function usePhantomOverlay() {
         stealthHealth,
         threatToast,
         offerProbability,
+        screenshotAnalysis,
+        isAnalyzingScreenshot,
         // Actions
         setVisible,
         setCollapsed,

@@ -145,10 +145,10 @@ from app.interview.session import (
 
 class AIInterviewEngine:
 
-    def start(self, user_id: str, role: str, company_mode: str = "general"):
-        session_id = create_session(user_id, role, company_mode=company_mode)
+    def start(self, user_id: str, role: str, company_mode: str = "general", scenario: str | None = None):
+        session_id = create_session(user_id, role, company_mode=company_mode, scenario=scenario)
 
-        first_question = generate_question(role, [], company_mode=company_mode)
+        first_question = generate_question(role, [], company_mode=company_mode, scenario=scenario)
 
         add_question(session_id, first_question)
 
@@ -163,7 +163,7 @@ class AIInterviewEngine:
 
         question = session["questions"][-1]
 
-        evaluation = evaluate_answer(question, answer)
+        evaluation = evaluate_answer(question, answer, scenario=session.get("scenario"))
 
         save_answer(session_id, answer, evaluation)
 
@@ -181,7 +181,7 @@ class AIInterviewEngine:
 
         history = list(zip(session["questions"], session["answers"]))
 
-        next_question = generate_question(session["role"], history, company_mode=session.get("company_mode", "general"))
+        next_question = generate_question(session["role"], history, company_mode=session.get("company_mode", "general"), scenario=session.get("scenario"))
 
         add_question(session_id, next_question)
 

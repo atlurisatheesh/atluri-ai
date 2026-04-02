@@ -9,33 +9,46 @@ export type LoopbackStartParams = {
 
 type LoopbackSession = {
   stop: () => Promise<void>;
+  onMessage: (handler: (type: string, data: any) => void) => void;
+  injectTranscript: (text: string) => void;
+  _sendScreenshot: (base64: string) => void;
+  _sendScreenMonitor: (base64: string) => void;
 };
 
 function wsUrl(baseHttp: string, path: string) {
   return baseHttp.replace(/^http/i, "ws") + path;
 }
 
-function clamp(n: number, lo: number, hi: number) {
-  return Math.max(lo, Math.min(hi, n));
-}
+/**
+ * Discover the best available audio device for capturing interview audio.
+ * Priority: Stereo Mix (loopback) > WASAPI loopback > default microphone.
+ */
+async function findBestDevice(ac: any): Promise<string> {
+  try {
+    const devices = await ac.getDevices();
+    if (Array.isArray(devices) && devices.length > 0) {
+      // Prefer Stereo Mix (system loopback)
+      const stereoMix = devices.find(
+        (d: any) =>
+          /stereo mix|立体声混音|loopback/i.test(d.name || "") ||
+          d.deviceType === "stereo_mix"
+      );
+      if (stereoMix) return stereoMix.name || stereoMix.id;
 
-function floatToPcm16Frame(float32: Float32Array, inSampleRate: number): Buffer {
-  // Resample to 16kHz mono with linear interpolation.
-  const outRate = 16000;
-  const ratio = inSampleRate / outRate;
-  const outLen = Math.floor(float32.length / ratio);
-  const out = new Int16Array(outLen);
-  for (let i = 0; i < outLen; i += 1) {
-    const srcPos = i * ratio;
-    const srcIdx = Math.floor(srcPos);
-    const frac = srcPos - srcIdx;
-    const s0 = float32[srcIdx] || 0;
-    const s1 = float32[srcIdx + 1] || 0;
-    const sample = s0 + (s1 - s0) * frac;
-    const clamped = clamp(sample, -1, 1);
-    out[i] = (clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff) | 0;
+      // Prefer recommended
+      const recommended = devices.find((d: any) => d.isRecommended);
+      if (recommended) return recommended.name || recommended.id;
+
+      // Take the first microphone
+      const mic = devices.find((d: any) => /microphone|mic|麦克风/i.test(d.name || ""));
+      if (mic) return mic.name || mic.id;
+
+      return devices[0].name || devices[0].id || "default";
+    }
+  } catch {
+    // getDevices may fail — fall through
   }
-  return Buffer.from(out.buffer);
+  return "default";
 }
 
 export async function startWindowsLoopback(params: LoopbackStartParams): Promise<LoopbackSession> {
@@ -80,69 +93,73 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
   } catch {
   }
 
-  // --- Capture ---
-  // The library API is not standardized; we handle a couple common patterns.
-  // Expected: 32-bit float mono frames at some sample rate.
+  // --- Incoming message handler (backend → overlay) ---
+  let messageHandler: ((type: string, data: any) => void) | null = null;
 
-  const capture = winCap.createCapture ? winCap.createCapture({ loopback: true }) : (winCap.create && winCap.create({ loopback: true }));
-  if (!capture) throw new Error("win-audio-capture did not provide a capture instance");
+  ws.on("message", (raw: any) => {
+    try {
+      const str = typeof raw === "string" ? raw : raw.toString("utf-8");
+      const parsed = JSON.parse(str);
 
-  const inputRate = Number(capture.sampleRate || capture.sample_rate || 48000) || 48000;
-  const chunkMs = 20;
-  const chunkSamples = Math.floor((inputRate * chunkMs) / 1000);
-  let buffered: number[] = [];
-
-  const onData = (data: any) => {
-    if (ws.readyState !== WebSocket.OPEN) return;
-
-    // Normalize incoming to Float32Array
-    let floats: Float32Array | null = null;
-    if (data instanceof Float32Array) floats = data;
-    else if (Buffer.isBuffer(data)) floats = new Float32Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 4));
-    else if (data?.buffer) {
-      try {
-        floats = new Float32Array(data.buffer);
-      } catch {
-      }
-    }
-    if (!floats || floats.length === 0) return;
-
-    // Accumulate and frame
-    for (let i = 0; i < floats.length; i += 1) buffered.push(floats[i]);
-    while (buffered.length >= chunkSamples) {
-      const slice = buffered.slice(0, chunkSamples);
-      buffered = buffered.slice(chunkSamples);
-      const pcm = floatToPcm16Frame(new Float32Array(slice), inputRate);
-
-      // 20ms at 16kHz mono PCM16 => 640 bytes (but resampler may produce slightly different lengths; backend tolerates >=320)
-      if (ws.bufferedAmount > 256 * 1024) {
-        // drop on backpressure
-        continue;
-      }
-      try {
-        ws.send(pcm);
-      } catch {
+      // Respond to backend heartbeat pings to prevent timeout disconnects
+      if (parsed.type === "ping") {
+        try {
+          ws.send(JSON.stringify({ type: "pong", ts: Date.now() / 1000 }));
+        } catch { /* ignore send errors */ }
         return;
       }
-    }
-  };
 
-  if (typeof capture.on === "function") {
-    capture.on("data", onData);
-    capture.on("error", () => {
-      // no-op; ws close will stop
-    });
-    if (typeof capture.start === "function") capture.start();
-  } else if (typeof capture.addListener === "function") {
-    capture.addListener("data", onData);
-    if (typeof capture.start === "function") capture.start();
-  } else {
-    throw new Error("capture instance does not support events");
-  }
+      if (parsed.type && messageHandler) {
+        messageHandler(parsed.type, parsed);
+      }
+    } catch {
+      // binary frame or non-JSON — ignore
+    }
+  });
+
+  // --- Audio Capture ---
+  // win-audio-capture is an ffmpeg dshow wrapper. API:
+  //   const ac = new AudioCapture();
+  //   await ac.start({ device, sampleRate, channels, bitDepth, onData(chunk: Buffer) })
+  //   await ac.stop();
+  // The onData callback receives raw PCM16LE buffers at the configured sample rate.
+
+  const ac = new winCap.AudioCapture();
+  const deviceName = await findBestDevice(ac);
+  const captureRate = 16000; // 16kHz mono PCM16 — backend expects this
+
+  let stopped = false;
+
+  await ac.start({
+    device: deviceName,
+    sampleRate: captureRate,
+    channels: 1,
+    bitDepth: 16,
+    onData: (chunk: Buffer) => {
+      if (stopped) return;
+      if (ws.readyState !== WebSocket.OPEN) return;
+
+      // The chunk is already PCM16LE at 16kHz mono — send directly.
+      // Skip WAV header bytes (first chunk from ffmpeg contains a 44-byte WAV header).
+      if (!Buffer.isBuffer(chunk) || chunk.length < 320) return;
+
+      // Drop on backpressure
+      if (ws.bufferedAmount > 256 * 1024) return;
+
+      try {
+        ws.send(chunk);
+      } catch {
+        // WS send failed — will be cleaned up on close
+      }
+    },
+  });
+
+  console.log(`[loopback] Audio capture started on device: "${deviceName}" @ ${captureRate}Hz mono PCM16`);
 
   const stop = async () => {
+    stopped = true;
     try {
-      if (typeof capture.stop === "function") capture.stop();
+      await ac.stop();
     } catch {
     }
     try {
@@ -155,5 +172,57 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
     }
   };
 
-  return { stop };
+  const injectTranscript = (text: string) => {
+    if (ws.readyState !== WebSocket.OPEN) {
+      console.warn("[loopback] cannot inject transcript — WS not open");
+      return;
+    }
+    const msg = {
+      type: "transcript",
+      text,
+      participant: "interviewer",
+      is_final: true,
+      source: "injection",
+    };
+    console.log(`[loopback] injecting transcript: "${text.slice(0, 60)}..."`);
+    ws.send(JSON.stringify(msg));
+  };
+
+  const _sendScreenshot = (base64: string) => {
+    if (ws.readyState !== WebSocket.OPEN) {
+      console.warn("[loopback] cannot send screenshot — WS not open");
+      return;
+    }
+    const msg = {
+      type: "screenshot",
+      base64,
+      ts: Date.now() / 1000,
+    };
+    console.log(`[loopback] sending screenshot for analysis (${Math.round(base64.length / 1024)}KB)`);
+    ws.send(JSON.stringify(msg));
+  };
+
+  const _sendScreenMonitor = (base64: string) => {
+    if (ws.readyState !== WebSocket.OPEN) {
+      console.warn("[loopback] cannot send screen_monitor — WS not open");
+      return;
+    }
+    const msg = {
+      type: "screen_monitor",
+      base64,
+      ts: Date.now() / 1000,
+    };
+    console.log(`[loopback] sending screen_monitor frame (${Math.round(base64.length / 1024)}KB)`);
+    ws.send(JSON.stringify(msg));
+  };
+
+  return {
+    stop,
+    onMessage: (handler: (type: string, data: any) => void) => {
+      messageHandler = handler;
+    },
+    injectTranscript,
+    _sendScreenshot,
+    _sendScreenMonitor,
+  };
 }

@@ -236,3 +236,65 @@ class VoiceProfiler:
                 context_parts.append(f"[{story.theme}] " + " | ".join(parts))
 
         return "\n".join(context_parts)
+
+    def get_readiness(self, profile: VoiceProfile) -> dict:
+        """
+        Return a Voice Profile Readiness summary suitable for the UI's
+        "Voice Profile Readiness" widget in the Setup tab.
+
+        Returns a dict with:
+          - score (0-100): overall readiness score
+          - maturity: "immature" | "developing" | "mature"
+          - sessions_analyzed: int
+          - sessions_needed: sessions required before full profile activates
+          - has_voice_signature: bool
+          - highlights: list[str]  — human-readable readiness factors
+          - next_action: str       — what the user should do next
+        """
+        sessions = int(profile.sessions_analyzed or 0)
+        maturity = str(profile.maturity or "immature")
+        has_sig = bool(profile.voice_signature)
+
+        # Score: 0-100 based on sessions and vocabulary/pattern richness
+        if maturity == "mature":
+            score = min(100, 70 + (sessions - 8) * 2)
+        elif maturity == "developing":
+            score = 40 + (sessions - 3) * 6
+        else:
+            score = min(35, sessions * 10)
+
+        highlights: list[str] = []
+        vocab = profile.vocabulary
+        patterns = profile.patterns
+
+        if vocab.avg_sentence_length > 0:
+            highlights.append(f"Avg sentence: ~{vocab.avg_sentence_length:.0f} words")
+        if vocab.transition_preferences:
+            top = [t[0] for t in vocab.transition_preferences[:2]]
+            highlights.append(f"Transition style: {', '.join(top)}")
+        if patterns.star_stories:
+            strong = sum(1 for s in patterns.star_stories if s.strength_score >= 0.7)
+            highlights.append(f"{strong} strong STAR stories detected")
+        if patterns.confidence_markers and not patterns.hedging_markers:
+            highlights.append("High-confidence speaking style")
+        elif patterns.hedging_markers:
+            highlights.append("Hedging style detected")
+
+        sessions_needed = max(0, self.MIN_SESSIONS_FOR_PROFILE - sessions)
+        if sessions_needed > 0:
+            next_action = f"Complete {sessions_needed} more practice session{'s' if sessions_needed != 1 else ''} to unlock personalization."
+        elif maturity == "developing":
+            next_action = "Keep practicing — more sessions sharpen your voice signature."
+        else:
+            next_action = "Voice profile fully active. AI responses are personalized to your style."
+
+        return {
+            "score": max(0, min(100, int(score))),
+            "maturity": maturity,
+            "sessions_analyzed": sessions,
+            "sessions_needed": sessions_needed,
+            "has_voice_signature": has_sig,
+            "highlights": highlights,
+            "next_action": next_action,
+        }
+

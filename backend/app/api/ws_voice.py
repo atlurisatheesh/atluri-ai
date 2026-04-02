@@ -8,6 +8,7 @@ import os
 from collections import defaultdict
 
 from app.services.deepgram_service import DeepgramService
+from app.services.hybrid_stt import HybridSTTCorrector, STT_MODE
 from app.services.asr_metrics import get_asr_metrics, TriggerType
 from app.services.transcript_smoother import get_transcript_smoother
 from app.services.adaptive_vad import create_adaptive_vad, AdaptiveVADEngine
@@ -630,7 +631,10 @@ async def _voice_ws_inner(websocket: WebSocket):
         or str(websocket.query_params.get("token") or "").strip()
         or str(websocket.query_params.get("access_token") or "").strip()
     )
-    if not token:
+
+    # In development mode, allow unauthenticated connections (desktop app has no login flow)
+    _is_dev = os.getenv("ENV", "development").lower() != "production"
+    if not token and not _is_dev:
         await websocket.close(code=1008, reason="Unauthorized")
         return
 
@@ -642,21 +646,27 @@ async def _voice_ws_inner(websocket: WebSocket):
 
     # ── AUTH (runs after accept, so client already has an open socket)
     _auth_started = time.perf_counter()
-    try:
-        await resolve_user_id_from_token_async(token)
-    except Exception:
-        _auth_ms = round((time.perf_counter() - _auth_started) * 1000.0, 2)
-        observe_latency_ms(_auth_ms)
+    if token:
         try:
-            await websocket.send_text(json.dumps({
-                "type": "error",
-                "code": "auth_failed",
-                "message": "Unauthorized",
-            }))
+            await resolve_user_id_from_token_async(token)
         except Exception:
-            pass
-        await websocket.close(code=1008, reason="Unauthorized")
-        return
+            _auth_ms = round((time.perf_counter() - _auth_started) * 1000.0, 2)
+            observe_latency_ms(_auth_ms)
+            if not _is_dev:
+                try:
+                    await websocket.send_text(json.dumps({
+                        "type": "error",
+                        "code": "auth_failed",
+                        "message": "Unauthorized",
+                    }))
+                except Exception:
+                    pass
+                await websocket.close(code=1008, reason="Unauthorized")
+                return
+            else:
+                logging.getLogger("ws_voice").warning("Dev mode: allowing connection despite auth failure")
+    elif _is_dev:
+        logging.getLogger("ws_voice").info("Dev mode: allowing unauthenticated WebSocket connection")
     _auth_ms = round((time.perf_counter() - _auth_started) * 1000.0, 2)
 
     room_id_raw = str(websocket.query_params.get("room_id") or "").strip()
@@ -726,6 +736,10 @@ async def _voice_ws_inner(websocket: WebSocket):
     )
     room_broadcaster = RoomBroadcaster(send_fn=_safe_send, broadcast_fn=_broadcast_room)
 
+    # Always register a send lock for this websocket — even without a room_id.
+    # Without this, _send_text_with_lock silently drops all messages.
+    async with room_lock:
+        websocket_send_locks.setdefault(websocket, asyncio.Lock())
     await lifecycle_manager.register(room_id, websocket, session_id)
     await _ensure_room_event_listener()
     increment_metric("ws_connections_active", 1)
@@ -740,11 +754,19 @@ async def _voice_ws_inner(websocket: WebSocket):
     transcript_buffer = ""
     turn_start_ts = time.time()
     completed_turns = 0
-    max_turns = 5
+    max_turns = int(os.getenv("MAX_INTERVIEW_TURNS", "50"))
     final_summary_sent = False
     coaching_emitted_turn_ids = set()
     active_suggestion_task: asyncio.Task | None = None
     active_suggestion_question_key: str = ""  # Track what question is being answered
+    screenshot_analyzing = False  # Prevent concurrent screenshot analyses
+    # Latest screenshot for vision-powered answer generation
+    latest_screenshot_b64: str = ""
+    latest_screenshot_ts: float = 0.0
+    # Screen monitor: detect questions from chat/shared screen via GPT-4o vision
+    screen_monitor_analyzing = False  # Prevent concurrent monitor analyses
+    screen_monitor_last_question: str = ""  # Avoid re-detecting same question
+    screen_monitor_last_ts: float = 0.0  # Cooldown tracking
     emotional_event_index = 0
     is_finalizing_window = False
     last_candidate_question_key = ""
@@ -784,6 +806,10 @@ async def _voice_ws_inner(websocket: WebSocket):
     answer_language = str(websocket.query_params.get("answer_language") or "english").strip().lower()
     if answer_language not in ("english", "detected"):
         answer_language = "english"
+
+    # Scenario: role-specific interview scenario with curated prompts & evaluation criteria
+    scenario_raw = str(websocket.query_params.get("scenario") or "").strip().lower()
+    se.scenario = scenario_raw if scenario_raw else None
     
     se.initialize_realtime_assist(
         session_id=session_id,
@@ -798,6 +824,29 @@ async def _voice_ws_inner(websocket: WebSocket):
     resume_parser = dependency_provider.create_resume_parser()
     jd_requirements = {}
     resume_claims = {}
+
+    # ── Extended session context from IntelligenceTerminal / ContextInjector ──
+    _init_ctx_keys = (
+        ("company",                "_session_company"),
+        ("position",               "_session_position"),
+        ("objective",              "_session_objective"),
+        ("industry",               "_session_industry"),
+        ("model_id",               "_session_model"),
+        ("image_analysis_context", "_session_imageAnalysisContext"),
+        ("priority_questions",     "_session_priorityQuestions"),
+        ("interview_procedures",   "_session_interviewProcedures"),
+    )
+    for param_key, attr_key in _init_ctx_keys:
+        _val = str(websocket.query_params.get(param_key) or "").strip()
+        if _val:
+            setattr(se, attr_key, _val)
+    if getattr(se, "_session_company", "") or getattr(se, "_session_position", ""):
+        logger.info(
+            "Session context from URL: company=%s position=%s model=%s",
+            getattr(se, "_session_company", ""),
+            getattr(se, "_session_position", ""),
+            getattr(se, "_session_model", ""),
+        )
 
     if jd_text:
         try:
@@ -880,6 +929,11 @@ async def _voice_ws_inner(websocket: WebSocket):
             })
     else:
         logger.info("[QA_MODE] Deepgram disabled")
+
+    # ================= HYBRID STT CORRECTOR =================
+    hybrid_stt = HybridSTTCorrector() if STT_MODE in ("hybrid", "whisper") else None
+    if hybrid_stt:
+        logger.info("[HYBRID_STT] Corrector initialized (mode=%s)", STT_MODE)
 
     # ================= START INTERVIEW =================
     room_state_before_connect = await _get_room_state(room_id) if room_id else {}
@@ -1008,10 +1062,208 @@ async def _voice_ws_inner(websocket: WebSocket):
         active_suggestion_task = None
         active_suggestion_question_key = ""
 
+    async def _analyze_screenshot(base64_image: str):
+        """Send screenshot to GPT-4o vision for analysis and stream result back."""
+        nonlocal screenshot_analyzing
+        from openai import AsyncOpenAI
+        from core.config import OPENAI_API_KEY
+
+        try:
+            vision_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+            image_context = getattr(se, "_session_imageAnalysisContext", "") or ""
+            company = getattr(se, "_session_company", "") or ""
+            position = getattr(se, "_session_position", "") or ""
+
+            system_msg = (
+                "You are an expert interview assistant analyzing a screenshot taken during a live interview. "
+                "The candidate needs help understanding what's shown. "
+                "Provide a concise, actionable analysis. "
+                "If it's a coding problem: identify the problem type, suggest approach, time/space complexity, and key code patterns. "
+                "If it's a system design diagram: identify components, suggest improvements, highlight bottlenecks. "
+                "If it's a question: provide a structured answer. "
+                "Keep your response under 300 words. Use bullet points for clarity."
+            )
+            if company or position:
+                system_msg += f"\nContext: Interview at {company} for {position} role."
+            if image_context:
+                system_msg += f"\nAdditional context from the candidate: {image_context}"
+
+            # Notify overlay that analysis is starting
+            if websocket.client_state == WebSocketState.CONNECTED:
+                await _safe_send({
+                    "type": "screenshot_analysis_start",
+                    "session_id": session_id,
+                    "ts": time.time(),
+                })
+
+            response = await vision_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Analyze this screenshot and help me respond in the interview:"},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{base64_image}",
+                                    "detail": "high",
+                                },
+                            },
+                        ],
+                    },
+                ],
+                max_tokens=600,
+                stream=True,
+            )
+
+            full_text = ""
+            async for chunk in response:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    token = chunk.choices[0].delta.content
+                    full_text += token
+                    if websocket.client_state == WebSocketState.CONNECTED:
+                        await _safe_send({
+                            "type": "screenshot_analysis_chunk",
+                            "session_id": session_id,
+                            "chunk": token,
+                        })
+
+            if websocket.client_state == WebSocketState.CONNECTED:
+                await _safe_send({
+                    "type": "screenshot_analysis",
+                    "session_id": session_id,
+                    "analysis": full_text,
+                    "ts": time.time(),
+                })
+            logger.info("Screenshot analysis complete (%d chars)", len(full_text))
+        except Exception as exc:
+            logger.warning("Screenshot vision analysis failed: %s", exc)
+            if websocket.client_state == WebSocketState.CONNECTED:
+                await _safe_send({
+                    "type": "screenshot_analysis",
+                    "session_id": session_id,
+                    "analysis": f"Screenshot analysis failed: {str(exc)[:100]}",
+                    "error": True,
+                    "ts": time.time(),
+                })
+        finally:
+            screenshot_analyzing = False
+
+    async def _detect_question_from_screen(base64_image: str):
+        """
+        Screen monitor: Send screenshot to GPT-4o vision to detect if an interviewer
+        question is visible on screen (chat message, coding problem, shared document).
+        If a NEW question is found, trigger answer generation with the screenshot.
+        """
+        nonlocal screen_monitor_analyzing, screen_monitor_last_question, screen_monitor_last_ts
+        nonlocal latest_screenshot_b64, latest_screenshot_ts
+        from openai import AsyncOpenAI
+        from core.config import OPENAI_API_KEY
+
+        if screen_monitor_analyzing:
+            return  # Already analyzing a frame
+        screen_monitor_analyzing = True
+
+        try:
+            vision_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+            company = getattr(se, "_session_company", "") or ""
+            position = getattr(se, "_session_position", "") or ""
+
+            detection_prompt = (
+                "You are monitoring an interview screen. Look at this screenshot and determine:\n"
+                "1. Is there a NEW question from the interviewer visible? This could be:\n"
+                "   - A chat message with a question (Zoom chat, Teams chat, Google Meet chat, any messaging app)\n"
+                "   - A coding problem displayed (LeetCode, HackerRank, CodeSignal, shared editor)\n"
+                "   - A system design prompt or whiteboard question\n"
+                "   - A text document or slide with an interview question\n"
+                "2. If YES, extract the exact question text.\n"
+                "3. If NO question is visible, or it's just a video call with no text, respond with exactly: NO_QUESTION\n\n"
+                "RESPOND IN THIS EXACT FORMAT:\n"
+                "If question found: QUESTION_DETECTED: <the full question text>\n"
+                "If no question: NO_QUESTION\n\n"
+                "IMPORTANT: Only detect actual interview questions, not UI elements, menu items, or the candidate's own text."
+            )
+            if company or position:
+                detection_prompt += f"\nContext: Interview at {company} for {position} role."
+
+            response = await vision_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": detection_prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{base64_image}",
+                                    "detail": "low",  # Use low detail for fast detection
+                                },
+                            },
+                        ],
+                    },
+                ],
+                max_tokens=300,
+                temperature=0.1,
+            )
+
+            result = (response.choices[0].message.content or "").strip()
+            logger.info("screen_monitor detection result: %s", result[:120])
+
+            if result.startswith("QUESTION_DETECTED:"):
+                detected_question = result[len("QUESTION_DETECTED:"):].strip()
+                if not detected_question:
+                    return
+
+                # Deduplicate: skip if same question detected recently (within 60s)
+                # Use a simple similarity check — exact match or very close
+                if (detected_question == screen_monitor_last_question and
+                        (time.time() - screen_monitor_last_ts) < 60):
+                    logger.info("screen_monitor: same question detected, skipping (dedup)")
+                    return
+
+                screen_monitor_last_question = detected_question
+                screen_monitor_last_ts = time.time()
+
+                logger.info("screen_monitor: NEW QUESTION detected from screen: %s", detected_question[:100])
+
+                # Store the screenshot for answer generation (high-res re-analysis)
+                latest_screenshot_b64 = base64_image
+                latest_screenshot_ts = time.time()
+
+                # Notify the overlay about the detected question
+                if websocket.client_state == WebSocketState.CONNECTED:
+                    await _safe_send({
+                        "type": "screen_question_detected",
+                        "session_id": session_id,
+                        "question": detected_question,
+                        "source": "screen_monitor",
+                        "ts": time.time(),
+                    })
+
+                # Trigger answer generation with the screenshot
+                await emit_answer_suggestion(detected_question)
+
+        except Exception as exc:
+            logger.warning("screen_monitor detection failed: %s", exc)
+        finally:
+            screen_monitor_analyzing = False
+
     async def emit_answer_suggestion(question_text: str):
-        nonlocal active_suggestion_task, active_suggestion_question_key
+        nonlocal active_suggestion_task, active_suggestion_question_key, latest_screenshot_b64, latest_screenshot_ts
         if not question_text:
             return
+
+        # Check if a screenshot is available (e.g. from screen_monitor detection)
+        screenshot_for_answer = ""
+        if latest_screenshot_b64 and (time.time() - latest_screenshot_ts) < 15:
+            screenshot_for_answer = latest_screenshot_b64
+            latest_screenshot_b64 = ""  # Consume it
+            logger.info("Screenshot attached to answer generation (%d KB)",
+                       len(screenshot_for_answer) // 1024)
+
         stream_started_at = time.time()
         increment_metric("answer_streams_started", 1)
         start_payload = {
@@ -1084,8 +1336,12 @@ async def _voice_ws_inner(websocket: WebSocket):
             await _broadcast_room(room_id, thinking_payload, exclude=websocket)
             
             # HOT CACHE CHECK: Serve pre-computed answer for common questions (~100ms)
-            accelerator = get_response_accelerator()
-            cached_answer = await accelerator.check_cache(smoothed_question)
+            from core.config import QA_MODE
+            cached_answer = None
+            if not QA_MODE:
+                accelerator = get_response_accelerator()
+                cached_answer = await accelerator.check_cache(smoothed_question)
+                
             if cached_answer:
                 logger.info("HOT_CACHE_SERVED | question=%s", question_text[:50])
                 built_answer = cached_answer.answer_template
@@ -1115,11 +1371,61 @@ async def _voice_ws_inner(websocket: WebSocket):
                 return
 
             # TRUE STREAMING: Send chunks as they arrive from OpenAI
-            # This gives ~200-500ms time-to-first-word (like Locked In AI, Paraqeet)
             built_answer = ""
             chunk_index = 1  # Start at 1 since thinking indicator is 0
             first_chunk_at: float | None = None
             
+            from core.config import QA_MODE
+            if QA_MODE:
+                q = smoothed_question.lower()
+                ans = "This is a generic QA mock answer for testing."
+                if "payment gateway" in q:
+                    ans = "I documented both approaches with projected outcomes and let the data decide. We identified the gap early, and I drove the architectural fix to adapt."
+                elif "idempotency" in q or "kafka" in q:
+                    ans = "To guarantee idempotency during a partition rebalance, I shift from a synchronous saga to event-driven choreography. We ensure the consumer maintains a dedicated state store for processed message offsets, effectively isolating the Kafka partition topology from upstream jitter."
+                elif "event loop" in q:
+                    ans = "The JavaScript event loop manages asynchronous operations. The call stack executes code, while the microtask queue handles promises, ensuring async and await operations run at the end of the current tick before the next macro task."
+                elif "url shortener" in q:
+                    ans = "I would hash the URLs and store them in a database. I'd use sharding and replication to scale the db, and put a cache and CDN behind a load balancer for reads."
+                elif "two sum" in q:
+                    ans = "I would use a hash map or dictionary for an O(n) lookup of the complement."
+                elif "weakness" in q:
+                    ans = "My biggest weakness was struggling with delegation, which was a challenge, but I've worked hard to learn from it and improve my delegation, leading to leadership growth."
+                elif "process" in q and "thread" in q:
+                    ans = "A process has isolated memory, while a thread has shared memory."
+                elif "cap theorem" in q:
+                    ans = "CAP theorem says you can only pick two: consistency, availability, or partition tolerance."
+                elif "query performance" in q:
+                    ans = "I would add an index, use explain to analyze the query, add a cache, and then partition or shard."
+                elif "five years" in q:
+                    ans = "I want to grow, lead a team, build my skill set, and make an impact on the vision and goal."
+
+                first_chunk_at = time.perf_counter()
+                logger.warning("QA_MODE: Starting chunk loop, %d words to send, room_id=%s", len(ans.split()), room_id)
+                for word in ans.split():
+                    token = word + " "
+                    built_answer += token
+                    chunk_payload = {
+                        "type": "answer_suggestion_chunk",
+                        "session_id": session_id,
+                        "question": question_text,
+                        "chunk": token,
+                        "index": chunk_index,
+                        "room_id": room_id,
+                    }
+                    chunk_index += 1
+                    if websocket.client_state == WebSocketState.CONNECTED:
+                        await _safe_send(chunk_payload)
+                    # Use room_broadcaster instead of _broadcast_room to match emit_answer_done
+                    await room_broadcaster.emit_room(room_id, chunk_payload, exclude=websocket)
+                    await asyncio.sleep(0.01)
+                
+                logger.warning("QA_MODE: All %d chunks sent, sleeping before done signal", chunk_index - 1)
+                await asyncio.sleep(0.5)  # Let chunks flush through before done signal
+                await emit_answer_done(question_text, built_answer.strip(), "completed")
+                await emit_suggestion_payload(built_answer.strip(), "completed")
+                return
+
             # Use smoothed question for LLM (cleaner input = better output)
             async for token in stream_answer_live(
                 question=smoothed_question,  # Use cleaned question
@@ -1135,7 +1441,11 @@ async def _voice_ws_inner(websocket: WebSocket):
                 objective=getattr(se, "_session_objective", ""),
                 company_research=getattr(se, "_session_companyResearch", ""),
                 coach_style=getattr(se, "_session_coachStyle", ""),
+                coach_industry=getattr(se, "_session_coachIndustry", ""),
                 voice_signature=voice_signature,
+                model=getattr(se, "_session_model", ""),
+                screenshot_base64=screenshot_for_answer,
+                image_context=getattr(se, "_session_imageAnalysisContext", ""),
             ):
                 if first_chunk_at is None:
                     first_chunk_at = time.perf_counter()
@@ -1232,6 +1542,7 @@ async def _voice_ws_inner(websocket: WebSocket):
             await emit_answer_done(question_text, "", "cancelled")
             raise
         except Exception as suggestion_exc:
+            print(f"!!! EXCEPTION IN SUGGESTION: {repr(suggestion_exc)}")
             logger.warning("Answer suggestion generation failed: %s", suggestion_exc)
             _log_event(
                 "llm_call_failed",
@@ -1272,16 +1583,19 @@ async def _voice_ws_inner(websocket: WebSocket):
                 question_text,
                 question_type=last_classification.question_type.value if last_classification else "general",
             )
-            await _safe_send({
+            intel = {
                 "type": "question_intelligence",
                 "session_id": session_id,
-                "question_type": last_classification.question_type.value,
-                "difficulty": last_classification.difficulty.value,
-                "framework": last_classification.framework.value,
-                "framework_instructions": get_framework_instructions(last_classification.framework),
-                "max_answer_seconds": last_classification.max_answer_seconds,
-                "coaching_note": last_classification.coaching_note,
-            })
+                "question_type": last_classification.question_type.value if last_classification else "general",
+                "difficulty": last_classification.difficulty.value if last_classification else "neutral",
+                "framework": last_classification.framework.value if last_classification else "none",
+                "framework_instructions": get_framework_instructions(last_classification.framework) if last_classification else "",
+                "max_answer_seconds": last_classification.max_answer_seconds if last_classification else 120,
+                "coaching_note": last_classification.coaching_note if last_classification else "",
+            }
+            if websocket.client_state == WebSocketState.CONNECTED:
+                await _safe_send(intel)
+            await _broadcast_room(room_id, intel, exclude=websocket)
             # Start speech metrics tracking for this answer
             speech_metrics_engine.start_answer(last_classification.question_type.value)
         except Exception as exc:
@@ -1345,11 +1659,20 @@ async def _voice_ws_inner(websocket: WebSocket):
                             se.set_assist_profile(_assist_profile_for_role(selected_role))
                             logger.info("Updated role context from payload: %s", se.role)
 
-                        # Extract extended session context from desktop setup wizard
-                        for ctx_key in ("company", "position", "objective", "industry", "experience", "companyResearch", "imageContext", "model", "coachStyle", "mode"):
+                        # Extract extended session context from desktop setup wizard / IntelligenceTerminal
+                        _ctx_alias_map = {
+                            "imageAnalysisContext":  "_session_imageAnalysisContext",
+                            "priority_questions":    "_session_priorityQuestions",
+                            "priorityQuestions":     "_session_priorityQuestions",
+                            "interview_procedures":  "_session_interviewProcedures",
+                            "interviewProcedures":   "_session_interviewProcedures",
+                            "model_id":              "_session_model",
+                        }
+                        for ctx_key in ("company", "position", "objective", "industry", "experience", "codingLanguage", "companyResearch", "imageContext", "imageAnalysisContext", "priority_questions", "priorityQuestions", "interview_procedures", "interviewProcedures", "model", "model_id", "coachStyle", "coachIndustry", "mode"):
                             ctx_val = payload.get(ctx_key)
                             if ctx_val:
-                                setattr(se, f"_session_{ctx_key}", str(ctx_val).strip())
+                                attr = _ctx_alias_map.get(ctx_key, f"_session_{ctx_key}")
+                                setattr(se, attr, str(ctx_val).strip())
                         if payload.get("company") or payload.get("position"):
                             logger.info("Session context updated: company=%s position=%s industry=%s",
                                         getattr(se, "_session_company", ""),
@@ -1366,6 +1689,31 @@ async def _voice_ws_inner(websocket: WebSocket):
                             logger.info("User cancelled answer generation")
                             continue
 
+                        if payload.get("type") == "screen_monitor":
+                            # Screen monitor frame: desktop sends every ~3s when screen changes
+                            # Use GPT-4o vision to detect if a new question appeared
+                            monitor_b64 = str(payload.get("base64") or "").strip()
+                            if monitor_b64 and not screen_monitor_analyzing:
+                                logger.info("screen_monitor frame received (%d KB)", len(monitor_b64) // 1024)
+                                asyncio.create_task(_detect_question_from_screen(monitor_b64))
+                            continue
+
+                        if payload.get("type") == "screenshot":
+                            screenshot_b64 = str(payload.get("base64") or "").strip()
+                            if screenshot_b64:
+                                # Store the screenshot so the answer generator can use it
+                                latest_screenshot_b64 = screenshot_b64
+                                latest_screenshot_ts = time.time()
+                                logger.info("Screenshot stored for answer generation (%d KB)", len(screenshot_b64) // 1024)
+                                # Notify overlay a capture was received
+                                if websocket.client_state == WebSocketState.CONNECTED:
+                                    await _safe_send({
+                                        "type": "screenshot_received",
+                                        "session_id": session_id,
+                                        "ts": time.time(),
+                                    })
+                            continue
+
                         if payload.get("type") == "transcript":
                             transcript_text = str(payload.get("text") or "").strip()
                             transcript_is_final = bool(payload.get("is_final", True))
@@ -1373,6 +1721,27 @@ async def _voice_ws_inner(websocket: WebSocket):
 
                             if not transcript_text:
                                 continue
+
+                            # ── Hybrid STT: correct technical terms in text transcripts ──
+                            if hybrid_stt and transcript_is_final and transcript_text:
+                                try:
+                                    correction = await hybrid_stt.correct(transcript_text)
+                                    corrected = correction.get("text", transcript_text)
+                                    if corrected and corrected != transcript_text:
+                                        logger.info("[HYBRID_STT] Text transcript corrected: '%s' → '%s'",
+                                                   transcript_text[:50], corrected[:50])
+                                        if websocket.client_state == WebSocketState.CONNECTED:
+                                            await _safe_send({
+                                                "type": "stt_correction",
+                                                "session_id": session_id,
+                                                "original": transcript_text,
+                                                "corrected": corrected,
+                                                "source": correction.get("source"),
+                                                "corrections": correction.get("corrections", []),
+                                            })
+                                        transcript_text = corrected
+                                except Exception as stt_exc:
+                                    logger.warning("[HYBRID_STT] Text correction failed: %s", stt_exc)
 
                             # ── INSTANT ACK: tell the client we received the transcript
                             # so it doesn't see dead air while we process
@@ -1388,8 +1757,25 @@ async def _voice_ws_inner(websocket: WebSocket):
                             if transcript_participant == "interviewer" and transcript_is_final:
                                 question_text = transcript_text
                                 word_count = len(question_text.split())
-                                if word_count < 4:
-                                    logger.info("Skipping partial question transcript (only %d words) | text=%s", word_count, question_text[:40])
+                                if word_count < 5:
+                                    logger.info("Skipping short question transcript (only %d words) | text=%s", word_count, question_text[:40])
+                                    continue
+                                
+                                # ── QUESTION COMPLETENESS CHECK ──
+                                # Don't trigger on obviously incomplete sentences
+                                lower_q = question_text.lower().strip()
+                                incomplete_endings = (
+                                    " the", " a", " an", " to", " of", " for", " in", " on",
+                                    " is", " are", " and", " but", " or", " with", " that",
+                                    " which", " if", " so", " do", " does", " would", " could",
+                                    " should", " have", " has", " can", " will", " not", " at",
+                                    " by", " into", " through", " about", " from", " your",
+                                )
+                                if any(lower_q.endswith(e) for e in incomplete_endings) and word_count < 10:
+                                    logger.info("Skipping incomplete question (ends with article/preposition, %d words) | text=%s", word_count, question_text[:60])
+                                    # Store as pending so silence watcher can trigger if no more words come
+                                    pending_partial_question = question_text
+                                    pending_partial_question_ts = time.time()
                                     continue
 
                                 now = time.time()
@@ -1700,6 +2086,9 @@ async def _voice_ws_inner(websocket: WebSocket):
                             dg.send_audio(msg["bytes"])
                         except Exception as dg_send_exc:
                             logger.warning("Deepgram send_audio failed | session_id=%s err=%s", session_id, dg_send_exc)
+                    # Feed audio to hybrid STT corrector for Whisper second-pass
+                    if hybrid_stt:
+                        hybrid_stt.feed_audio(msg["bytes"])
 
                 await asyncio.sleep(0)
         except Exception:
@@ -1838,22 +2227,25 @@ async def _voice_ws_inner(websocket: WebSocket):
                         
                         # ISSUE 1 FIX: Partial VAD trigger is RISKY without is_final
                         # speech_final can fire mid-sentence in noisy conditions
-                        # ONLY allow partial VAD with VERY HIGH confidence (0.90+) as safety measure
-                        # This prevents misfires from mic glitches or background noise
+                        # ONLY allow partial VAD with EXTREMELY HIGH confidence (0.95+) as safety measure
+                        # This prevents misfires from mic glitches, background noise, or mid-sentence pauses
+                        # The interviewer MUST finish their full question before we trigger
                         
                         # Use adaptive thresholds if enabled, otherwise use static
                         if ADAPTIVE_VAD_ENABLED:
                             adaptive_thresholds = adaptive_vad.get_thresholds()
-                            PARTIAL_VAD_CONFIDENCE_THRESHOLD = adaptive_thresholds.partial_confidence
-                            current_min_words = adaptive_thresholds.min_words
-                            current_stabilization_ms = adaptive_thresholds.stabilization_ms
+                            PARTIAL_VAD_CONFIDENCE_THRESHOLD = max(adaptive_thresholds.partial_confidence, 0.95)
+                            current_min_words = max(adaptive_thresholds.min_words, 6)
+                            current_stabilization_ms = max(adaptive_thresholds.stabilization_ms, 600)
                         else:
-                            PARTIAL_VAD_CONFIDENCE_THRESHOLD = 0.90  # Much higher than normal VAD
-                            current_min_words = VAD_MIN_WORDS
-                            current_stabilization_ms = STABILIZATION_WINDOW_MS
+                            PARTIAL_VAD_CONFIDENCE_THRESHOLD = 0.95  # Extremely high — only trigger when absolutely certain
+                            current_min_words = VAD_MIN_WORDS  # Now 6 (was 4)
+                            current_stabilization_ms = STABILIZATION_WINDOW_MS  # Now 600ms (was 200ms)
                         
-                        # Partial VAD trigger: Require speech_final + very high confidence
-                        if speech_final and confidence >= PARTIAL_VAD_CONFIDENCE_THRESHOLD and dg_word_count >= current_min_words:
+                        # Partial VAD trigger: DISABLED — only silence watcher should trigger answers
+                        # This prevents premature answer generation while interviewer is still speaking
+                        # The silence watcher (2.5-5.0s silence) will handle all answer triggering
+                        if False and speech_final and confidence >= PARTIAL_VAD_CONFIDENCE_THRESHOLD and dg_word_count >= current_min_words:
                             # Stabilization check: ensure transcript hasn't changed recently
                             time_since_change_ms = (now - last_transcript_change_ts) * 1000
                             is_stabilized = time_since_change_ms >= current_stabilization_ms or last_transcript_change_ts == 0
@@ -1926,6 +2318,33 @@ async def _voice_ws_inner(websocket: WebSocket):
                         except Exception as assist_exc:
                             logger.warning("Realtime assist hint evaluation failed: %s", assist_exc)
                 else:
+                    # ── Hybrid STT: Whisper + GPT correction on final transcripts ──
+                    if hybrid_stt and text:
+                        try:
+                            correction = await hybrid_stt.correct(text)
+                            corrected_text = correction.get("text", text)
+                            if corrected_text and corrected_text != text:
+                                corrections = correction.get("corrections", [])
+                                logger.info(
+                                    "[HYBRID_STT] Corrected '%s' → '%s' (%s) in %.0fms",
+                                    text[:50], corrected_text[:50],
+                                    correction.get("source", "unknown"),
+                                    correction.get("latency_ms", 0),
+                                )
+                                # Send correction notification to frontend
+                                if websocket.client_state == WebSocketState.CONNECTED:
+                                    await _safe_send({
+                                        "type": "stt_correction",
+                                        "session_id": session_id,
+                                        "original": text,
+                                        "corrected": corrected_text,
+                                        "source": correction.get("source"),
+                                        "corrections": corrections,
+                                    })
+                                text = corrected_text
+                        except Exception as stt_exc:
+                            logger.warning("[HYBRID_STT] Correction failed, using Deepgram text: %s", stt_exc)
+
                     if participant == "interviewer":
                         question_text = str(text or "").strip()
                         if not question_text:
@@ -2565,9 +2984,9 @@ async def _voice_ws_inner(websocket: WebSocket):
     last_vad_trigger_ts = 0.0  # Debounce VAD triggers
     
     # VAD Trigger configuration
-    VAD_MIN_CONFIDENCE = float(os.getenv("VAD_MIN_CONFIDENCE", "0.70"))  # Minimum confidence to trigger
-    VAD_MIN_WORDS = int(os.getenv("VAD_MIN_WORDS", "4"))  # Minimum words for VAD trigger
-    VAD_DEBOUNCE_SEC = float(os.getenv("VAD_DEBOUNCE_SEC", "1.0"))  # Prevent double-triggers
+    VAD_MIN_CONFIDENCE = float(os.getenv("VAD_MIN_CONFIDENCE", "0.90"))  # Minimum confidence to trigger
+    VAD_MIN_WORDS = int(os.getenv("VAD_MIN_WORDS", "8"))  # Minimum words for VAD trigger (8 = likely a complete question)
+    VAD_DEBOUNCE_SEC = float(os.getenv("VAD_DEBOUNCE_SEC", "3.0"))  # Prevent double-triggers (wait 3s between triggers)
     
     # Confidence filtering thresholds
     CONF_IGNORE_THRESHOLD = float(os.getenv("ASR_CONF_IGNORE", "0.50"))  # Below this: ignore entirely
@@ -2575,7 +2994,7 @@ async def _voice_ws_inner(websocket: WebSocket):
     CONF_FASTTRACK_THRESHOLD = float(os.getenv("ASR_CONF_FASTTRACK", "0.85"))  # Above this: fast-track
     
     # Stabilization window (ms)
-    STABILIZATION_WINDOW_MS = float(os.getenv("ASR_STABILIZATION_MS", "200"))  # Wait for transcript to stabilize
+    STABILIZATION_WINDOW_MS = float(os.getenv("ASR_STABILIZATION_MS", "1200"))  # Wait for transcript to stabilize (1200ms = interviewer likely done)
     last_transcript_hash = ""  # Track transcript changes for stabilization
     last_transcript_change_ts = 0.0  # When transcript last changed
     
@@ -2618,47 +3037,50 @@ async def _voice_ws_inner(websocket: WebSocket):
         word_count = len(text.split())
         lower_text = text.lower()
         
-        # ===== INSTANT VAD TRIGGER (0.3s) =====
-        # Deepgram VAD says speaker stopped + high confidence = immediate trigger
-        if speech_final and was_final and confidence >= 0.70:
-            return 0.3
-        
-        # ===== FAST TRIGGERS (0.5s) =====
-        # Complete sentence with terminal punctuation - always fast
-        if text.endswith((".", "?", "!", "。", "？", "！")):
-            return 0.5
-        
-        # VAD indicated end but lower confidence - still fast
-        if speech_final and word_count >= 4:
-            return 0.5
-        
-        # ===== MEDIUM-FAST TRIGGERS (0.7s) =====
-        # Deepgram marked as final + sufficient length = likely complete
-        if was_final and word_count >= 5:
-            return 0.7
-        
-        # Question words at start + sufficient length (often no punctuation in speech)
-        question_starters = ("what ", "how ", "why ", "when ", "where ", "who ", "which ", "can you", "could you", "tell me", "describe", "explain")
-        if any(lower_text.startswith(q) for q in question_starters) and word_count >= 5:
-            return 0.7
-        
-        # ===== SLOW TRIGGERS (1.3s) - Wait for more =====
-        # Very short - likely incomplete
-        if word_count < 4:
-            return 1.3
-        
-        # Endings that suggest incomplete thought
+        # ===== QUESTION COMPLETENESS CHECK =====
+        # Never trigger on obviously incomplete questions
         incomplete_endings = (
             " the", " a", " an", " to", " of", " for", " in", " on", " is", " are",
             " and", " but", " or", " with", " that", " which", " how", " what",
-            " when", " where", " why", " between", " about", " from", " your"
+            " when", " where", " why", " between", " about", " from", " your",
+            " if", " so", " do", " does", " would", " could", " should", " have",
+            " has", " can", " will", " not", " at", " by", " into", " through"
         )
         if any(lower_text.endswith(ending) for ending in incomplete_endings):
-            return 1.3
+            return 5.0  # Very long wait — sentence is clearly incomplete
         
-        # ===== DEFAULT (1.0s) =====
-        # Medium-length without clear signal
-        return 1.0
+        # Very short — likely not a complete question yet
+        if word_count < 8:
+            return 4.0  # Wait 4 full seconds for short fragments
+        
+        # ===== CONFIRMED COMPLETE (2.5s) =====
+        # Complete sentence with terminal punctuation — highest confidence it's done
+        # Still wait 2.5s because interviewer may add follow-up clause after pause
+        if text.endswith((".", "?", "!", "。", "？", "！")):
+            return 2.5
+        
+        # ===== VAD + FINAL CONFIRMED (3.0s) =====
+        # Deepgram VAD says speaker stopped + final + high confidence
+        if speech_final and was_final and confidence >= 0.90 and word_count >= 8:
+            return 3.0
+        
+        # ===== LIKELY COMPLETE (3.5s) =====
+        # Question words at start + sufficient length (often no punctuation in speech)
+        question_starters = ("what ", "how ", "why ", "when ", "where ", "who ", "which ", "can you", "could you", "tell me", "describe", "explain", "walk me")
+        if any(lower_text.startswith(q) for q in question_starters) and word_count >= 10:
+            return 3.5
+        
+        # VAD indicated end but no punctuation
+        if speech_final and word_count >= 8:
+            return 3.5
+        
+        # Deepgram marked as final + good length
+        if was_final and word_count >= 10:
+            return 3.5
+        
+        # ===== DEFAULT (4.0s) =====
+        # Not enough signals that the question is complete — wait longer
+        return 4.0
     
     async def silence_watcher():
         nonlocal last_audio_ts, turn_closed, waiting_for_next_turn, transcript_buffer, last_transcript_activity_ts, turn_start_ts, hard_timeout_without_final_count, pending_partial_question, pending_partial_question_ts, last_interviewer_question_key, last_interviewer_question_ts, last_vad_trigger_ts, last_transcript_hash, last_transcript_change_ts
@@ -3016,6 +3438,18 @@ async def _voice_ws_inner(websocket: WebSocket):
                 await dg.close()
         except Exception as e:
             logger.warning("Deepgram already closed: %s", e)
+        # Cleanup hybrid STT corrector
+        if hybrid_stt:
+            try:
+                stt_stats = hybrid_stt.get_stats()
+                if stt_stats.get("whisper_calls", 0) > 0:
+                    logger.info("HYBRID_STT_SUMMARY | whisper_calls=%d gpt_corrections=%d corrections_made=%d avg_whisper_ms=%.0f avg_gpt_ms=%.0f",
+                               stt_stats["whisper_calls"], stt_stats["gpt_corrections"],
+                               stt_stats["corrections_made"], stt_stats["avg_whisper_latency_ms"],
+                               stt_stats["avg_gpt_latency_ms"])
+                await hybrid_stt.close()
+            except Exception:
+                pass
         await lifecycle_manager.unregister(room_id, websocket, session_id)
         session_registry.mark_inactive(session_id)
         decrement_metric("ws_connections_active", 1)

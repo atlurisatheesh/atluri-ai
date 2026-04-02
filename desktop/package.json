@@ -5,6 +5,7 @@
   "main": "dist/main.js",
   "type": "commonjs",
   "scripts": {
+    "start": "electron .",
     "build": "tsc -p tsconfig.json && cpx \"src/renderer/index.html\" dist/renderer",
     "dev": "npm run build && electron .",
     "dev:watch": "concurrently -k \"tsc -p tsconfig.json -w\" \"electron .\"",

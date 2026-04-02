@@ -39,6 +39,14 @@ async def create_session(req: CreateSessionRequest, request: Request, db: AsyncS
     await db.commit()
     await db.refresh(session)
 
+    # Inject relevant memory context from past sessions
+    memory_context = ""
+    try:
+        from app.services.memory_service import get_session_context
+        memory_context = await get_session_context(db, session.user_id, max_chars=2000)
+    except Exception:
+        pass
+
     return {
         "id": str(session.id),
         "title": session.title,
@@ -46,6 +54,7 @@ async def create_session(req: CreateSessionRequest, request: Request, db: AsyncS
         "mode": session.mode,
         "status": session.status,
         "started_at": session.started_at.isoformat(),
+        "memory_context": memory_context,
     }
 
 
@@ -94,6 +103,18 @@ async def end_session(session_id: str, request: Request, db: AsyncSession = Depe
     if session.started_at:
         session.duration_seconds = int((now - session.started_at).total_seconds())
     await db.commit()
+
+    # Auto-generate session recap in persistent memory
+    try:
+        from app.services.memory_hooks import auto_capture_session_end
+        await auto_capture_session_end(
+            db, user_id, session_id,
+            session_title=session.title or "",
+            duration_seconds=session.duration_seconds,
+            score=session.score,
+        )
+    except Exception:
+        pass  # never break session end flow
 
     return {
         "id": str(session.id),

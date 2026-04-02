@@ -25,6 +25,7 @@
 
 from openai import OpenAI
 from core.config import OPENAI_API_KEY
+from app.scenarios import get_scenario_prompt, get_scenario_eval_criteria
 import json
 import re
 
@@ -79,10 +80,32 @@ def _extract_json_dict(text: str) -> dict | None:
     return None
 
 
-def evaluate_answer(question: str, answer: str) -> dict:
+def evaluate_answer(question: str, answer: str, scenario: str | None = None) -> dict:
+
+    scenario_prompt = get_scenario_prompt(scenario)
+    scenario_criteria = get_scenario_eval_criteria(scenario)
+
+    # Build evaluation dimensions from scenario criteria or use defaults
+    if scenario_criteria:
+        dimensions = {name: f"0-100 ({c['description']})" for name, c in scenario_criteria.items()}
+        dim_json = json.dumps(dimensions, indent=2)
+        eval_instruction = f"""Evaluate on these scenario-specific dimensions:
+{dim_json}
+
+Return JSON with each dimension as a key (0-100) plus a "feedback" string."""
+    else:
+        eval_instruction = """Give evaluation strictly in JSON:
+{
+  "technical": 0-100,
+  "communication": 0-100,
+  "confidence": 0-100,
+  "clarity": 0-100,
+  "feedback": "short feedback"
+}"""
 
     prompt = f"""
 You are a senior technical interviewer.
+{scenario_prompt}
 
 Question:
 {question}
@@ -90,14 +113,7 @@ Question:
 Candidate Answer:
 {answer}
 
-Give evaluation strictly in JSON:
-{{
-  "technical": 0-100,
-  "communication": 0-100,
-  "confidence": 0-100,
-  "clarity": 0-100,
-  "feedback": "short feedback"
-}}
+{eval_instruction}
 """
 
     res = client.responses.create(

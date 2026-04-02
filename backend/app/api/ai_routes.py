@@ -183,6 +183,19 @@ async def generate_ai_response(req: AIResponseRequest, request: Request, db: Asy
     except Exception as e:
         logger.error(f"DB save error: {e}")
 
+    # Auto-capture to persistent memory system
+    try:
+        from app.services.memory_hooks import auto_capture_ai_response
+        await auto_capture_ai_response(
+            db, user_id, req.session_id,
+            question=req.question,
+            answer=result.get("direct_answer", ""),
+            score=result.get("confidence"),
+            model_used="gpt-4o",
+        )
+    except Exception:
+        pass  # never break the main flow
+
     return {**result, "latency_ms": latency_ms}
 
 

@@ -25,6 +25,11 @@ export default function InterviewPage() {
           <InterviewWizard
             onStart={(config) => {
               setWizardConfig(config);
+              if (config.scenario) {
+                try { localStorage.setItem("atluriin.interview.scenario", config.scenario); } catch {}
+              } else {
+                try { localStorage.removeItem("atluriin.interview.scenario"); } catch {}
+              }
               setStarted(true);
             }}
           />

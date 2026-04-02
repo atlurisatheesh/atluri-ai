@@ -23,7 +23,7 @@ import { GlassCard, NeonButton, StatusBadge, Modal } from "@/components/ui";
 
 type Stage = "config" | "live" | "report";
 type QuestionType = "behavioral" | "technical" | "trap" | "culture" | "negotiation" | "unknown";
-type ModelRoute = "gpt4o" | "claude35" | "gemini15";
+type ModelRoute = "gpt5" | "gpt41" | "claude45" | "gemini3" | "gemini25flash" | "grok4" | "deepseek";
 
 interface ModelResult {
   route: ModelRoute;
@@ -58,9 +58,13 @@ const QUESTION_TYPE_META: Record<QuestionType, { label: string; color: string; b
 };
 
 const MODEL_META: Record<ModelRoute, { label: string; color: string; icon: string }> = {
-  gpt4o:    { label: "GPT-4o",      color: "text-brand-cyan",   icon: "⬡" },
-  claude35: { label: "Claude 3.5",  color: "text-brand-purple", icon: "◆" },
-  gemini15: { label: "Gemini 1.5",  color: "text-brand-amber",  icon: "◈" },
+  gpt5:          { label: "GPT-5",            color: "text-brand-cyan",   icon: "⬡" },
+  gpt41:         { label: "GPT-4.1",          color: "text-brand-cyan",   icon: "⬢" },
+  claude45:      { label: "Claude 4.5",       color: "text-brand-purple", icon: "◆" },
+  gemini3:       { label: "Gemini 3 Pro",     color: "text-brand-amber",  icon: "◈" },
+  gemini25flash: { label: "Gemini 2.5 Flash", color: "text-brand-amber",  icon: "◇" },
+  grok4:         { label: "Grok 4",           color: "text-brand-red",    icon: "✦" },
+  deepseek:      { label: "DeepSeek",         color: "text-brand-green",  icon: "◎" },
 };
 
 const COMPANY_INTEL: Record<string, { focus: string[]; redFlags: string[]; rubric: string }> = {
@@ -96,19 +100,19 @@ const DEMO_TRANSCRIPT: LiveTranscriptLine[] = [
 
 const DEMO_MODEL_RESULTS: ModelResult[] = [
   {
-    route: "gpt4o",
-    label: "GPT-4o",
+    route: "gpt5",
+    label: "GPT-5",
     answer: "Lead with the measurable outcome first: 84% failure rate reduction. Then explain the architecture shift from synchronous saga to event-driven choreography with Kafka. Quantify: p99 latency dropped from 780ms to 130ms, throughput doubled to 50K TPS.",
-    confidence: 94,
-    latencyMs: 312,
+    confidence: 97,
+    latencyMs: 285,
     color: "brand-cyan",
   },
   {
-    route: "claude35",
-    label: "Claude 3.5",
+    route: "claude45",
+    label: "Claude 4.5",
     answer: "Start with context: 'I architected a geo-distributed payment system handling 50K TPS.' Then describe your partition-aware Kafka topology, idempotent consumer design, and the tradeoff you made between consistency and availability using saga compensation.",
-    confidence: 91,
-    latencyMs: 287,
+    confidence: 95,
+    latencyMs: 264,
     color: "brand-purple",
   },
 ];
@@ -121,6 +125,15 @@ const DEMO_COACH = {
   gazeScore: 78,
   bodyLanguage: "Looking slightly down at notes. Maintain camera level for authority signals.",
   competitorScore: { google: 88, meta: 91, amazon: 85, stripe: 79 },
+};
+
+const DEMO_SPEECH_ANALYTICS = {
+  structure: 88,
+  clarity: 82,
+  confidence: 91,
+  impact: 76,
+  pacing: 85,
+  engagement: 79,
 };
 
 const OFFER_HISTORY = [0, 52, 61, 68, 74, 78, 83, 87, 89, 91];
@@ -343,7 +356,7 @@ export default function CopilotPage() {
   const [objective, setObjective] = useState("Behavioral Interview");
   const [tone, setTone] = useState("Professional");
   const [framework, setFramework] = useState("STAR");
-  const [primaryModel, setPrimaryModel] = useState<ModelRoute>("gpt4o");
+  const [primaryModel, setPrimaryModel] = useState<ModelRoute>("gpt5");
   const [dualModel, setDualModel] = useState(true);
   const [panicKey, setPanicKey] = useState("Ctrl+Shift+P");
   const [resumeUploaded, setResumeUploaded] = useState(false);
@@ -357,6 +370,7 @@ export default function CopilotPage() {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [screenshotUploaded, setScreenshotUploaded] = useState(false);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [imageContext, setImageContext] = useState("");
   const screenshotInputRef = useRef<HTMLInputElement>(null);
   const liveScreenshotInputRef = useRef<HTMLInputElement>(null);
 
@@ -366,7 +380,7 @@ export default function CopilotPage() {
   const [offerProbability, setOfferProbability] = useState(74);
   const [sessionSeconds, setSessionSeconds] = useState(0);
   const [activeQuestion, setActiveQuestion] = useState<QuestionType>("technical");
-  const [selectedModel, setSelectedModel] = useState<ModelRoute>("gpt4o");
+  const [selectedModel, setSelectedModel] = useState<ModelRoute>("gpt5");
   const [panicMode, setPanicMode] = useState(false);
   const [showCoachPanel, setShowCoachPanel] = useState(true);
   const [showCompetitorIntel, setShowCompetitorIntel] = useState(false);
@@ -633,6 +647,24 @@ export default function CopilotPage() {
                     </div>
                     <input ref={screenshotInputRef} type="file" accept="image/*" className="hidden" onChange={e => handleScreenshot(e)} aria-label="Upload screenshot" />
                   </div>
+
+                  {/* Image Analysis Context */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] text-textMuted uppercase tracking-wider flex items-center gap-1.5">
+                      <Image className="w-3 h-3" /> Image / Visual Context
+                      <span className="ml-auto text-[10px] text-textMuted font-mono">{imageContext.length}/1000</span>
+                    </label>
+                    <textarea
+                      title="Image analysis context"
+                      placeholder='Describe any visual context for the AI — e.g. "Prioritize system design diagrams" or "Focus on the code, not the UI"'
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-xs text-textPrimary focus:outline-none focus:border-brand-purple transition resize-none"
+                      rows={2}
+                      maxLength={1000}
+                      value={imageContext}
+                      onChange={e => setImageContext(e.target.value)}
+                    />
+                    <p className="text-[10px] text-textMuted">Helps the AI interpret screenshots, screen shares, and diagrams during your session.</p>
+                  </div>
                 </GlassCard>
 
                 {/* ── 2. AI Engine Settings ── */}
@@ -653,7 +685,7 @@ export default function CopilotPage() {
                         <motion.div className="w-4 h-4 rounded-full bg-white" animate={{ x: dualModel ? 20 : 0 }} transition={{ type: "spring", stiffness: 400, damping: 30 }} />
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-3 md:grid-cols-5 gap-1.5">
                       {(Object.entries(MODEL_META) as [ModelRoute, typeof MODEL_META[ModelRoute]][]).map(([k, m]) => (
                         <button key={k} onClick={() => setPrimaryModel(k)}
                           className={`py-1.5 text-[10px] rounded-lg border font-bold transition ${primaryModel === k ? `border-brand-purple/50 bg-brand-purple/20 ${m.color}` : "border-white/[0.06] text-textMuted hover:bg-white/[0.04]"}`}>
@@ -1018,9 +1050,9 @@ export default function CopilotPage() {
                   <GlassCard className="p-4 border-brand-cyan/15">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-textPrimary flex items-center gap-1.5">
-                        <UserCircle className="w-4 h-4 text-brand-cyan" /> AI Coach
+                        <UserCircle className="w-4 h-4 text-brand-cyan" /> Aria <span className="text-[10px] text-textMuted font-normal">AI Coach</span>
                       </h3>
-                      <button onClick={() => setShowCoachPanel(v => !v)} className="text-textMuted hover:text-textPrimary transition" title="Toggle coach panel" aria-label="Toggle coach panel">
+                      <button onClick={() => setShowCoachPanel(v => !v)} className="text-textMuted hover:text-textPrimary transition" title="Toggle Aria coach panel" aria-label="Toggle Aria coach panel">
                         {showCoachPanel ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
                     </div>
@@ -1052,6 +1084,43 @@ export default function CopilotPage() {
 
                 {/* â”€â”€ Right column: Intelligence Sidebar â”€â”€ */}
                 <div className="xl:col-span-3 space-y-4">
+
+                  {/* Speech Analytics */}
+                  <GlassCard className="p-4 space-y-3">
+                    <h3 className="text-[11px] text-textMuted uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                      <BarChart3 className="w-3 h-3 text-brand-green" /> Speech Analytics
+                    </h3>
+                    <div className="space-y-2">
+                      {([
+                        { label: "Structure", key: "structure" as const, color: "brand-cyan" },
+                        { label: "Clarity", key: "clarity" as const, color: "brand-purple" },
+                        { label: "Confidence", key: "confidence" as const, color: "brand-green" },
+                        { label: "Impact", key: "impact" as const, color: "brand-amber" },
+                        { label: "Pacing", key: "pacing" as const, color: "brand-cyan" },
+                        { label: "Engagement", key: "engagement" as const, color: "brand-purple" },
+                      ] as const).map(m => {
+                        const val = DEMO_SPEECH_ANALYTICS[m.key];
+                        const barColor = val >= 80 ? "bg-brand-green" : val >= 50 ? "bg-brand-amber" : "bg-brand-red";
+                        return (
+                          <div key={m.key} className="space-y-0.5">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-textMuted">{m.label}</span>
+                              <span className={`font-bold ${val >= 80 ? "text-brand-green" : val >= 50 ? "text-brand-amber" : "text-brand-red"}`}>{val}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                              <motion.div className={`h-full rounded-full ${barColor}`} animate={{ width: `${val}%` }} transition={{ duration: 0.6 }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] pt-1 border-t border-white/[0.05]">
+                      <span className="text-textMuted">Overall</span>
+                      <span className="text-brand-green font-bold">
+                        {Math.round(Object.values(DEMO_SPEECH_ANALYTICS).reduce((a, b) => a + b, 0) / 6)}%
+                      </span>
+                    </div>
+                  </GlassCard>
 
                   {/* Follow-Up Predictor */}
                   <GlassCard className="p-4 space-y-3">
@@ -1373,7 +1442,7 @@ export default function CopilotPage() {
                       </div>
                     </GlassCard>
                     <GlassCard className="p-5 space-y-3">
-                      <h3 className="text-sm font-semibold text-textPrimary flex items-center gap-2"><Bot className="w-4 h-4 text-brand-cyan" /> AI Coach Notes</h3>
+                      <h3 className="text-sm font-semibold text-textPrimary flex items-center gap-2"><Bot className="w-4 h-4 text-brand-cyan" /> Aria&apos;s Coach Notes</h3>
                       <ul className="space-y-2">
                         {["Pause before stating metrics â€” builds anticipation", "Maintain first-person ownership language throughout", "Lead with the result, then explain the method", "Look at camera during the Result section", "Vary sentence length for natural rhythm"].map((n, i) => (
                           <li key={i} className="text-sm text-textSecondary flex gap-2"><ChevronRight className="w-3.5 h-3.5 text-brand-cyan shrink-0 mt-0.5" />{n}</li>

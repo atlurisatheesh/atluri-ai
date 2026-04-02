@@ -15,6 +15,7 @@ from app.analytics.performance_engine import PerformanceAnalyticsEngine
 from app.leadership.leadership_engine import LeadershipEngine
 from app.escalation.seniority_engine import SeniorityEscalationEngine
 from app.mce import ClaimExtractor, RecallPlanner
+from app.scenarios import get_scenario_prompt
 from core.config import QA_MODE
 
 
@@ -613,6 +614,7 @@ class AIReasoningEngine:
         # FOLLOW-UP GENERATION
         # =========================
         if decision.action in ["probe", "clarification"]:
+            scenario_id = getattr(self.session_engine, "scenario", None) if self.session_engine else None
             prompt = build_followup_prompt({
                 "role": role,
                 "turn_index": len(getattr(self.session_engine, "turns", []) or []) + 1,
@@ -624,6 +626,7 @@ class AIReasoningEngine:
                 "escalation_guidance": self.seniority_escalation_engine.get_mode_guidance(
                     decision.escalation_mode
                 ),
+                "scenario_prompt": get_scenario_prompt(scenario_id),
                 "last_answer": interview_snapshot.last_turn_summary,
                 "signals": signals,
                 "recommended_action": interview_snapshot.recommended_action,

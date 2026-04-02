@@ -3,12 +3,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import {
-    GripVertical, X, Copy, Settings, Mic, MicOff,
+    GripVertical, X, Copy, Settings, Mic, MicOff, Square,
     ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
     Maximize2, Minimize2, MessageSquare, BrainCircuit,
     UserCircle, Layers, Activity, AlertTriangle,
     Shield, ShieldAlert, Radio, Clock, Eye,
-    ArrowDown, Video, VideoOff,
+    ArrowDown, Video, VideoOff, Camera,
 } from "lucide-react";
 import type {
     OverlayPosition, OverlaySize, TranscriptLine,
@@ -32,6 +32,9 @@ interface PhantomOverlayProps {
     opacity?: number;
     position?: OverlayPosition;
     size?: OverlaySize;
+    // Live question tracking
+    currentQuestion?: string;
+    partialQuestion?: string;
     // Phase 2: Streaming
     streamingText?: string;
     isStreaming?: boolean;
@@ -48,6 +51,13 @@ interface PhantomOverlayProps {
     threatToast?: string | null;
     // Settings callback
     onUpdateSettings?: (patch: { opacity?: number; position?: OverlayPosition; size?: OverlaySize }) => void;
+    // Stop session callback
+    onStop?: () => void;
+    isSessionActive?: boolean;
+    // Screenshot analysis
+    screenshotAnalysis?: string;
+    isAnalyzingScreenshot?: boolean;
+    onCaptureScreenshot?: () => void;
 }
 
 const POSITION_STYLES: Record<OverlayPosition, string> = {
@@ -122,6 +132,8 @@ export default function PhantomOverlay({
     opacity = 0.95,
     position = "top-right",
     size = "standard",
+    currentQuestion = "",
+    partialQuestion = "",
     streamingText = "",
     isStreaming = false,
     elapsedSeconds = 0,
@@ -132,6 +144,11 @@ export default function PhantomOverlay({
     stealthHealth,
     threatToast,
     onUpdateSettings,
+    onStop,
+    isSessionActive = false,
+    screenshotAnalysis = "",
+    isAnalyzingScreenshot = false,
+    onCaptureScreenshot,
 }: PhantomOverlayProps) {
     const [collapsed, setCollapsed] = useState(false);
     const [minimalMode, setMinimalMode] = useState(false);
@@ -392,6 +409,27 @@ export default function PhantomOverlay({
                             <button onClick={onToggleMic} className="p-1 rounded hover:bg-white/[0.06] transition" tabIndex={0} title={isListening ? "Mute mic" : "Unmute mic"}>
                                 {isListening ? <Mic className="w-3.5 h-3.5 text-brand-green" /> : <MicOff className="w-3.5 h-3.5 text-brand-red" />}
                             </button>
+                            {isSessionActive && onCaptureScreenshot && (
+                                <button
+                                    onClick={onCaptureScreenshot}
+                                    className={`p-1 rounded hover:bg-brand-cyan/20 transition ${isAnalyzingScreenshot ? "animate-pulse" : ""}`}
+                                    tabIndex={0}
+                                    title="Capture Screenshot for AI Analysis (Ctrl+Shift+F)"
+                                >
+                                    <Camera className={`w-3.5 h-3.5 ${isAnalyzingScreenshot ? "text-brand-cyan" : "text-textMuted"}`} />
+                                </button>
+                            )}
+                            {isSessionActive && onStop && (
+                                <button
+                                    onClick={onStop}
+                                    className="px-2 py-0.5 rounded bg-brand-red/20 hover:bg-brand-red/40 border border-brand-red/30 transition flex items-center gap-1 group"
+                                    tabIndex={0}
+                                    title="Stop Interview Session"
+                                >
+                                    <Square className="w-3 h-3 text-brand-red fill-brand-red group-hover:scale-110 transition-transform" />
+                                    <span className="text-[9px] font-semibold text-brand-red uppercase tracking-wider">Stop</span>
+                                </button>
+                            )}
                             <button onClick={() => setMinimalMode(true)} className="p-1 rounded hover:bg-white/[0.06] transition" title="Minimal mode" tabIndex={0}>
                                 <Minimize2 className="w-3.5 h-3.5 text-textMuted" />
                             </button>
@@ -517,7 +555,7 @@ export default function PhantomOverlay({
                                 {TAB_KEYS.map((tab, i) => {
                                     const cfg = {
                                         master: { icon: <BrainCircuit className="w-3 h-3" />, label: "AI Master", color: "brand-purple" },
-                                        coach: { icon: <UserCircle className="w-3 h-3" />, label: "AI Coach", color: "brand-cyan" },
+                                        coach: { icon: <UserCircle className="w-3 h-3" />, label: "Aria", color: "brand-cyan" },
                                         transcript: { icon: <MessageSquare className="w-3 h-3" />, label: "Transcript", color: "brand-amber" },
                                     }[tab];
                                     return (
@@ -564,6 +602,46 @@ export default function PhantomOverlay({
                                                 >
                                                     <ChevronRight className="w-3.5 h-3.5 text-textMuted" />
                                                 </button>
+                                            </div>
+                                        )}
+
+                                        {/* ═══ LIVE QUESTION BLOCK ═══ */}
+                                        {(currentQuestion || partialQuestion) && (
+                                            <div className="p-3 rounded-xl bg-brand-amber/5 border border-brand-amber/10 relative">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <span className="text-[9px] text-brand-amber font-bold uppercase tracking-wider flex items-center gap-1">
+                                                        👤 Interviewer
+                                                        {partialQuestion && !currentQuestion && (
+                                                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-amber animate-pulse" />
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[13px] text-textPrimary leading-relaxed italic">
+                                                    &ldquo;{partialQuestion || currentQuestion}&rdquo;
+                                                    {partialQuestion && !currentQuestion && (
+                                                        <span className="inline-block w-0.5 h-4 bg-brand-amber ml-0.5 animate-pulse" />
+                                                    )}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* ═══ SCREENSHOT ANALYSIS BLOCK ═══ */}
+                                        {(screenshotAnalysis || isAnalyzingScreenshot) && (
+                                            <div className="p-3 rounded-xl bg-brand-cyan/5 border border-brand-cyan/10 relative">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <span className="text-[9px] text-brand-cyan font-bold uppercase tracking-wider flex items-center gap-1">
+                                                        📸 Screenshot Analysis
+                                                        {isAnalyzingScreenshot && (
+                                                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse" />
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                <div className="text-[12px] text-textPrimary leading-relaxed whitespace-pre-wrap">
+                                                    {screenshotAnalysis}
+                                                    {isAnalyzingScreenshot && (
+                                                        <span className="inline-block w-0.5 h-4 bg-brand-cyan ml-0.5 animate-pulse" />
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
 
@@ -752,8 +830,8 @@ export default function PhantomOverlay({
                                         ) : (
                                             <div className="text-center py-8">
                                                 <UserCircle className="w-8 h-8 mx-auto text-textMuted mb-2 opacity-30" />
-                                                <p className="text-xs text-textMuted">AI Coach is monitoring...</p>
-                                                <p className="text-[10px] text-textMuted mt-1">Behavioral tips and delivery alerts will appear here</p>
+                                                <p className="text-xs text-textMuted">Aria is monitoring...</p>
+                                                <p className="text-[10px] text-textMuted mt-1">AI coaching tips and delivery alerts will appear here</p>
                                             </div>
                                         )}
                                     </div>

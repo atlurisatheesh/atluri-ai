@@ -171,6 +171,29 @@ export const mockService = {
   complete: (mockId: string) => authedPost<MockCompleteResult>(`/api/mock/${mockId}/complete`),
 };
 
+// Scenarios
+export type ScenarioItem = {
+  id: string;
+  label: string;
+  category: string;
+  description: string;
+  tags: string[];
+  focus_areas: string[];
+  difficulty_modifier: number;
+  question_count: number;
+};
+
+export type ScenarioCategory = {
+  id: string;
+  label: string;
+  icon: string;
+};
+
+export const scenarioService = {
+  list: () => authedGet<{ items: ScenarioItem[]; categories: ScenarioCategory[] }>("/api/scenarios"),
+  get: (id: string) => authedGet<Record<string, unknown>>(`/api/scenarios/${id}`),
+};
+
 // Resume
 export const resumeService = {
   analyze: async (file: File, jobDescription?: string) => {

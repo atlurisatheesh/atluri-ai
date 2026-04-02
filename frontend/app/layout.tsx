@@ -42,7 +42,19 @@ export default function RootLayout({
       <body data-atmosphere="balanced" suppressHydrationWarning>
         <script
           dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}`,
+            __html: [
+              // Polyfill: intercept window.mgt assignments from browser extensions (e.g. LinkedIn,
+              // Microsoft Graph Toolkit) that omit clearMarks/mark, preventing "mgt.clearMarks is
+              // not a function" crashes before any other script runs.
+              `(function(){try{var _v=null;Object.defineProperty(window,'mgt',{configurable:true,` +
+              `get:function(){return _v;},` +
+              `set:function(v){if(v&&typeof v.clearMarks!=='function')v.clearMarks=function(){};` +
+              `if(v&&typeof v.mark!=='function')v.mark=function(){};` +
+              `if(v&&typeof v.getMarks!=='function')v.getMarks=function(){return[];};` +
+              `if(v&&typeof v.getMeasures!=='function')v.getMeasures=function(){return[];};` +
+              `_v=v;}});}catch(e){}})();`,
+              `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}`,
+            ].join(''),
           }}
         />
         <ToastProvider>{children}</ToastProvider>

@@ -49,7 +49,7 @@ async def init_db() -> None:
     from app.db.models import (  # noqa: F401 – ensure models are registered
         User, InterviewSession, AIResponse, Document, MockResult,
         Question, UserQuestionProgress, CreditTransaction, MentorSession,
-        ResumeAnalysis,
+        ResumeAnalysis, UserMemory,
     )
 
     async with engine.begin() as conn:

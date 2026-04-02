@@ -65,8 +65,11 @@ from app.api.career_routes import router as career_router
 from app.api.company_intel_routes import router as company_intel_router
 from app.api.learning_routes import router as learning_router
 from app.api.desktop_downloads import router as desktop_downloads_router
+from app.api.memory_routes import router as memory_router
+from app.api.voice_profiler_routes import router as voice_profiler_router
 from app.db.database import init_db
 from app.company_modes import list_company_modes
+from app.scenarios import list_scenarios, list_scenario_categories, get_scenario
 from app.system_metrics import set_metric, get_metrics_snapshot
 from core.config import QA_MODE
 from app.api.ws_admission import get_admission_controller
@@ -288,6 +291,20 @@ async def startup_banner():
 
     _session_cleanup_task = asyncio.create_task(_session_cleanup_loop())
 
+    # Periodic memory cleanup (expired memories)
+    async def _memory_cleanup_loop():
+        while True:
+            await asyncio.sleep(3600)  # every hour
+            try:
+                from app.db.database import AsyncSessionLocal
+                from app.services.memory_service import cleanup_expired
+                async with AsyncSessionLocal() as db:
+                    await cleanup_expired(db)
+            except Exception as exc:
+                logger.warning("[MEMORY] cleanup task error: %s", exc)
+
+    asyncio.create_task(_memory_cleanup_loop())
+
 
 @app.on_event("shutdown")
 async def shutdown_handler():
@@ -396,6 +413,23 @@ def set_context_company_mode(payload: dict, request: Request):
     user_id = get_user_id(request)
     mode = set_company_mode(user_id, str(payload.get("company_mode") or "general"))
     return {"company_mode": mode}
+
+
+# ── Scenario endpoints ──
+
+@app.get("/api/scenarios")
+def get_scenarios_list(request: Request):
+    get_user_id(request)
+    return {"items": list_scenarios(), "categories": list_scenario_categories()}
+
+
+@app.get("/api/scenarios/{scenario_id}")
+def get_scenario_detail(scenario_id: str, request: Request):
+    get_user_id(request)
+    scenario = get_scenario(scenario_id)
+    if not scenario:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    return {"id": scenario_id, **scenario}
 
 
 @app.get("/api/assist/intensity")
@@ -911,4 +945,6 @@ app.include_router(career_router)
 app.include_router(company_intel_router)
 app.include_router(learning_router)
 app.include_router(desktop_downloads_router)
+app.include_router(memory_router)
+app.include_router(voice_profiler_router)
 register_me_endpoint(app, get_user_id_async)

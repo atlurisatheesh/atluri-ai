@@ -30,13 +30,14 @@ import uuid
 sessions = {}
 
 
-def create_session(user_id: str, role: str, company_mode: str = "general"):
+def create_session(user_id: str, role: str, company_mode: str = "general", scenario: str | None = None):
     session_id = str(uuid.uuid4())
 
     sessions[session_id] = {
         "user_id": user_id,
         "role": role,
         "company_mode": company_mode,
+        "scenario": scenario,
         "questions": [],
         "answers": [],
         "evaluations": [],

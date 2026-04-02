@@ -10,8 +10,9 @@ dist/
 build/
 out/
 
-# Archives
+# Archives & temp
 *.zip
+_archive/
 
 # IDE
 .idea/
@@ -23,3 +24,28 @@ out/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Images / screenshots
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.ico
+*.svg
+*.webp
+
+# Documentation (keep only README)
+docs/
+*.md
+!README.md
+
+# QA reports & screenshots
+qa/reports/
+qa/regression/reports/
+
+# User/temp data
+backend/data/
+*.csv
+*.sqlite
+*.db

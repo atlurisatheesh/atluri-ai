@@ -393,6 +393,44 @@ class DeepgramService:
 
         # Use minimal options for SDK 3.2.7 compatibility
         # Language optimization: "en" is faster for English-only, "multi" for auto-detect
+        #
+        # keywords: Boost recognition of technical terms that Deepgram's base model
+        # often misrecognizes (e.g. "ECS" → "CCS", "Kubernetes" → "Cooper Netties").
+        # Each keyword can have an optional intensity from -10 to 10.
+        tech_keywords = [
+            # AWS
+            "ECS:5", "ECR:5", "EKS:5", "S3:5", "EC2:5", "IAM:5", "VPC:5",
+            "RDS:3", "SQS:3", "SNS:3", "Lambda:3", "CloudFront:3", "DynamoDB:3",
+            "Fargate:3", "CDK:3", "CloudFormation:3", "ALB:3", "NLB:3",
+            # GCP
+            "GKE:3", "BigQuery:3", "Pub/Sub:3", "GCS:3", "Spanner:3",
+            # Azure
+            "AKS:3", "Cosmos DB:3", "Blob Storage:3",
+            # Containers & orchestration
+            "Kubernetes:3", "Docker:3", "Helm:3", "Istio:3", "Envoy:3",
+            # Databases
+            "PostgreSQL:3", "MySQL:3", "MongoDB:3", "Cassandra:3", "Redis:3",
+            "Elasticsearch:3", "Kafka:3", "RabbitMQ:3", "NATS:3",
+            # Programming
+            "TypeScript:3", "JavaScript:3", "Python:3", "Golang:3", "Rust:3",
+            "Node.js:3", "React:3", "Next.js:3", "FastAPI:3", "GraphQL:3",
+            "gRPC:3", "REST API:3", "WebSocket:3",
+            # System design concepts
+            "microservices:2", "monolith:2", "event-driven:2", "CQRS:3",
+            "saga pattern:2", "circuit breaker:2", "load balancer:2",
+            "sharding:2", "replication:2", "CAP theorem:2", "ACID:3",
+            "BASE:3", "idempotent:2", "eventual consistency:2",
+            # CI/CD & DevOps
+            "CI/CD:3", "GitHub Actions:3", "Terraform:3", "Ansible:3",
+            "Prometheus:3", "Grafana:3", "Datadog:3", "Splunk:3",
+            # Interview terms
+            "STAR method:2", "behavioral:2", "system design:2",
+            "LeetCode:3", "two sum:2", "binary search:2", "BFS:3", "DFS:3",
+            "dynamic programming:2", "Big O:3", "O(n):3", "O(log n):3",
+            # Company names
+            "Google:2", "Amazon:2", "Meta:2", "Microsoft:2", "Apple:2",
+            "Netflix:2", "Uber:2", "Airbnb:2", "Stripe:2", "OpenAI:2",
+        ]
         options = LiveOptions(
             model="nova-2",
             language=self.language,  # "en" for faster English-only, "multi" for auto-detect all
@@ -403,6 +441,7 @@ class DeepgramService:
             punctuate=True,
             endpointing=DEEPGRAM_ENDPOINTING_MS,
             smart_format=True,
+            keywords=tech_keywords,
         )
         logger.info("[DG] Using language mode: %s", self.language)
 

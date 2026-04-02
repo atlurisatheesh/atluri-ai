@@ -56,6 +56,7 @@
 from openai import OpenAI
 from core.config import OPENAI_API_KEY
 from app.company_modes import get_company_mode_prompt
+from app.scenarios import get_scenario_prompt, get_scenario_question_bank
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -91,15 +92,23 @@ def generate_questions(role: str):
 
 # ---------- AI FOLLOW-UP QUESTIONS ----------
 
-def generate_question(role: str, history: list, company_mode: str = "general"):
+def generate_question(role: str, history: list, company_mode: str = "general", scenario: str | None = None):
 
     company_prompt = get_company_mode_prompt(company_mode)
+    scenario_prompt = get_scenario_prompt(scenario)
+
+    # If this is the first question and we have a scenario question bank, use it
+    scenario_bank = get_scenario_question_bank(scenario)
+    if not history and scenario_bank:
+        import random
+        return random.choice(scenario_bank)
 
     prompt = f"""
 You are a professional technical interviewer.
 
 Job Role: {role}
 {company_prompt}
+{scenario_prompt}
 
 Previous Q&A:
 {history}

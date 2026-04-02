@@ -277,3 +277,37 @@ class MentorSession(Base):
     hints_sent: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+# ── 11. UserMemory — Persistent Memory System ────────────
+class MemoryType(str, enum.Enum):
+    observation = "observation"     # raw captured event
+    summary = "summary"             # AI-compressed summary
+    insight = "insight"             # pattern / learning extracted
+    session_recap = "session_recap" # end-of-session digest
+
+
+class UserMemory(Base):
+    """Persistent memory store inspired by claude-mem.
+    Captures interview observations, compresses them into summaries,
+    and serves relevant context back into future sessions."""
+    __tablename__ = "user_memories"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_gen_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    session_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("interview_sessions.id"), nullable=True, index=True)
+
+    memory_type: Mapped[str] = mapped_column(String(30), default=MemoryType.observation.value, index=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    compressed: Mapped[str | None] = mapped_column(Text, nullable=True)      # AI-compressed version
+    tags: Mapped[dict | None] = mapped_column(JSON, nullable=True)            # ["behavioral", "aws", ...]
+    metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)   # extra context
+    importance: Mapped[float] = mapped_column(Float, default=0.5)             # 0.0-1.0 relevance weight
+    access_count: Mapped[int] = mapped_column(Integer, default=0)             # retrieval frequency
+    last_accessed: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # optional TTL
+
+    user = relationship("User")

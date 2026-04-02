@@ -1,4 +1,12 @@
 def build_followup_prompt(context: dict) -> str:
+    scenario_block = ""
+    if context.get("scenario_prompt"):
+        scenario_block = (
+            "\nScenario Context:\n"
+            + str(context.get("scenario_prompt"))
+            + "\n"
+        )
+
     return f"""
 You are a senior technical interviewer at a top-tier company.
 
@@ -20,7 +28,7 @@ Escalation mode behavior:
 - ARCHITECTURE: prioritize system design, scale, reliability, and failure domains.
 - TRADEOFF: prioritize analytical challenge on alternatives, cost, and risk tradeoffs.
 - INCIDENT: prioritize time-bound triage, mitigation sequence, and stakeholder communication under pressure.
-
+{scenario_block}
 Return STRICT JSON only.
 
 Last question:

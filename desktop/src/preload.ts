@@ -42,6 +42,9 @@ contextBridge.exposeInMainWorld("atluriinDesktop", {
   stopLoopback: async (): Promise<{ ok: boolean }> => {
     return await ipcRenderer.invoke("loopback:stop");
   },
+  injectTranscript: async (text: string): Promise<{ ok: boolean; error?: string }> => {
+    return await ipcRenderer.invoke("loopback:injectTranscript", text);
+  },
 
   // ═══════════════════════════════════════════════════════════
   // SCREEN CAPTURE APIs
@@ -255,9 +258,38 @@ contextBridge.exposeInMainWorld("atluriinDesktop", {
     ipcRenderer.on("ws:message", handler);
     return () => { ipcRenderer.removeListener("ws:message", handler); };
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // INSTANT SCREENSHOT + AI ANALYSIS
+  // Captures full screen and sends to backend for GPT-4o vision analysis.
+  // No mouse needed — also triggered by Ctrl+Shift+F hotkey.
+  // ═══════════════════════════════════════════════════════════
+  captureAndAnalyze: async (): Promise<{ ok: boolean; error?: string }> => {
+    return await ipcRenderer.invoke("capture:analyzeFullScreen");
+  },
+  onCaptureTaken: (callback: (info: { width: number; height: number; auto?: boolean }) => void): (() => void) => {
+    const handler = (_event: any, info: { width: number; height: number; auto?: boolean }) => callback(info);
+    ipcRenderer.on("capture:taken", handler);
+    return () => { ipcRenderer.removeListener("capture:taken", handler); };
+  },
+
   onControlMicMuted: (callback: (muted: boolean) => void): (() => void) => {
     const handler = (_event: any, muted: boolean) => callback(muted);
     ipcRenderer.on("control:micMuted", handler);
     return () => { ipcRenderer.removeListener("control:micMuted", handler); };
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // APP WINDOW CONTROLS — hide app window during session
+  // so only the floating overlay is visible
+  // ═══════════════════════════════════════════════════════════
+  hideAppWindow: async (): Promise<{ ok: boolean }> => {
+    return await ipcRenderer.invoke("app:hide");
+  },
+  showAppWindow: async (): Promise<{ ok: boolean }> => {
+    return await ipcRenderer.invoke("app:show");
+  },
+  minimizeAppWindow: async (): Promise<{ ok: boolean }> => {
+    return await ipcRenderer.invoke("app:minimize");
   },
 });

@@ -646,8 +646,10 @@ export default function LiveVoiceInterview() {
 
     const roomParam = encodeURIComponent(normalizedRoomId.trim());
     const tokenParam = encodeURIComponent(authToken);
+    const scenarioParam = (() => { try { return localStorage.getItem("atluriin.interview.scenario") || ""; } catch { return ""; } })();
+    const scenarioQs = scenarioParam ? `&scenario=${encodeURIComponent(scenarioParam)}` : "";
     ws.current = new WebSocket(
-      `${WS_BASE}/ws/voice?assist_intensity=${assistIntensity}&room_id=${roomParam}&participant=${participantMode}&token=${tokenParam}&answer_language=${answerLanguage}`
+      `${WS_BASE}/ws/voice?assist_intensity=${assistIntensity}&room_id=${roomParam}&participant=${participantMode}&token=${tokenParam}&answer_language=${answerLanguage}${scenarioQs}`
     );
     ws.current.binaryType = "arraybuffer";
 
@@ -1315,6 +1317,7 @@ export default function LiveVoiceInterview() {
 
           <div className="flex gap-2 flex-wrap">
             <span className="border border-[#bfdbfe] bg-[#eff6ff] text-[#1e3a8a] rounded-full px-2.5 py-1 text-[11px] font-bold uppercase">Mode: {companyMode}</span>
+            {(() => { try { const s = localStorage.getItem("atluriin.interview.scenario"); return s ? <span className="border border-[#c4b5fd] bg-[#f5f3ff] text-[#5b21b6] rounded-full px-2.5 py-1 text-[11px] font-bold uppercase">Scenario: {s.replace(/_/g, " ")}</span> : null; } catch { return null; } })()}
             {(companyMode === "amazon" || companyMode === "google" || companyMode === "meta") && (
               <span className="border border-[#fecaca] bg-[#fff1f2] text-[#9f1239] rounded-full px-2.5 py-1 text-[11px] font-bold uppercase">
                 {companyMode === "amazon" ? "LP depth weighting" : companyMode === "google" ? "Rigor weighting" : "Impact-pressure weighting"}
