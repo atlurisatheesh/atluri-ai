@@ -282,9 +282,11 @@ export default function PhantomOverlay({
     // The effective display text (streaming or final).
     // During streaming, fall back to previous answer until new chunks arrive
     // so the user never sees a blank flash.
+    // When not streaming, prefer aiResponse but fall back to streamingText
+    // to avoid a blank flash between answer_suggestion_done and answer_suggestion.
     const displayAnswer = isStreaming
         ? (streamingText || aiResponse?.answer || "")
-        : (aiResponse?.answer || "");
+        : (aiResponse?.answer || streamingText || "");
 
     if (!visible) return null;
 
@@ -702,7 +704,7 @@ export default function PhantomOverlay({
                                                     {/* Phase 2: Streaming typewriter + Phase 3: Smart highlighting */}
                                                     {isStreaming ? (
                                                         <p className="text-[13px] text-textPrimary leading-relaxed">
-                                                            {streamingText}
+                                                            {displayAnswer}
                                                             <span className="inline-block w-0.5 h-4 bg-brand-purple ml-0.5 animate-pulse" />
                                                         </p>
                                                     ) : answerHighlight ? (
