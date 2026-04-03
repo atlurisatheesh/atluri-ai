@@ -42,7 +42,7 @@ export default function LandingPage() {
 
   const downloadStealthInstaller = () => {
     window.open(
-      "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe",
+      "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/AtluriIn-AI-0.3.1-Setup.exe",
       "_blank",
     );
     showToast("Installer download started.", 2600);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -170,9 +170,10 @@ export default function StealthPage() {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadSecurityNote, setDownloadSecurityNote] = useState<string>("");
+  const [installerSha256, setInstallerSha256] = useState<string>("");
 
   const expectedInstallerUrl =
-    "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe";
+    "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/AtluriIn-AI-0.3.1-Setup.exe";
 
   const isTrustedInstallerUrl = useCallback((urlString: string) => {
     try {
@@ -180,11 +181,27 @@ export default function StealthPage() {
       return (
         url.protocol === "https:" &&
         url.hostname === "github.com" &&
-        url.pathname === "/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe"
+        url.pathname === "/atlurisatheesh/atluri-ai/releases/download/atluri-ai/AtluriIn-AI-0.3.1-Setup.exe"
       );
     } catch {
       return false;
     }
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/desktop-installer/meta", { cache: "no-store" })
+      .then(async (r) => {
+        if (!r.ok) return;
+        const data = await r.json();
+        if (mounted && typeof data?.sha256 === "string") {
+          setInstallerSha256(data.sha256);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleDownload = useCallback(async () => {
@@ -285,6 +302,9 @@ export default function StealthPage() {
 
               {downloadSecurityNote && (
                 <p className="mt-3 text-xs text-textMuted">{downloadSecurityNote}</p>
+              )}
+              {installerSha256 && installerSha256 !== "PENDING_SHA256" && (
+                <p className="mt-2 text-[11px] text-textMuted break-all">SHA-256: {installerSha256}</p>
               )}
 
               <div className="mt-7 flex flex-wrap gap-2">

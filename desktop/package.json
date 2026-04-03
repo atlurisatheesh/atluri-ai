@@ -1,7 +1,7 @@
 {
   "name": "atluriin-desktop-practice",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "main": "dist/main.js",
   "type": "commonjs",
   "scripts": {
@@ -11,6 +11,8 @@
     "dev:watch": "concurrently -k \"tsc -p tsconfig.json -w\" \"electron .\"",
     "pack": "npm run build && electron-builder --dir",
     "dist:win": "npm run build && electron-builder --win",
+    "dist:win:hardened": "npm run build && electron-builder --win --publish never",
+    "sign:win": "powershell -ExecutionPolicy Bypass -File ..\\scripts\\sign-windows-installer.ps1",
     "dist:mac": "npm run build && electron-builder --mac",
     "dist:linux": "npm run build && electron-builder --linux"
   },
@@ -30,8 +32,8 @@
     "typescript": "^5.7.3"
   },
   "build": {
-    "appId": "com.atluriin.practice",
-    "productName": "System Service Host",
+    "appId": "com.atluriin.ai.desktop",
+    "productName": "AtluriIn AI",
     "directories": {
       "output": "release"
     },
@@ -45,15 +47,15 @@
       "target": [
         "nsis"
       ],
-      "executableName": "RuntimeBroker",
-      "artifactName": "${productName}-${version}-Setup.${ext}"
+      "executableName": "AtluriInAI",
+      "artifactName": "AtluriIn-AI-${version}-Setup.${ext}"
     },
     "mac": {
       "target": [
         "dmg"
       ],
       "category": "public.app-category.productivity",
-      "executableName": "SystemHelper",
+      "executableName": "AtluriInAI",
       "hardenedRuntime": true,
       "entitlements": "entitlements.plist",
       "entitlementsInherit": "entitlements.plist"

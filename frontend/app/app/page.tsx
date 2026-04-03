@@ -252,7 +252,7 @@ export default function DesktopAppPage() {
             This page is the command center for the AtluriIn desktop overlay. 
             Download the desktop app to use stealth mode during live interviews.
           </p>
-          <a href="https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe"
+          <a href="https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/AtluriIn-AI-0.3.1-Setup.exe"
             target="_blank" rel="noopener noreferrer"
             className="inline-block px-6 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-sm font-semibold hover:opacity-90 transition">
             Download for Windows
