@@ -9,7 +9,7 @@ import { StealthEngine, type ThreatLevel, type ProctoringDetection, type Stealth
 import { AntiDetectionEngine } from "./anti_detection";
 import { autoUpdater } from "electron-updater";
 
-const DEFAULT_FRONTEND_URL = process.env.DESKTOP_FRONTEND_URL || "http://localhost:3001";
+const DEFAULT_FRONTEND_URL = process.env.DESKTOP_FRONTEND_URL || (app.isPackaged ? "https://atluri-ai.vercel.app" : "http://localhost:3001");
 const OPEN_DEVTOOLS = String(process.env.DESKTOP_OPEN_DEVTOOLS || "").toLowerCase() === "true";
 // Content protection makes overlay invisible to screen sharing / recording / screenshots.
 // Uses Windows SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE). Works on Win 10 2004+ and Win 11.

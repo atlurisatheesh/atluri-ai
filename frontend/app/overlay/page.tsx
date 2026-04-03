@@ -38,6 +38,25 @@ function generateRoomId(): string {
     });
 }
 
+const PRODUCTION_BACKEND_ORIGIN = "https://atluri-ai.vercel.app";
+
+function normalizeBackendUrl(url: string): string {
+    return String(url || "").trim().replace(/\/+$/g, "");
+}
+
+function isLocalBackend(url: string): boolean {
+    return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(normalizeBackendUrl(url));
+}
+
+function getDefaultBackendUrl(): string {
+    const envUrl = normalizeBackendUrl(process.env.NEXT_PUBLIC_API_URL || "");
+    if (envUrl) return envUrl;
+    if (typeof window !== "undefined" && window.location?.origin) {
+        return normalizeBackendUrl(window.location.origin);
+    }
+    return PRODUCTION_BACKEND_ORIGIN;
+}
+
 // ── Toggle button group (used for Response Length, Process Time, etc.) ──
 function ToggleGroup({ options, value, onChange }: {
     options: { label: string; value: string }[];
@@ -347,7 +366,7 @@ function SetupPanel({ onStart }: { onStart: () => void }) {
     const [position, setPosition] = useState("");
     const [interviewType, setInterviewType] = useState("behavioral");
     const [model, setModel] = useState("gpt4o");
-    const [backendUrl, setBackendUrl] = useState("http://127.0.0.1:9010");
+    const [backendUrl, setBackendUrl] = useState(getDefaultBackendUrl);
     const [imageContext, setImageContext] = useState("");
     const [procedures, setProcedures] = useState("");
     const [priorityQuestions, setPriorityQuestions] = useState("");
@@ -474,7 +493,15 @@ function SetupPanel({ onStart }: { onStart: () => void }) {
                     if (s.position) setPosition(s.position);
                     if (s.model) setModel(s.model);
                     if (s.interviewType) setInterviewType(s.interviewType);
-                    if (s.backendUrl) setBackendUrl(s.backendUrl);                    if (s.imageContext) setImageContext(s.imageContext);
+                    if (s.backendUrl) {
+                        const savedBackendUrl = normalizeBackendUrl(s.backendUrl);
+                        if (typeof window !== "undefined" && window.location.protocol === "https:" && isLocalBackend(savedBackendUrl)) {
+                            setBackendUrl(getDefaultBackendUrl());
+                        } else {
+                            setBackendUrl(savedBackendUrl);
+                        }
+                    }
+                    if (s.imageContext) setImageContext(s.imageContext);
                     if (s.procedures) setProcedures(s.procedures);
                     if (s.priorityQuestions) setPriorityQuestions(s.priorityQuestions);                }
                 if (all?.settings) setSettingsData((prev) => ({ ...prev, ...all.settings }));
@@ -495,19 +522,24 @@ function SetupPanel({ onStart }: { onStart: () => void }) {
         setStarting(true);
         setError(null);
         try {
+            const effectiveBackendUrl = normalizeBackendUrl(backendUrl) || getDefaultBackendUrl();
+            const finalBackendUrl = (typeof window !== "undefined" && window.location.protocol === "https:" && isLocalBackend(effectiveBackendUrl))
+                ? getDefaultBackendUrl()
+                : effectiveBackendUrl;
+
             await Promise.all([
                 b.setResume?.(resume),
                 b.setJobDescription?.(jobDescription),
                 b.setAllSettings?.({
                     sessionSetup: {
-                        company, position, model, interviewType, backendUrl,
+                        company, position, model, interviewType, backendUrl: finalBackendUrl,
                         imageContext, procedures, priorityQuestions,
                     },
                     settings: settingsData,
                 }),
             ]);
             const result = await b.startLoopback({
-                backendHttpUrl: backendUrl,
+                backendHttpUrl: finalBackendUrl,
                 roomId: generateRoomId(),
                 role: sessionMode === "coding" ? "coding" : "candidate",
                 assistIntensity: intensityMap[settingsData.processTime] || 2,

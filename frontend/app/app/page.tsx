@@ -17,6 +17,25 @@ import {
   Cpu, Zap, Clock, Radio,
 } from "lucide-react";
 
+const PRODUCTION_BACKEND_ORIGIN = "https://atluri-ai.vercel.app";
+
+function normalizeBackendUrl(url: string): string {
+  return String(url || "").trim().replace(/\/+$/g, "");
+}
+
+function isLocalBackend(url: string): boolean {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(normalizeBackendUrl(url));
+}
+
+function getDefaultBackendUrl(): string {
+  const envUrl = normalizeBackendUrl(process.env.NEXT_PUBLIC_API_URL || "");
+  if (envUrl) return envUrl;
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return normalizeBackendUrl(window.location.origin);
+  }
+  return PRODUCTION_BACKEND_ORIGIN;
+}
+
 // ── Types ──
 interface DesktopBridge {
   version: string;
@@ -84,7 +103,7 @@ export default function DesktopAppPage() {
   const [position, setPosition] = useState("");
   const [model, setModel] = useState("gpt4o");
   const [assistIntensity, setAssistIntensity] = useState(2);
-  const [backendUrl, setBackendUrl] = useState("http://127.0.0.1:9010");
+  const [backendUrl, setBackendUrl] = useState(getDefaultBackendUrl);
 
   // Status
   const [stealthScore, setStealthScore] = useState(100);
@@ -120,6 +139,14 @@ export default function DesktopAppPage() {
           if (s.company) setCompany(s.company);
           if (s.position) setPosition(s.position);
           if (s.model) setModel(s.model);
+          if (s.backendUrl) {
+            const savedBackendUrl = normalizeBackendUrl(s.backendUrl);
+            if (typeof window !== "undefined" && window.location.protocol === "https:" && isLocalBackend(savedBackendUrl)) {
+              setBackendUrl(getDefaultBackendUrl());
+            } else {
+              setBackendUrl(savedBackendUrl);
+            }
+          }
         }
         // Check audio driver
         if (b.checkBlackHole) {
@@ -170,7 +197,7 @@ export default function DesktopAppPage() {
         b.setResume(resume),
         b.setJobDescription(jobDescription),
         b.setAllSettings({
-          sessionSetup: { company, position, model },
+          sessionSetup: { company, position, model, backendUrl: normalizeBackendUrl(backendUrl) || getDefaultBackendUrl() },
         }),
       ]);
     } catch (e) {
@@ -190,8 +217,13 @@ export default function DesktopAppPage() {
 
     const roomId = generateRoomId();
     try {
+      const effectiveBackendUrl = normalizeBackendUrl(backendUrl) || getDefaultBackendUrl();
+      const finalBackendUrl = (typeof window !== "undefined" && window.location.protocol === "https:" && isLocalBackend(effectiveBackendUrl))
+        ? getDefaultBackendUrl()
+        : effectiveBackendUrl;
+
       const result = await b.startLoopback({
-        backendHttpUrl: backendUrl,
+        backendHttpUrl: finalBackendUrl,
         roomId,
         role: "candidate",
         assistIntensity,
