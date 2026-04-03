@@ -19,6 +19,7 @@ import {
 
 const PRODUCTION_BACKEND_ORIGIN = "https://atluri-ai.vercel.app";
 
+
 function normalizeBackendUrl(url: string): string {
   return String(url || "").trim().replace(/\/+$/g, "");
 }

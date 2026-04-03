@@ -49,3 +49,4 @@ backend/data/
 *.csv
 *.sqlite
 *.db
+.vercel

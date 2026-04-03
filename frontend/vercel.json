@@ -17,19 +17,19 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://atluriin-backend-production.up.railway.app/api/:path*"
+      "destination": "https://atluriin-backend-production-5f8d.up.railway.app/api/:path*"
     },
     {
       "source": "/ws/:path*",
-      "destination": "https://atluriin-backend-production.up.railway.app/ws/:path*"
+      "destination": "https://atluriin-backend-production-5f8d.up.railway.app/ws/:path*"
     },
     {
       "source": "/docs",
-      "destination": "https://atluriin-backend-production.up.railway.app/docs"
+      "destination": "https://atluriin-backend-production-5f8d.up.railway.app/docs"
     },
     {
       "source": "/openapi.json",
-      "destination": "https://atluriin-backend-production.up.railway.app/openapi.json"
+      "destination": "https://atluriin-backend-production-5f8d.up.railway.app/openapi.json"
     }
   ]
 }
