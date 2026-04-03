@@ -1,7 +1,7 @@
 {
   "name": "atluriin-desktop-practice",
   "private": true,
-  "version": "0.3.1",
+  "version": "0.3.2",
   "main": "dist/main.js",
   "type": "commonjs",
   "scripts": {
