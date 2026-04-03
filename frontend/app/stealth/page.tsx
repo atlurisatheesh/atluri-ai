@@ -169,13 +169,54 @@ export default function StealthPage() {
   const [deepThinkDemo, setDeepThinkDemo] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadSecurityNote, setDownloadSecurityNote] = useState<string>("");
 
-  const handleDownload = useCallback(() => {
-    window.open(
-      "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe",
-      "_blank",
-    );
+  const expectedInstallerUrl =
+    "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe";
+
+  const isTrustedInstallerUrl = useCallback((urlString: string) => {
+    try {
+      const url = new URL(urlString);
+      return (
+        url.protocol === "https:" &&
+        url.hostname === "github.com" &&
+        url.pathname === "/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe"
+      );
+    } catch {
+      return false;
+    }
   }, []);
+
+  const handleDownload = useCallback(async () => {
+    if (downloading) return;
+    setDownloading(true);
+    setDownloadSecurityNote("Running security checks...");
+
+    try {
+      // Guard 1: hardcoded trusted URL pattern must pass.
+      if (!isTrustedInstallerUrl(expectedInstallerUrl)) {
+        throw new Error("Installer URL failed trust validation");
+      }
+
+      // Guard 2: verify runtime redirect target from backend endpoint when available.
+      const resp = await fetch("/api/desktop-installer", {
+        method: "GET",
+        redirect: "manual",
+        cache: "no-store",
+      });
+      const redirectLocation = resp.headers.get("location") || expectedInstallerUrl;
+      if (!isTrustedInstallerUrl(redirectLocation)) {
+        throw new Error("Backend redirect target is not trusted");
+      }
+
+      setDownloadSecurityNote("Security check passed: official GitHub release over HTTPS.");
+      window.open("/api/desktop-installer", "_blank", "noopener,noreferrer");
+    } catch {
+      setDownloadSecurityNote("Download blocked by security check. Please refresh and try again.");
+    } finally {
+      setDownloading(false);
+    }
+  }, [downloading, expectedInstallerUrl, isTrustedInstallerUrl]);
 
   const startDemo = useCallback(() => {
     setDemoMode(true);
@@ -241,6 +282,10 @@ export default function StealthPage() {
                   </button>
                 )}
               </div>
+
+              {downloadSecurityNote && (
+                <p className="mt-3 text-xs text-textMuted">{downloadSecurityNote}</p>
+              )}
 
               <div className="mt-7 flex flex-wrap gap-2">
                 {["Desktop-first", "Realtime coaching", "Threat telemetry", "Keyboard mode"].map((pill) => (

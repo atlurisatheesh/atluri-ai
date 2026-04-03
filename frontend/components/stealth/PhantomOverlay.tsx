@@ -689,7 +689,7 @@ export default function PhantomOverlay({
                                             </div>
                                         )}
 
-                                        {aiResponse || isStreaming ? (
+                                        {aiResponse || isStreaming || !!streamingText ? (
                                             <>
                                                 {/* Quick Pitch (with streaming + smart highlighting) */}
                                                 <div className="p-3 rounded-xl bg-brand-purple/5 border border-brand-purple/10 relative">
@@ -712,7 +712,7 @@ export default function PhantomOverlay({
                                                             {answerHighlight.after ? " " : ""}{answerHighlight.after}
                                                         </p>
                                                     ) : (
-                                                        <p className="text-[13px] text-textPrimary leading-relaxed">{aiResponse?.answer}</p>
+                                                        <p className="text-[13px] text-textPrimary leading-relaxed">{displayAnswer}</p>
                                                     )}
                                                 </div>
 
