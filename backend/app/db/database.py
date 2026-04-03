@@ -9,10 +9,8 @@ from sqlalchemy.orm import DeclarativeBase
 
 logger = logging.getLogger("app.db.database")
 
-_raw_url = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://postgres:localdev123@127.0.0.1:5432/linkedin_ai",
-)
+_raw_url = os.getenv("DATABASE_URL", "").strip() or \
+    "postgresql+asyncpg://postgres:localdev123@127.0.0.1:5432/linkedin_ai"
 # Render.com provides postgres:// but asyncpg needs postgresql+asyncpg://
 DATABASE_URL = _raw_url.replace("postgres://", "postgresql+asyncpg://", 1) if _raw_url.startswith("postgres://") else _raw_url
 
