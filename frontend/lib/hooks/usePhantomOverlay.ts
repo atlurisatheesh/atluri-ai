@@ -358,9 +358,10 @@ export function usePhantomOverlay() {
                 break;
 
             case "answer_suggestion": {
+                const answerText = data.answer || data.suggestion || data.text || streamBufferRef.current;
                 finishStreaming();
                 const response: AIResponseData = {
-                    answer: data.answer || data.text || streamBufferRef.current,
+                    answer: answerText,
                     keyPoints: data.keyPoints || data.key_points || [],
                     star: data.star || undefined,
                     starExample: data.starExample || undefined,

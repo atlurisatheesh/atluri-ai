@@ -206,9 +206,13 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
     `/ws/voice?assist_intensity=${encodeURIComponent(String(assist))}&room_id=${encodeURIComponent(roomId)}&participant=interviewer&role=${encodeURIComponent(role)}`
   );
 
-  // Use custom HTTPS agent with DoH DNS fallback to bypass ISP blocking of railway.app
-  const agent = new HttpsAgent({ lookup: createDohFallbackLookup() as any });
-  const ws = new WebSocket(socketUrl, { agent });
+  // Use custom HTTPS agent with DoH DNS fallback to bypass ISP blocking of railway.app.
+  // Only use the agent for wss:// (remote) connections — localhost uses plain ws://.
+  const isSecure = /^wss:/i.test(socketUrl);
+  const wsOptions = isSecure
+    ? { agent: new HttpsAgent({ lookup: createDohFallbackLookup() as any }) }
+    : {};
+  const ws = new WebSocket(socketUrl, wsOptions);
 
   await new Promise<void>((resolve, reject) => {
     const t = setTimeout(() => reject(new Error("loopback ws connect timeout")), 8000);

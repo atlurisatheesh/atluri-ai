@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 electron_1.contextBridge.exposeInMainWorld("atluriinDesktop", {
-    version: "0.3.3",
+    version: "0.3.5",
     openUrl: async (url) => {
         return await electron_1.ipcRenderer.invoke("app:openUrl", String(url));
     },

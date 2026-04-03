@@ -359,20 +359,6 @@ export default function PhantomOverlay({
                         )}
                     </AnimatePresence>
 
-                    {/* ── Audio Warning Toast ── */}
-                    <AnimatePresence>
-                        {audioWarning && !threatToast && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                className="absolute top-0 left-0 right-0 z-40 px-3 py-2 bg-brand-amber/90 text-white text-[10px] font-bold text-center backdrop-blur-sm"
-                            >
-                                <MicOff className="w-3 h-3 inline mr-1" />{audioWarning}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
                     {/* ── Copied Toast ── */}
                     <AnimatePresence>
                         {copiedToast && (
