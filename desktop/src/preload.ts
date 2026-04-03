@@ -295,4 +295,22 @@ contextBridge.exposeInMainWorld("atluriinDesktop", {
   minimizeAppWindow: async (): Promise<{ ok: boolean }> => {
     return await ipcRenderer.invoke("app:minimize");
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // AUTO-UPDATER — check for updates and install
+  // ═══════════════════════════════════════════════════════════
+  checkForUpdates: async (): Promise<{ ok: boolean; version?: string; error?: string }> => {
+    return await ipcRenderer.invoke("updater:checkForUpdates");
+  },
+  quitAndInstall: async (): Promise<{ ok: boolean }> => {
+    return await ipcRenderer.invoke("updater:quitAndInstall");
+  },
+  getAppVersion: async (): Promise<string> => {
+    return await ipcRenderer.invoke("updater:getVersion");
+  },
+  onUpdaterStatus: (callback: (status: any) => void): (() => void) => {
+    const handler = (_event: any, status: any) => callback(status);
+    ipcRenderer.on("updater:status", handler);
+    return () => { ipcRenderer.removeListener("updater:status", handler); };
+  },
 });

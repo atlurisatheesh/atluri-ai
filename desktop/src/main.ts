@@ -7,6 +7,7 @@ import { WebSocketServer, WebSocket as WsSocket } from "ws";
 import { exec } from "child_process";
 import { StealthEngine, type ThreatLevel, type ProctoringDetection, type StealthHealthReport } from "./stealth_engine";
 import { AntiDetectionEngine } from "./anti_detection";
+import { autoUpdater } from "electron-updater";
 
 const DEFAULT_FRONTEND_URL = process.env.DESKTOP_FRONTEND_URL || "http://localhost:3001";
 const OPEN_DEVTOOLS = String(process.env.DESKTOP_OPEN_DEVTOOLS || "").toLowerCase() === "true";
@@ -239,6 +240,27 @@ ipcMain.handle("app:openUrl", async (_event, url: string) => {
     return { ok: true };
   }
   return { ok: false, error: "invalid url" };
+});
+
+// ═══════════════════════════════════════════════════════════
+// AUTO-UPDATE IPC — renderer can check/install updates
+// ═══════════════════════════════════════════════════════════
+ipcMain.handle("updater:checkForUpdates", async () => {
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    return { ok: true, version: result?.updateInfo?.version || null };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.message || e) };
+  }
+});
+
+ipcMain.handle("updater:quitAndInstall", async () => {
+  autoUpdater.quitAndInstall(false, true);
+  return { ok: true };
+});
+
+ipcMain.handle("updater:getVersion", async () => {
+  return app.getVersion();
 });
 
 ipcMain.handle("overlay:getContentProtection", async () => {
@@ -1255,6 +1277,73 @@ app.whenReady().then(() => {
       overlayWindow.webContents.send("ws:message", msg);
     }
   });
+
+  // ═══════════════════════════════════════════════════════════
+  // AUTO-UPDATER: Check GitHub Releases for new versions
+  // Uses electron-updater with GitHub provider configured in package.json build.publish
+  // ═══════════════════════════════════════════════════════════
+  autoUpdater.logger = {
+    info: (...args: any[]) => log("updater:info", ...args.map(String)),
+    warn: (...args: any[]) => log("updater:warn", ...args.map(String)),
+    error: (...args: any[]) => log("updater:error", ...args.map(String)),
+    debug: (...args: any[]) => log("updater:debug", ...args.map(String)),
+  } as any;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("checking-for-update", () => {
+    log("updater: checking for update...");
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.webContents.send("updater:status", { status: "checking" });
+    }
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    log("updater: update available", info.version);
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.webContents.send("updater:status", { status: "available", version: info.version });
+    }
+  });
+
+  autoUpdater.on("update-not-available", () => {
+    log("updater: up to date");
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.webContents.send("updater:status", { status: "up-to-date" });
+    }
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    log("updater: download", Math.round(progress.percent), "%");
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.webContents.send("updater:status", {
+        status: "downloading",
+        percent: Math.round(progress.percent),
+        transferred: progress.transferred,
+        total: progress.total,
+      });
+    }
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    log("updater: downloaded", info.version, "— will install on quit");
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.webContents.send("updater:status", { status: "downloaded", version: info.version });
+    }
+  });
+
+  autoUpdater.on("error", (err) => {
+    log("updater: error", String(err?.message || err));
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.webContents.send("updater:status", { status: "error", error: String(err?.message || err) });
+    }
+  });
+
+  // Check for updates after a short delay (don't block startup)
+  setTimeout(() => {
+    autoUpdater.checkForUpdatesAndNotify().catch((e) => {
+      log("updater: check failed", String(e?.message || e));
+    });
+  }, 5000);
 });
 
 app.on("will-quit", () => {
