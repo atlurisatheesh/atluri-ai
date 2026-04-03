@@ -1,10 +1,10 @@
-const INSTALLER_VERSION = "0.3.2";
+const INSTALLER_VERSION = "0.3.3";
 const INSTALLER_FILE = `AtluriIn-AI-${INSTALLER_VERSION}-Setup.exe`;
 const INSTALLER_URL =
   `https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/${INSTALLER_FILE}`;
 
 // Update this after building/signing the installer.
-const INSTALLER_SHA256 = "25B451A4A126FF5E9339B47C2565DB057802AE20C1E87E9ADAE906086EB2D674";
+const INSTALLER_SHA256 = "7F034EE9F348E7355C3E092B6E0E750AACF227A70AC7738968392D1AF9989608";
 
 export async function GET() {
   return Response.json({

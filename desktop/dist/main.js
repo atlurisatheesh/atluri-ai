@@ -12,7 +12,8 @@ const ws_1 = require("ws");
 const child_process_1 = require("child_process");
 const stealth_engine_1 = require("./stealth_engine");
 const anti_detection_1 = require("./anti_detection");
-const DEFAULT_FRONTEND_URL = process.env.DESKTOP_FRONTEND_URL || "http://localhost:3001";
+const electron_updater_1 = require("electron-updater");
+const DEFAULT_FRONTEND_URL = process.env.DESKTOP_FRONTEND_URL || (electron_1.app.isPackaged ? "https://atluri-ai.vercel.app" : "http://localhost:3001");
 const OPEN_DEVTOOLS = String(process.env.DESKTOP_OPEN_DEVTOOLS || "").toLowerCase() === "true";
 // Content protection makes overlay invisible to screen sharing / recording / screenshots.
 // Uses Windows SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE). Works on Win 10 2004+ and Win 11.
@@ -174,6 +175,25 @@ electron_1.ipcMain.handle("app:openUrl", async (_event, url) => {
         return { ok: true };
     }
     return { ok: false, error: "invalid url" };
+});
+// ═══════════════════════════════════════════════════════════
+// AUTO-UPDATE IPC — renderer can check/install updates
+// ═══════════════════════════════════════════════════════════
+electron_1.ipcMain.handle("updater:checkForUpdates", async () => {
+    try {
+        const result = await electron_updater_1.autoUpdater.checkForUpdates();
+        return { ok: true, version: result?.updateInfo?.version || null };
+    }
+    catch (e) {
+        return { ok: false, error: String(e?.message || e) };
+    }
+});
+electron_1.ipcMain.handle("updater:quitAndInstall", async () => {
+    electron_updater_1.autoUpdater.quitAndInstall(false, true);
+    return { ok: true };
+});
+electron_1.ipcMain.handle("updater:getVersion", async () => {
+    return electron_1.app.getVersion();
 });
 electron_1.ipcMain.handle("overlay:getContentProtection", async () => {
     return Boolean(overlayContentProtectionEnabled);
@@ -1151,6 +1171,65 @@ electron_1.app.whenReady().then(() => {
             overlayWindow.webContents.send("ws:message", msg);
         }
     });
+    // ═══════════════════════════════════════════════════════════
+    // AUTO-UPDATER: Check GitHub Releases for new versions
+    // Uses electron-updater with GitHub provider configured in package.json build.publish
+    // ═══════════════════════════════════════════════════════════
+    electron_updater_1.autoUpdater.logger = {
+        info: (...args) => log("updater:info", ...args.map(String)),
+        warn: (...args) => log("updater:warn", ...args.map(String)),
+        error: (...args) => log("updater:error", ...args.map(String)),
+        debug: (...args) => log("updater:debug", ...args.map(String)),
+    };
+    electron_updater_1.autoUpdater.autoDownload = true;
+    electron_updater_1.autoUpdater.autoInstallOnAppQuit = true;
+    electron_updater_1.autoUpdater.on("checking-for-update", () => {
+        log("updater: checking for update...");
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send("updater:status", { status: "checking" });
+        }
+    });
+    electron_updater_1.autoUpdater.on("update-available", (info) => {
+        log("updater: update available", info.version);
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send("updater:status", { status: "available", version: info.version });
+        }
+    });
+    electron_updater_1.autoUpdater.on("update-not-available", () => {
+        log("updater: up to date");
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send("updater:status", { status: "up-to-date" });
+        }
+    });
+    electron_updater_1.autoUpdater.on("download-progress", (progress) => {
+        log("updater: download", Math.round(progress.percent), "%");
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send("updater:status", {
+                status: "downloading",
+                percent: Math.round(progress.percent),
+                transferred: progress.transferred,
+                total: progress.total,
+            });
+        }
+    });
+    electron_updater_1.autoUpdater.on("update-downloaded", (info) => {
+        log("updater: downloaded", info.version, "— will install on quit");
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send("updater:status", { status: "downloaded", version: info.version });
+        }
+    });
+    electron_updater_1.autoUpdater.on("error", (err) => {
+        log("updater: error", String(err?.message || err));
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send("updater:status", { status: "error", error: String(err?.message || err) });
+        }
+    });
+    // Check for updates after a short delay (don't block startup)
+    setTimeout(() => {
+        electron_updater_1.autoUpdater.checkForUpdatesAndNotify().catch((e) => {
+            log("updater: check failed", String(e?.message || e));
+        });
+    }, 5000);
 });
 electron_1.app.on("will-quit", () => {
     electron_1.globalShortcut.unregisterAll();

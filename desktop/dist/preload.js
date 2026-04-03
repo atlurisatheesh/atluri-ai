@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 electron_1.contextBridge.exposeInMainWorld("atluriinDesktop", {
-    version: "0.3.0",
+    version: "0.3.3",
     openUrl: async (url) => {
         return await electron_1.ipcRenderer.invoke("app:openUrl", String(url));
     },
@@ -280,5 +280,22 @@ electron_1.contextBridge.exposeInMainWorld("atluriinDesktop", {
     },
     minimizeAppWindow: async () => {
         return await electron_1.ipcRenderer.invoke("app:minimize");
+    },
+    // ═══════════════════════════════════════════════════════════
+    // AUTO-UPDATER — check for updates and install
+    // ═══════════════════════════════════════════════════════════
+    checkForUpdates: async () => {
+        return await electron_1.ipcRenderer.invoke("updater:checkForUpdates");
+    },
+    quitAndInstall: async () => {
+        return await electron_1.ipcRenderer.invoke("updater:quitAndInstall");
+    },
+    getAppVersion: async () => {
+        return await electron_1.ipcRenderer.invoke("updater:getVersion");
+    },
+    onUpdaterStatus: (callback) => {
+        const handler = (_event, status) => callback(status);
+        electron_1.ipcRenderer.on("updater:status", handler);
+        return () => { electron_1.ipcRenderer.removeListener("updater:status", handler); };
     },
 });

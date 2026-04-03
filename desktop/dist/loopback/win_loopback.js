@@ -5,8 +5,64 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.startWindowsLoopback = startWindowsLoopback;
 const ws_1 = __importDefault(require("ws"));
+const https_1 = __importDefault(require("https"));
+const dns_1 = __importDefault(require("dns"));
+const https_2 = require("https");
 function wsUrl(baseHttp, path) {
     return baseHttp.replace(/^http/i, "ws") + path;
+}
+/**
+ * DNS-over-HTTPS fallback resolver using Cloudflare (1.1.1.1).
+ * Bypasses ISP DNS blocking of railway.app domains.
+ */
+function dohResolve(hostname) {
+    return new Promise((resolve, reject) => {
+        const url = `https://1.1.1.1/dns-query?name=${encodeURIComponent(hostname)}&type=A`;
+        https_1.default.get(url, { headers: { Accept: "application/dns-json" } }, (res) => {
+            let data = "";
+            res.on("data", (chunk) => (data += chunk));
+            res.on("end", () => {
+                try {
+                    const json = JSON.parse(data);
+                    const answer = json.Answer?.find((a) => a.type === 1);
+                    if (answer)
+                        resolve(answer.data);
+                    else
+                        reject(new Error(`DoH: no A record for ${hostname}`));
+                }
+                catch (e) {
+                    reject(e);
+                }
+            });
+        }).on("error", reject);
+    });
+}
+/**
+ * Create a custom DNS lookup function that falls back to DoH
+ * when the system DNS resolver fails (e.g., ISP blocks railway.app).
+ */
+function createDohFallbackLookup() {
+    return (hostname, options, callback) => {
+        dns_1.default.lookup(hostname, options, (err, address, family) => {
+            if (!err)
+                return callback(null, address, family);
+            console.log(`[loopback] System DNS failed for ${hostname}, trying DoH...`);
+            dohResolve(hostname)
+                .then((ip) => {
+                console.log(`[loopback] DoH resolved ${hostname} → ${ip}`);
+                if (options?.all) {
+                    callback(null, [{ address: ip, family: 4 }]);
+                }
+                else {
+                    callback(null, ip, 4);
+                }
+            })
+                .catch((dohErr) => {
+                console.error(`[loopback] DoH also failed for ${hostname}:`, dohErr);
+                callback(err);
+            });
+        });
+    };
 }
 /**
  * Calculate RMS (Root Mean Square) audio level from PCM16 buffer.
@@ -86,7 +142,9 @@ async function startWindowsLoopback(params) {
     if (!backendBase || !roomId)
         throw new Error("backendHttpUrl and roomId are required");
     const socketUrl = wsUrl(backendBase, `/ws/voice?assist_intensity=${encodeURIComponent(String(assist))}&room_id=${encodeURIComponent(roomId)}&participant=interviewer&role=${encodeURIComponent(role)}`);
-    const ws = new ws_1.default(socketUrl);
+    // Use custom HTTPS agent with DoH DNS fallback to bypass ISP blocking of railway.app
+    const agent = new https_2.Agent({ lookup: createDohFallbackLookup() });
+    const ws = new ws_1.default(socketUrl, { agent });
     await new Promise((resolve, reject) => {
         const t = setTimeout(() => reject(new Error("loopback ws connect timeout")), 8000);
         ws.once("open", () => {

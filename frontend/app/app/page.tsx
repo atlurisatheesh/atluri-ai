@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 const PRODUCTION_BACKEND_ORIGIN = "https://atluri-ai.vercel.app";
+const PRODUCTION_WS_BACKEND = "https://atluriin-backend-production-5f8d.up.railway.app";
 
 
 function normalizeBackendUrl(url: string): string {
@@ -223,8 +224,14 @@ export default function DesktopAppPage() {
         ? getDefaultBackendUrl()
         : effectiveBackendUrl;
 
+      // WebSocket goes directly to Railway (Vercel rewrites can't proxy WS upgrades).
+      // The Electron app uses DoH DNS to resolve railway.app if ISP blocks it.
+      const wsBackendUrl = (typeof window !== "undefined" && window.location.protocol === "https:")
+          ? PRODUCTION_WS_BACKEND
+          : finalBackendUrl;
+
       const result = await b.startLoopback({
-        backendHttpUrl: finalBackendUrl,
+        backendHttpUrl: wsBackendUrl,
         roomId,
         role: "candidate",
         assistIntensity,
