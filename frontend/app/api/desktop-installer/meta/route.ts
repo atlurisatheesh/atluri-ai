@@ -1,4 +1,4 @@
-const INSTALLER_VERSION = "0.3.5";
+const INSTALLER_VERSION = "0.3.6";
 const INSTALLER_FILE = `AtluriIn-AI-${INSTALLER_VERSION}-Setup.exe`;
 const INSTALLER_URL =
   `https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/${INSTALLER_FILE}`;

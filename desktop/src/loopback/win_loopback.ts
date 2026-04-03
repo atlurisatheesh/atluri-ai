@@ -2,7 +2,69 @@ import WebSocket from "ws";
 import https from "https";
 import dns from "dns";
 import { Agent as HttpsAgent } from "https";
-import { spawn, ChildProcess } from "child_process";
+import { spawn, execFile, ChildProcess } from "child_process";
+import path from "path";
+import fs from "fs";
+
+/**
+ * Resolve the ffmpeg binary path.
+ * Priority: bundled ffmpeg-static (works in packaged Electron) → system PATH ffmpeg.
+ */
+function resolveFFmpegPath(): string {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    let ffmpegPath: string = require("ffmpeg-static");
+    // In packaged Electron, the asar archive doesn't support spawning binaries.
+    // electron-builder unpacks the binary to app.asar.unpacked.
+    if (ffmpegPath && ffmpegPath.includes("app.asar")) {
+      ffmpegPath = ffmpegPath.replace("app.asar", "app.asar.unpacked");
+    }
+    if (fs.existsSync(ffmpegPath)) {
+      console.log(`[loopback] Using bundled ffmpeg: ${ffmpegPath}`);
+      return ffmpegPath;
+    }
+  } catch {
+    // ffmpeg-static not available
+  }
+  console.log("[loopback] Bundled ffmpeg not found — falling back to system PATH ffmpeg");
+  return "ffmpeg";
+}
+
+const FFMPEG_PATH = resolveFFmpegPath();
+
+/**
+ * Discover audio input devices using ffmpeg -list_devices.
+ * Does NOT depend on win-audio-capture; uses the bundled ffmpeg binary directly.
+ */
+function discoverDevices(): Promise<Array<{ name: string; type: string; isRecommended: boolean }>> {
+  return new Promise((resolve) => {
+    execFile(FFMPEG_PATH, ["-list_devices", "true", "-f", "dshow", "-i", "dummy"], (error, stdout, stderr) => {
+      // ffmpeg always exits with error here; we parse stderr for device info
+      const output = (stderr || "") + (stdout || "");
+      const devices: Array<{ name: string; type: string; isRecommended: boolean }> = [];
+      for (const line of output.split("\n")) {
+        const m = line.match(/\[dshow @ [^\]]+\]\s+"([^"]+)"\s+\(audio\)/);
+        if (m) {
+          const name = m[1];
+          let deviceType = "microphone";
+          let isRecommended = false;
+          if (/stereo mix|立体声混音|what you hear|wave out|loopback/i.test(name)) {
+            deviceType = "stereo_mix";
+            isRecommended = true;
+          }
+          devices.push({ name, type: deviceType, isRecommended });
+        }
+      }
+      if (devices.length === 0) {
+        console.warn("[loopback] No audio devices found via ffmpeg -list_devices");
+      } else {
+        console.log(`[loopback] Discovered ${devices.length} audio device(s):`);
+        devices.forEach((d, i) => console.log(`  [${i}] "${d.name}" type=${d.type} recommended=${d.isRecommended}`));
+      }
+      resolve(devices);
+    });
+  });
+}
 
 export type LoopbackStartParams = {
   backendHttpUrl: string;
@@ -90,73 +152,48 @@ function calculateRMS(pcm16Buffer: Buffer): number {
 
 /**
  * Discover the best available audio device for capturing interview audio.
- * Priority: Stereo Mix (system loopback) → WASAPI loopback → microphone → default.
- * Logs all discovered devices for debugging.
+ * Uses bundled ffmpeg binary directly (no win-audio-capture dependency).
+ * Priority: microphone → recommended → Stereo Mix → first available → "default".
  */
-async function findBestDevice(ac: any): Promise<{ device: string; type: string }> {
+async function findBestDevice(): Promise<{ device: string; type: string }> {
   try {
-    const devices = await ac.getDevices();
-    if (Array.isArray(devices) && devices.length > 0) {
-      console.log(`[loopback] Discovered ${devices.length} audio device(s):`);
-      devices.forEach((d: any, i: number) => {
-        console.log(`  [${i}] "${d.name || d.id}" type=${d.deviceType || "unknown"} recommended=${!!d.isRecommended}`);
-      });
-
+    const devices = await discoverDevices();
+    if (devices.length > 0) {
       // 1. Prefer any microphone — captures user voice directly.
-      //    Stereo Mix captures ONLY speaker output (e.g. Zoom remote audio).
-      //    When the user tests by speaking into their mic with Stereo Mix
-      //    selected they always get silence → "no speech detected".
-      //    Microphone is correct for both testing and real interviews.
-      const mic = devices.find((d: any) =>
-        /microphone|mic|麦克风/i.test(d.name || "") && d.deviceType !== "stereo_mix"
+      const mic = devices.find((d) =>
+        /microphone|mic|麦克风/i.test(d.name) && d.type !== "stereo_mix"
       );
       if (mic) {
-        const name = mic.name || mic.id;
-        console.log(`[loopback] Selected MICROPHONE device: "${name}"`);
-        return { device: name, type: "microphone" };
+        console.log(`[loopback] Selected MICROPHONE device: "${mic.name}"`);
+        return { device: mic.name, type: "microphone" };
       }
 
-      // 2. Recommended device (as reported by win-audio-capture)
-      const recommended = devices.find((d: any) => d.isRecommended);
+      // 2. Recommended device
+      const recommended = devices.find((d) => d.isRecommended);
       if (recommended) {
-        const name = recommended.name || recommended.id;
-        console.log(`[loopback] Selected RECOMMENDED device: "${name}"`);
-        return { device: name, type: "recommended" };
+        console.log(`[loopback] Selected RECOMMENDED device: "${recommended.name}"`);
+        return { device: recommended.name, type: "recommended" };
       }
 
-      // 3. Fall back to Stereo Mix / loopback (system audio output capture)
-      const stereoMix = devices.find(
-        (d: any) =>
-          /stereo mix|立体声混音|what you hear|wave out|loopback/i.test(d.name || "") ||
-          d.deviceType === "stereo_mix"
-      );
+      // 3. Fall back to Stereo Mix / loopback
+      const stereoMix = devices.find((d) => d.type === "stereo_mix");
       if (stereoMix) {
-        const name = stereoMix.name || stereoMix.id;
-        console.log(`[loopback] Selected STEREO MIX fallback: "${name}" (speaker loopback only)`);
-        return { device: name, type: "stereo_mix" };
+        console.log(`[loopback] Selected STEREO MIX fallback: "${stereoMix.name}"`);
+        return { device: stereoMix.name, type: "stereo_mix" };
       }
 
-      const name = devices[0].name || devices[0].id || "default";
-      console.log(`[loopback] Selected FALLBACK device[0]: "${name}"`);
-      return { device: name, type: "fallback" };
+      // 4. First available device
+      console.log(`[loopback] Selected FALLBACK device[0]: "${devices[0].name}"`);
+      return { device: devices[0].name, type: "fallback" };
     }
   } catch (err) {
-    console.warn("[loopback] getDevices failed:", err);
+    console.warn("[loopback] Device discovery failed:", err);
   }
   console.warn("[loopback] No devices discovered — using 'default'");
   return { device: "default", type: "default" };
 }
 
 export async function startWindowsLoopback(params: LoopbackStartParams): Promise<LoopbackSession> {
-  // Dynamic require so the app still works without the native module installed.
-  let winCap: any = null;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    winCap = require("win-audio-capture");
-  } catch {
-    throw new Error("win-audio-capture not installed (WASAPI loopback unavailable)");
-  }
-
   const backendBase = String(params.backendHttpUrl || "").replace(/\/+$/g, "");
   const roomId = String(params.roomId || "").trim();
   const role = String(params.role || "behavioral").trim();
@@ -216,14 +253,10 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
   });
 
   // --- Audio Capture ---
-  // win-audio-capture is an ffmpeg dshow wrapper. API:
-  //   const ac = new AudioCapture();
-  //   await ac.start({ device, sampleRate, channels, bitDepth, onData(chunk: Buffer) })
-  //   await ac.stop();
-  // The onData callback receives raw PCM16LE buffers at the configured sample rate.
+  // Uses bundled ffmpeg binary directly for device discovery and PCM capture.
+  // No dependency on win-audio-capture npm module at runtime.
 
-  const ac = new winCap.AudioCapture();
-  const { device: deviceName, type: deviceType } = await findBestDevice(ac);
+  const { device: deviceName, type: deviceType } = await findBestDevice();
   const captureRate = 16000; // 16kHz mono PCM16 — backend expects this
 
   let stopped = false;
@@ -301,10 +334,8 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
   }, HEALTH_INTERVAL_MS);
 
   // ── Direct FFmpeg Audio Capture (raw PCM16LE, no WAV header) ──
-  // win-audio-capture's ac.start() outputs WAV format (RIFF header + PCM).
-  // Sending WAV to Deepgram's linear16 stream corrupts the audio. We bypass
-  // the library and spawn ffmpeg directly with -f s16le for pure raw PCM.
-  // We also show ffmpeg stderr so device errors are visible in Electron DevTools.
+  // Spawn ffmpeg directly to produce raw PCM16LE (no RIFF/WAV header).
+  // Uses the bundled ffmpeg-static binary so we don't depend on system PATH.
   let ffmpegProc: ChildProcess | null = null;
   let ffmpegFirstData = false;
 
@@ -318,8 +349,8 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
       "-f", "s16le",   // Raw PCM16LE — no RIFF/WAV header
       "pipe:1",
     ];
-    console.log(`[loopback] spawning: ffmpeg ${args.join(" ")}`);
-    ffmpegProc = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "pipe"] });
+    console.log(`[loopback] spawning: ${FFMPEG_PATH} ${args.join(" ")}`);
+    ffmpegProc = spawn(FFMPEG_PATH, args, { stdio: ["ignore", "pipe", "pipe"] });
 
     // Log stderr so device-not-found / permission errors are visible.
     ffmpegProc.stderr?.on("data", (data: Buffer) => {
