@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import https from "https";
 import dns from "dns";
 import { Agent as HttpsAgent } from "https";
+import { spawn, ChildProcess } from "child_process";
 
 export type LoopbackStartParams = {
   backendHttpUrl: string;
@@ -299,46 +300,6 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
     console.log(`[loopback] audio health: status=${status} avgLevel=${avgLevel.toFixed(4)} device="${deviceName}" silence=${Math.round(silenceDurationSec)}s`);
   }, HEALTH_INTERVAL_MS);
 
-  await ac.start({
-    device: deviceName,
-    sampleRate: captureRate,
-    channels: 1,
-    bitDepth: 16,
-    onData: (chunk: Buffer) => {
-      if (stopped) return;
-      if (ws.readyState !== WebSocket.OPEN) return;
-
-      // The chunk is already PCM16LE at 16kHz mono — send directly.
-      if (!Buffer.isBuffer(chunk) || chunk.length < 320) return;
-
-      // ── Audio Level Monitoring ──
-      const rms = calculateRMS(chunk);
-      totalChunks++;
-      recentLevels.push(rms);
-      if (rms > peakLevel) peakLevel = rms;
-
-      if (rms < SILENCE_RMS_THRESHOLD) {
-        silentChunks++;
-      } else {
-        lastSpeechTime = Date.now();
-        if (silenceWarned) {
-          silenceWarned = false; // Reset warning when speech resumes
-          console.log(`[loopback] ✓ Speech detected again (level=${rms.toFixed(4)})`);
-        }
-      }
-
-      // Drop on backpressure
-      if (ws.bufferedAmount > 256 * 1024) return;
-
-      try {
-        ws.send(chunk);
-      } catch {
-        // WS send failed — will be cleaned up on close
-      }
-    },
-  });
-
-  console.log(`[loopback] Audio capture started on device: "${deviceName}" (${deviceType}) @ ${captureRate}Hz mono PCM16`);
   // ── Direct FFmpeg Audio Capture (raw PCM16LE, no WAV header) ──
   // win-audio-capture's ac.start() outputs WAV format (RIFF header + PCM).
   // Sending WAV to Deepgram's linear16 stream corrupts the audio. We bypass
@@ -508,4 +469,3 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
     _sendScreenMonitor,
   };
 }
-import { spawn, ChildProcess } from "child_process";
