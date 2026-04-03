@@ -101,19 +101,21 @@ async function findBestDevice(ac: any): Promise<{ device: string; type: string }
         console.log(`  [${i}] "${d.name || d.id}" type=${d.deviceType || "unknown"} recommended=${!!d.isRecommended}`);
       });
 
-      // 1. Prefer Stereo Mix (system loopback) — captures ALL system audio including Zoom
-      const stereoMix = devices.find(
-        (d: any) =>
-          /stereo mix|立体声混音|what you hear|wave out|loopback/i.test(d.name || "") ||
-          d.deviceType === "stereo_mix"
+      // 1. Prefer any microphone — captures user voice directly.
+      //    Stereo Mix captures ONLY speaker output (e.g. Zoom remote audio).
+      //    When the user tests by speaking into their mic with Stereo Mix
+      //    selected they always get silence → "no speech detected".
+      //    Microphone is correct for both testing and real interviews.
+      const mic = devices.find((d: any) =>
+        /microphone|mic|麦克风/i.test(d.name || "") && d.deviceType !== "stereo_mix"
       );
-      if (stereoMix) {
-        const name = stereoMix.name || stereoMix.id;
-        console.log(`[loopback] Selected STEREO MIX device: "${name}"`);
-        return { device: name, type: "stereo_mix" };
+      if (mic) {
+        const name = mic.name || mic.id;
+        console.log(`[loopback] Selected MICROPHONE device: "${name}"`);
+        return { device: name, type: "microphone" };
       }
 
-      // 2. Prefer recommended device
+      // 2. Recommended device (as reported by win-audio-capture)
       const recommended = devices.find((d: any) => d.isRecommended);
       if (recommended) {
         const name = recommended.name || recommended.id;
@@ -121,12 +123,16 @@ async function findBestDevice(ac: any): Promise<{ device: string; type: string }
         return { device: name, type: "recommended" };
       }
 
-      // 3. Take the first microphone
-      const mic = devices.find((d: any) => /microphone|mic|麦克风/i.test(d.name || ""));
-      if (mic) {
-        const name = mic.name || mic.id;
-        console.log(`[loopback] Selected MICROPHONE device: "${name}" (WARNING: may not capture interviewer audio)`);
-        return { device: name, type: "microphone" };
+      // 3. Fall back to Stereo Mix / loopback (system audio output capture)
+      const stereoMix = devices.find(
+        (d: any) =>
+          /stereo mix|立体声混音|what you hear|wave out|loopback/i.test(d.name || "") ||
+          d.deviceType === "stereo_mix"
+      );
+      if (stereoMix) {
+        const name = stereoMix.name || stereoMix.id;
+        console.log(`[loopback] Selected STEREO MIX fallback: "${name}" (speaker loopback only)`);
+        return { device: name, type: "stereo_mix" };
       }
 
       const name = devices[0].name || devices[0].id || "default";
@@ -228,7 +234,7 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
   let silentChunks = 0;  // chunks with RMS below threshold
   let peakLevel = 0;
   let recentLevels: number[] = [];
-  const SILENCE_RMS_THRESHOLD = 0.005;  // below this = silence
+  const SILENCE_RMS_THRESHOLD = 0.001;  // below this = silence (sensitive for quiet mics)
   const HEALTH_INTERVAL_MS = 3000;      // send health event every 3 seconds
   const SILENCE_WARN_AFTER_SEC = 8;     // warn user after N seconds of silence
 
@@ -276,12 +282,10 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
         try {
           ws.send(JSON.stringify({
             type: "audio_warning",
-            message: `No speech detected for ${Math.round(silenceDurationSec)}s. Check microphone/audio device.`,
+            message: `No speech detected for ${Math.round(silenceDurationSec)}s on "${deviceName}". Check that your microphone is not muted.`,
             device: deviceName,
             deviceType,
-            suggestion: deviceType === "microphone"
-              ? "Enable 'Stereo Mix' in Windows Sound settings to capture interviewer audio from Zoom/Teams."
-              : "Check that your audio device is working and not muted.",
+            suggestion: "Open Windows Sound Settings → Recording → right-click your microphone → Properties → Levels. Ensure level is above 50 and the mic is not muted. Also check the mic is set as default recording device.",
           }));
         } catch { /* ignore */ }
       }
@@ -335,12 +339,109 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
   });
 
   console.log(`[loopback] Audio capture started on device: "${deviceName}" (${deviceType}) @ ${captureRate}Hz mono PCM16`);
+  // ── Direct FFmpeg Audio Capture (raw PCM16LE, no WAV header) ──
+  // win-audio-capture's ac.start() outputs WAV format (RIFF header + PCM).
+  // Sending WAV to Deepgram's linear16 stream corrupts the audio. We bypass
+  // the library and spawn ffmpeg directly with -f s16le for pure raw PCM.
+  // We also show ffmpeg stderr so device errors are visible in Electron DevTools.
+  let ffmpegProc: ChildProcess | null = null;
+  let ffmpegFirstData = false;
+
+  await new Promise<void>((resolveCapture, rejectCapture) => {
+    const args = [
+      "-f", "dshow",
+      "-i", `audio=${deviceName}`,
+      "-acodec", "pcm_s16le",
+      "-ar", String(captureRate),
+      "-ac", "1",
+      "-f", "s16le",   // Raw PCM16LE — no RIFF/WAV header
+      "pipe:1",
+    ];
+    console.log(`[loopback] spawning: ffmpeg ${args.join(" ")}`);
+    ffmpegProc = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "pipe"] });
+
+    // Log stderr so device-not-found / permission errors are visible.
+    ffmpegProc.stderr?.on("data", (data: Buffer) => {
+      const line = data.toString().trim();
+      if (line && !/^(ffmpeg version|  built with|  configuration:|  lib|Input #|Output #|  Duration|  Stream|frame=|size=|video:|audio:)/i.test(line)) {
+        console.warn(`[loopback ffmpeg] ${line.slice(0, 400)}`);
+      }
+    });
+
+    ffmpegProc.on("error", (err: Error) => {
+      if (!ffmpegFirstData) {
+        clearInterval(healthTimer);
+        rejectCapture(new Error(
+          `ffmpeg failed to start: ${err.message}. ` +
+          `Make sure ffmpeg is installed and available in PATH (https://ffmpeg.org/download.html).`
+        ));
+      }
+    });
+
+    ffmpegProc.on("close", (code: number | null) => {
+      if (!ffmpegFirstData) {
+        // ffmpeg exited before producing audio — likely wrong device name
+        clearInterval(healthTimer);
+        rejectCapture(new Error(
+          `ffmpeg exited (code=${code}) before audio capture started. ` +
+          `Device "${deviceName}" may not exist. Check Windows Sound Settings → Recording.`
+        ));
+      } else {
+        console.warn(`[loopback] ffmpeg exited (code=${code})`);
+      }
+    });
+
+    ffmpegProc.stdout?.on("data", (chunk: Buffer) => {
+      if (!ffmpegFirstData) {
+        ffmpegFirstData = true;
+        console.log(`[loopback] ffmpeg producing audio on "${deviceName}" (${deviceType}) @ ${captureRate}Hz PCM16LE`);
+        resolveCapture();
+      }
+
+      if (stopped || ws.readyState !== WebSocket.OPEN) return;
+      if (!Buffer.isBuffer(chunk) || chunk.length < 320) return;
+
+      // ── Audio Level Monitoring ──
+      const rms = calculateRMS(chunk);
+      totalChunks++;
+      recentLevels.push(rms);
+      if (rms > peakLevel) peakLevel = rms;
+
+      if (rms < SILENCE_RMS_THRESHOLD) {
+        silentChunks++;
+      } else {
+        lastSpeechTime = Date.now();
+        if (silenceWarned) {
+          silenceWarned = false;
+          console.log(`[loopback] ✓ Speech detected (level=${rms.toFixed(4)})`);
+        }
+      }
+
+      // Drop on backpressure
+      if (ws.bufferedAmount > 256 * 1024) return;
+      try {
+        ws.send(chunk);
+      } catch { /* ignore */ }
+    });
+
+    // If ffmpeg hasn't produced audio in 4 seconds, resolve anyway so the
+    // session continues; the health monitor will warn if mic stays silent.
+    setTimeout(() => {
+      if (!ffmpegFirstData) {
+        ffmpegFirstData = true;
+        console.warn(`[loopback] ffmpeg timeout — no audio from "${deviceName}" after 4s. Device may be muted or wrong.`);
+        resolveCapture();
+      }
+    }, 4000);
+  });
+
+  console.log(`[loopback] Audio capture active — device: "${deviceName}" (${deviceType})`);
 
   const stop = async () => {
     stopped = true;
     clearInterval(healthTimer);
     try {
-      await ac.stop();
+      ffmpegProc?.kill("SIGTERM");
     } catch {
     }
     try {
@@ -407,3 +508,4 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
     _sendScreenMonitor,
   };
 }
+import { spawn, ChildProcess } from "child_process";
