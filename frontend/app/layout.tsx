@@ -55,7 +55,7 @@ export default function RootLayout({
               `if(v&&typeof v.getMarks!=='function')v.getMarks=function(){return[];};` +
               `if(v&&typeof v.getMeasures!=='function')v.getMeasures=function(){return[];};` +
               `_v=v;}});}catch(e){}})();`,
-              `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}`,
+              `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js?v=2').then(()=>navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.update()))).catch(()=>{})}`,
             ].join(''),
           }}
         />

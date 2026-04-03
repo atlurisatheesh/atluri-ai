@@ -1,4 +1,4 @@
-const CACHE_NAME = "ig-v1";
+const CACHE_NAME = "ig-v2";
 const PRECACHE_URLS = ["/dashboard", "/interview", "/offline"];
 
 self.addEventListener("install", (event) => {
@@ -25,6 +25,23 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/ws/")) return;
 
+  // For page navigations, prefer fresh network responses to avoid stale UI/routes.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === "basic") {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match("/offline")))
+    );
+    return;
+  }
+
+  // For static assets, keep cache-first for snappy repeat loads.
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetched = fetch(request)
