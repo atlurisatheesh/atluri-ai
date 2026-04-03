@@ -172,7 +172,7 @@ export default function StealthPage() {
 
   const handleDownload = useCallback(() => {
     window.open(
-      "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.1.0-Setup.exe",
+      "https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe",
       "_blank",
     );
   }, []);

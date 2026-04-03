@@ -110,6 +110,8 @@ export function InterviewPage({ sessionId, onEnd }: InterviewPageProps) {
         stealthHealth={phantom.stealthHealth}
         threatToast={phantom.threatToast}
         onUpdateSettings={phantom.updateSettings}
+        audioHealth={phantom.audioHealth}
+        audioWarning={phantom.audioWarning}
       />
       
       {/* ═══════════════════════════════════════════════════════════

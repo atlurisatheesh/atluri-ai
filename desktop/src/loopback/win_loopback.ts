@@ -20,35 +20,71 @@ function wsUrl(baseHttp: string, path: string) {
 }
 
 /**
- * Discover the best available audio device for capturing interview audio.
- * Priority: Stereo Mix (loopback) > WASAPI loopback > default microphone.
+ * Calculate RMS (Root Mean Square) audio level from PCM16 buffer.
+ * Returns a value between 0.0 (silence) and 1.0 (max volume).
  */
-async function findBestDevice(ac: any): Promise<string> {
+function calculateRMS(pcm16Buffer: Buffer): number {
+  const samples = pcm16Buffer.length / 2;
+  if (samples === 0) return 0;
+  let sumSquares = 0;
+  for (let i = 0; i < pcm16Buffer.length; i += 2) {
+    const sample = pcm16Buffer.readInt16LE(i);
+    sumSquares += sample * sample;
+  }
+  return Math.sqrt(sumSquares / samples) / 32768;
+}
+
+/**
+ * Discover the best available audio device for capturing interview audio.
+ * Priority: Stereo Mix (system loopback) → WASAPI loopback → microphone → default.
+ * Logs all discovered devices for debugging.
+ */
+async function findBestDevice(ac: any): Promise<{ device: string; type: string }> {
   try {
     const devices = await ac.getDevices();
     if (Array.isArray(devices) && devices.length > 0) {
-      // Prefer Stereo Mix (system loopback)
+      console.log(`[loopback] Discovered ${devices.length} audio device(s):`);
+      devices.forEach((d: any, i: number) => {
+        console.log(`  [${i}] "${d.name || d.id}" type=${d.deviceType || "unknown"} recommended=${!!d.isRecommended}`);
+      });
+
+      // 1. Prefer Stereo Mix (system loopback) — captures ALL system audio including Zoom
       const stereoMix = devices.find(
         (d: any) =>
-          /stereo mix|立体声混音|loopback/i.test(d.name || "") ||
+          /stereo mix|立体声混音|what you hear|wave out|loopback/i.test(d.name || "") ||
           d.deviceType === "stereo_mix"
       );
-      if (stereoMix) return stereoMix.name || stereoMix.id;
+      if (stereoMix) {
+        const name = stereoMix.name || stereoMix.id;
+        console.log(`[loopback] Selected STEREO MIX device: "${name}"`);
+        return { device: name, type: "stereo_mix" };
+      }
 
-      // Prefer recommended
+      // 2. Prefer recommended device
       const recommended = devices.find((d: any) => d.isRecommended);
-      if (recommended) return recommended.name || recommended.id;
+      if (recommended) {
+        const name = recommended.name || recommended.id;
+        console.log(`[loopback] Selected RECOMMENDED device: "${name}"`);
+        return { device: name, type: "recommended" };
+      }
 
-      // Take the first microphone
+      // 3. Take the first microphone
       const mic = devices.find((d: any) => /microphone|mic|麦克风/i.test(d.name || ""));
-      if (mic) return mic.name || mic.id;
+      if (mic) {
+        const name = mic.name || mic.id;
+        console.log(`[loopback] Selected MICROPHONE device: "${name}" (WARNING: may not capture interviewer audio)`);
+        return { device: name, type: "microphone" };
+      }
 
-      return devices[0].name || devices[0].id || "default";
+      const name = devices[0].name || devices[0].id || "default";
+      console.log(`[loopback] Selected FALLBACK device[0]: "${name}"`);
+      return { device: name, type: "fallback" };
     }
-  } catch {
-    // getDevices may fail — fall through
+  } catch (err) {
+    console.warn("[loopback] getDevices failed:", err);
   }
-  return "default";
+  console.warn("[loopback] No devices discovered — using 'default'");
+  return { device: "default", type: "default" };
 }
 
 export async function startWindowsLoopback(params: LoopbackStartParams): Promise<LoopbackSession> {
@@ -125,10 +161,84 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
   // The onData callback receives raw PCM16LE buffers at the configured sample rate.
 
   const ac = new winCap.AudioCapture();
-  const deviceName = await findBestDevice(ac);
+  const { device: deviceName, type: deviceType } = await findBestDevice(ac);
   const captureRate = 16000; // 16kHz mono PCM16 — backend expects this
 
   let stopped = false;
+
+  // ── Audio Health Monitoring ──
+  // Track audio levels to detect silence/broken capture. Send periodic health
+  // events to the overlay so the user knows if audio is actually being received.
+  let totalChunks = 0;
+  let silentChunks = 0;  // chunks with RMS below threshold
+  let peakLevel = 0;
+  let recentLevels: number[] = [];
+  const SILENCE_RMS_THRESHOLD = 0.005;  // below this = silence
+  const HEALTH_INTERVAL_MS = 3000;      // send health event every 3 seconds
+  const SILENCE_WARN_AFTER_SEC = 8;     // warn user after N seconds of silence
+
+  let captureStartTime = Date.now();
+  let lastSpeechTime = Date.now();
+  let silenceWarned = false;
+
+  const healthTimer = setInterval(() => {
+    if (stopped) return;
+    const avgLevel = recentLevels.length
+      ? recentLevels.reduce((a, b) => a + b, 0) / recentLevels.length
+      : 0;
+    const silenceRatio = totalChunks > 0 ? silentChunks / totalChunks : 1;
+    const silenceDurationSec = (Date.now() - lastSpeechTime) / 1000;
+    const hasAudio = avgLevel > SILENCE_RMS_THRESHOLD;
+
+    // Determine health status
+    let status: "good" | "weak" | "silent" | "no_device" = "good";
+    if (avgLevel < 0.001) status = "silent";
+    else if (avgLevel < SILENCE_RMS_THRESHOLD) status = "weak";
+
+    // Send audio health event to overlay via WS
+    if (ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify({
+          type: "audio_health",
+          level: Math.round(avgLevel * 1000) / 1000,
+          peak: Math.round(peakLevel * 1000) / 1000,
+          status,
+          device: deviceName,
+          deviceType,
+          silenceDurationSec: Math.round(silenceDurationSec),
+          totalChunks,
+          silentChunks,
+          ts: Date.now() / 1000,
+        }));
+      } catch { /* ignore */ }
+    }
+
+    // Warn user about prolonged silence
+    if (!silenceWarned && silenceDurationSec > SILENCE_WARN_AFTER_SEC && !hasAudio) {
+      silenceWarned = true;
+      console.warn(`[loopback] ⚠ No speech detected for ${Math.round(silenceDurationSec)}s on "${deviceName}" (${deviceType})`);
+      if (ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(JSON.stringify({
+            type: "audio_warning",
+            message: `No speech detected for ${Math.round(silenceDurationSec)}s. Check microphone/audio device.`,
+            device: deviceName,
+            deviceType,
+            suggestion: deviceType === "microphone"
+              ? "Enable 'Stereo Mix' in Windows Sound settings to capture interviewer audio from Zoom/Teams."
+              : "Check that your audio device is working and not muted.",
+          }));
+        } catch { /* ignore */ }
+      }
+    }
+
+    // Reset recent tracking
+    recentLevels = [];
+    peakLevel = 0;
+
+    // Log periodically
+    console.log(`[loopback] audio health: status=${status} avgLevel=${avgLevel.toFixed(4)} device="${deviceName}" silence=${Math.round(silenceDurationSec)}s`);
+  }, HEALTH_INTERVAL_MS);
 
   await ac.start({
     device: deviceName,
@@ -140,8 +250,23 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
       if (ws.readyState !== WebSocket.OPEN) return;
 
       // The chunk is already PCM16LE at 16kHz mono — send directly.
-      // Skip WAV header bytes (first chunk from ffmpeg contains a 44-byte WAV header).
       if (!Buffer.isBuffer(chunk) || chunk.length < 320) return;
+
+      // ── Audio Level Monitoring ──
+      const rms = calculateRMS(chunk);
+      totalChunks++;
+      recentLevels.push(rms);
+      if (rms > peakLevel) peakLevel = rms;
+
+      if (rms < SILENCE_RMS_THRESHOLD) {
+        silentChunks++;
+      } else {
+        lastSpeechTime = Date.now();
+        if (silenceWarned) {
+          silenceWarned = false; // Reset warning when speech resumes
+          console.log(`[loopback] ✓ Speech detected again (level=${rms.toFixed(4)})`);
+        }
+      }
 
       // Drop on backpressure
       if (ws.bufferedAmount > 256 * 1024) return;
@@ -154,10 +279,11 @@ export async function startWindowsLoopback(params: LoopbackStartParams): Promise
     },
   });
 
-  console.log(`[loopback] Audio capture started on device: "${deviceName}" @ ${captureRate}Hz mono PCM16`);
+  console.log(`[loopback] Audio capture started on device: "${deviceName}" (${deviceType}) @ ${captureRate}Hz mono PCM16`);
 
   const stop = async () => {
     stopped = true;
+    clearInterval(healthTimer);
     try {
       await ac.stop();
     } catch {

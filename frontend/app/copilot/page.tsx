@@ -1611,7 +1611,7 @@ export default function CopilotPage() {
               className="rounded-lg border border-white/[0.08] px-4 py-2 text-sm text-textMuted hover:text-textPrimary transition">
               Continue in Browser
             </button>
-            <a href="https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.1.0-Setup.exe"
+            <a href="https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/System.Service.Host-0.3.0-Setup.exe"
               target="_blank" rel="noopener noreferrer"
               className="rounded-lg bg-gradient-to-r from-brand-cyan to-brand-purple px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 flex items-center gap-2">
               <Lock className="w-4 h-4" /> Download for Windows

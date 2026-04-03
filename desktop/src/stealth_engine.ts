@@ -596,7 +596,7 @@ export class StealthEngine {
    */
   getHealthReport(): StealthHealthReport {
     const featuresActive = {
-      contentProtection: true, // Set in main.ts
+      contentProtection: false, // Actual state managed by main.ts, queried via IPC
       processMasking: this.processMasked,
       windowCloaking: this.windowCloaked,
       proctoringShield: this.config.enableProctoringDetection,

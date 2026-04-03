@@ -2,6 +2,9 @@ import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("atluriinDesktop", {
   version: "0.3.0",
+  openUrl: async (url: string): Promise<{ ok: boolean; error?: string }> => {
+    return await ipcRenderer.invoke("app:openUrl", String(url));
+  },
   getOverlayContentProtection: async (): Promise<boolean> => {
     return await ipcRenderer.invoke("overlay:getContentProtection");
   },

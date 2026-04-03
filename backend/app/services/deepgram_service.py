@@ -469,6 +469,19 @@ class DeepgramService:
 
         self.connection.send(audio_bytes)
 
+    def send_keepalive(self):
+        """Send a KeepAlive message to prevent Deepgram from timing out during silence."""
+        if not self.enabled or not self.active or not self.connection:
+            return
+        try:
+            self.connection.keep_alive()
+            logger.debug("[DG] KeepAlive sent")
+        except AttributeError:
+            # SDK version doesn't support keep_alive()
+            pass
+        except Exception as exc:
+            logger.warning("[DG] KeepAlive failed: %s", exc)
+
     # ==========================
     # 🔥 EVENT HANDLERS (MUST BE INSIDE CLASS)
     # ==========================

@@ -10,9 +10,10 @@ import { AntiDetectionEngine } from "./anti_detection";
 
 const DEFAULT_FRONTEND_URL = process.env.DESKTOP_FRONTEND_URL || "http://localhost:3001";
 const OPEN_DEVTOOLS = String(process.env.DESKTOP_OPEN_DEVTOOLS || "").toLowerCase() === "true";
-// Content protection defaults OFF — can cause click/input issues on some Windows versions
-// Set DESKTOP_OVERLAY_CONTENT_PROTECTION=true to enable
-const OVERLAY_CONTENT_PROTECTION = String(process.env.DESKTOP_OVERLAY_CONTENT_PROTECTION || "false").toLowerCase() === "true";
+// Content protection makes overlay invisible to screen sharing / recording / screenshots.
+// Uses Windows SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE). Works on Win 10 2004+ and Win 11.
+// Set DESKTOP_OVERLAY_CONTENT_PROTECTION=false to disable if click/input issues occur.
+const OVERLAY_CONTENT_PROTECTION = String(process.env.DESKTOP_OVERLAY_CONTENT_PROTECTION || "true").toLowerCase() === "true";
 
 // ═══════════════════════════════════════════════════════════
 // ELECTRON-STORE: Encrypted persistent settings
@@ -230,6 +231,14 @@ ipcMain.handle("stealth:applyAntiDetection", async () => {
   } catch (e: any) {
     return { ok: false, error: String(e?.message || e) };
   }
+});
+
+ipcMain.handle("app:openUrl", async (_event, url: string) => {
+  if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
+    shell.openExternal(url);
+    return { ok: true };
+  }
+  return { ok: false, error: "invalid url" };
 });
 
 ipcMain.handle("overlay:getContentProtection", async () => {

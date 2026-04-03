@@ -14,9 +14,10 @@ const stealth_engine_1 = require("./stealth_engine");
 const anti_detection_1 = require("./anti_detection");
 const DEFAULT_FRONTEND_URL = process.env.DESKTOP_FRONTEND_URL || "http://localhost:3001";
 const OPEN_DEVTOOLS = String(process.env.DESKTOP_OPEN_DEVTOOLS || "").toLowerCase() === "true";
-// Content protection defaults OFF — can cause click/input issues on some Windows versions
-// Set DESKTOP_OVERLAY_CONTENT_PROTECTION=true to enable
-const OVERLAY_CONTENT_PROTECTION = String(process.env.DESKTOP_OVERLAY_CONTENT_PROTECTION || "false").toLowerCase() === "true";
+// Content protection makes overlay invisible to screen sharing / recording / screenshots.
+// Uses Windows SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE). Works on Win 10 2004+ and Win 11.
+// Set DESKTOP_OVERLAY_CONTENT_PROTECTION=false to disable if click/input issues occur.
+const OVERLAY_CONTENT_PROTECTION = String(process.env.DESKTOP_OVERLAY_CONTENT_PROTECTION || "true").toLowerCase() === "true";
 const store = new electron_store_1.default({
     name: "atluriin-settings",
     encryptionKey: "atluriin-practice-v1-enc-key",
@@ -59,7 +60,7 @@ const store = new electron_store_1.default({
             experience: "mid",
             companyResearch: "",
             imageContext: "",
-            model: "gpt4o",
+            model: "general",
             coachStyle: "balanced",
             coachEnabled: true,
             mode: "live",
@@ -77,6 +78,12 @@ function log(...args) {
 // Prevents macOS Ventura/Sonoma+ from capturing through content protection.
 // ═══════════════════════════════════════════════════════════
 electron_1.app.commandLine.appendSwitch("disable-features", "IOSurfaceCapturer,DesktopCaptureMacV2");
+// Enable remote debugging for Playwright E2E automation
+// Always enable in development if E2E_TEST env var is set
+if (process.argv.includes("--e2e") || process.env.E2E_TEST === "1") {
+    electron_1.app.commandLine.appendSwitch("remote-debugging-port", "9333");
+    console.log("[desktop] Remote debugging enabled on port 9333");
+}
 // Some Windows environments deny Chromium cache/quota DB writes in default locations.
 // Force userData + disk cache to a known-writable AppData folder.
 try {
@@ -118,6 +125,7 @@ let overlayContentProtectionEnabled = OVERLAY_CONTENT_PROTECTION;
 let overlayStealthEnabled = false;
 let overlayOpacity = 1.0;
 let loopbackSession = null;
+// (Auto-capture is now question-triggered — see loopbackSession.onMessage handler)
 // ═══════════════════════════════════════════════════════════
 // STEALTH ENGINE v2.0 + ANTI-DETECTION ENGINE
 // ═══════════════════════════════════════════════════════════
@@ -159,6 +167,13 @@ electron_1.ipcMain.handle("stealth:applyAntiDetection", async () => {
     catch (e) {
         return { ok: false, error: String(e?.message || e) };
     }
+});
+electron_1.ipcMain.handle("app:openUrl", async (_event, url) => {
+    if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
+        electron_1.shell.openExternal(url);
+        return { ok: true };
+    }
+    return { ok: false, error: "invalid url" };
 });
 electron_1.ipcMain.handle("overlay:getContentProtection", async () => {
     return Boolean(overlayContentProtectionEnabled);
@@ -299,6 +314,16 @@ electron_1.ipcMain.handle("capture:endRegionSelect", async () => {
         overlayWindow.setIgnoreMouseEvents(true, { forward: true });
     }
 });
+// Instant full-screen capture + send to backend for AI vision analysis (no mouse)
+electron_1.ipcMain.handle("capture:analyzeFullScreen", async () => {
+    try {
+        await captureAndAnalyze();
+        return { ok: true };
+    }
+    catch (e) {
+        return { ok: false, error: String(e?.message || e) };
+    }
+});
 // ═══════════════════════════════════════════════════════════
 // MIC + AI TOGGLE state (forwarded to renderer)
 // ═══════════════════════════════════════════════════════════
@@ -334,12 +359,100 @@ electron_1.ipcMain.handle("auth:getAccessToken", async () => {
         return null;
     }
 });
+// ═══════════════════════════════════════════════════════════
+// APP WINDOW CONTROLS — hide during session so only overlay shows
+// ═══════════════════════════════════════════════════════════
+electron_1.ipcMain.handle("app:hide", async () => {
+    if (appWindow && !appWindow.isDestroyed())
+        appWindow.hide();
+    return { ok: true };
+});
+electron_1.ipcMain.handle("app:show", async () => {
+    if (appWindow && !appWindow.isDestroyed()) {
+        appWindow.show();
+        appWindow.focus();
+    }
+    return { ok: true };
+});
+electron_1.ipcMain.handle("app:minimize", async () => {
+    if (appWindow && !appWindow.isDestroyed())
+        appWindow.minimize();
+    return { ok: true };
+});
 electron_1.ipcMain.handle("loopback:start", async (_event, payload) => {
     if (loopbackSession) {
         return { ok: true, message: "loopback already running" };
     }
     try {
         loopbackSession = await (0, win_loopback_1.startWindowsLoopback)(payload);
+        // Forward backend WS messages to overlay
+        loopbackSession.onMessage((type, data) => {
+            if (overlayWindow && !overlayWindow.isDestroyed()) {
+                overlayWindow.webContents.send("ws:message", { type, data });
+            }
+        });
+        // ── SCREEN MONITOR: Periodic capture + change detection ──
+        // Detects when interviewer sends a question in chat, shares a problem,
+        // or shows anything new on screen. Sends changed frames to backend
+        // where GPT-4o vision identifies questions and generates answers.
+        let screenMonitorTimer = null;
+        let lastScreenHash = "";
+        const simpleHash = (buf) => {
+            // Fast pixel-sample hash: sample every ~4000th byte for change detection
+            let h = 0;
+            const step = Math.max(1, Math.floor(buf.length / 512));
+            for (let i = 0; i < buf.length; i += step) {
+                h = ((h << 5) - h + buf[i]) | 0;
+            }
+            return h.toString(36);
+        };
+        const captureScreenOnce = async () => {
+            if (!loopbackSession)
+                return;
+            try {
+                const sources = await electron_1.desktopCapturer.getSources({
+                    types: ["screen"],
+                    thumbnailSize: { width: 1920, height: 1080 },
+                });
+                if (!sources.length)
+                    return;
+                const img = sources[0].thumbnail;
+                const pngBuf = img.toPNG();
+                const hash = simpleHash(pngBuf);
+                // Only send if screen actually changed
+                if (hash === lastScreenHash)
+                    return;
+                lastScreenHash = hash;
+                const base64 = pngBuf.toString("base64");
+                log("screen-monitor: change detected, sending frame (%d KB)", Math.round(base64.length / 1024));
+                // Send as screen_monitor type — backend uses GPT-4o vision to detect questions
+                if (loopbackSession) {
+                    loopbackSession._sendScreenMonitor(base64);
+                }
+                if (overlayWindow && !overlayWindow.isDestroyed()) {
+                    overlayWindow.webContents.send("capture:taken", {
+                        width: img.getSize().width,
+                        height: img.getSize().height,
+                        auto: true,
+                        monitor: true,
+                    });
+                }
+            }
+            catch (e) {
+                log("screen-monitor capture failed:", String(e?.message || e));
+            }
+        };
+        // Start monitoring every 3 seconds
+        screenMonitorTimer = setInterval(captureScreenOnce, 3000);
+        log("screen-monitor started (3s interval, change-detection enabled)");
+        // Store cleanup reference for loopback:stop
+        loopbackSession._stopScreenMonitor = () => {
+            if (screenMonitorTimer) {
+                clearInterval(screenMonitorTimer);
+                screenMonitorTimer = null;
+                log("screen-monitor stopped");
+            }
+        };
         return { ok: true };
     }
     catch (e) {
@@ -351,6 +464,8 @@ electron_1.ipcMain.handle("loopback:stop", async () => {
     if (!loopbackSession)
         return { ok: true };
     try {
+        // Stop screen monitor first
+        loopbackSession._stopScreenMonitor?.();
         await loopbackSession.stop();
     }
     catch {
@@ -359,6 +474,18 @@ electron_1.ipcMain.handle("loopback:stop", async () => {
         loopbackSession = null;
     }
     return { ok: true };
+});
+// Inject a text transcript into the loopback WS (for testing / TTS-based interview)
+electron_1.ipcMain.handle("loopback:injectTranscript", async (_event, text) => {
+    if (!loopbackSession)
+        return { ok: false, error: "loopback not running" };
+    try {
+        loopbackSession.injectTranscript(text);
+        return { ok: true };
+    }
+    catch (e) {
+        return { ok: false, error: String(e?.message || e) };
+    }
 });
 // ═══════════════════════════════════════════════════════════
 // PERSISTENT SETTINGS via electron-store (encrypted)
@@ -805,7 +932,7 @@ function createAppWindow() {
 function createOverlayWindow() {
     overlayWindow = new electron_1.BrowserWindow({
         width: 420,
-        height: 680,
+        height: 700,
         show: false,
         frame: false,
         resizable: true,
@@ -822,7 +949,9 @@ function createOverlayWindow() {
     // Phase 4: Alt-Tab invisibility + taskbar hiding + content protection
     overlayWindow.setSkipTaskbar(true);
     overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-    overlayWindow.setContentProtection(true);
+    if (OVERLAY_CONTENT_PROTECTION) {
+        overlayWindow.setContentProtection(true);
+    }
     log("overlay stealth hardening applied (skipTaskbar, allWorkspaces, contentProtection)");
     overlayWindow.on("ready-to-show", () => {
         overlayWindow?.show();
@@ -900,6 +1029,40 @@ function triggerCapture() {
         overlayWindow.focus();
     }
 }
+/**
+ * Instant full-screen capture → send to backend for GPT-4o vision analysis.
+ * No mouse interaction required — triggered by Ctrl+Shift+F.
+ */
+async function captureAndAnalyze() {
+    log("captureAndAnalyze triggered");
+    try {
+        const sources = await electron_1.desktopCapturer.getSources({
+            types: ["screen"],
+            thumbnailSize: { width: 1920, height: 1080 },
+        });
+        if (!sources.length) {
+            log("captureAndAnalyze: no screen sources");
+            return;
+        }
+        const img = sources[0].thumbnail;
+        const base64 = img.toPNG().toString("base64");
+        log("captureAndAnalyze: captured", img.getSize().width, "x", img.getSize().height);
+        // Send via loopback WS to backend for vision analysis
+        if (loopbackSession) {
+            loopbackSession._sendScreenshot?.(base64);
+        }
+        // Also notify the overlay that a capture happened
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send("capture:taken", {
+                width: img.getSize().width,
+                height: img.getSize().height,
+            });
+        }
+    }
+    catch (e) {
+        log("captureAndAnalyze error", String(e?.message || e));
+    }
+}
 function reregisterHotkeys(bindings) {
     electron_1.globalShortcut.unregisterAll();
     const hk = bindings || store.get("hotkeys");
@@ -923,6 +1086,8 @@ function reregisterHotkeys(bindings) {
     tryRegister("CommandOrControl+Shift+Down", () => nudgeOverlay(0, 5));
     tryRegister("CommandOrControl+Shift+Left", () => nudgeOverlay(-5, 0));
     tryRegister("CommandOrControl+Shift+Right", () => nudgeOverlay(5, 0));
+    // Instant capture + AI analysis (no mouse needed)
+    tryRegister("CommandOrControl+Shift+F", captureAndAnalyze);
     // Legacy alias
     tryRegister("Control+Shift+I", toggleOverlay);
     log("hotkeys registered");
@@ -941,7 +1106,9 @@ electron_1.app.whenReady().then(() => {
             log("dock.hide failed", String(e?.message || e));
         }
     }
-    createAppWindow();
+    // Only create the overlay — no separate app window.
+    // Setup/config happens inside the overlay itself.
+    // createAppWindow();  // DISABLED: overlay-only mode
     createOverlayWindow();
     // Apply anti-detection header sanitization
     antiDetectionEngine.applyHeaderSanitization();

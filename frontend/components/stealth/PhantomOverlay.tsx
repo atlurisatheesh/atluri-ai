@@ -58,6 +58,16 @@ interface PhantomOverlayProps {
     screenshotAnalysis?: string;
     isAnalyzingScreenshot?: boolean;
     onCaptureScreenshot?: () => void;
+    // Audio health
+    audioHealth?: {
+        level: number;
+        peak: number;
+        status: "good" | "weak" | "silent" | "no_device";
+        device: string;
+        deviceType: string;
+        silenceDurationSec: number;
+    } | null;
+    audioWarning?: string | null;
 }
 
 const POSITION_STYLES: Record<OverlayPosition, string> = {
@@ -149,6 +159,8 @@ export default function PhantomOverlay({
     screenshotAnalysis = "",
     isAnalyzingScreenshot = false,
     onCaptureScreenshot,
+    audioHealth,
+    audioWarning,
 }: PhantomOverlayProps) {
     const [collapsed, setCollapsed] = useState(false);
     const [minimalMode, setMinimalMode] = useState(false);
@@ -267,8 +279,12 @@ export default function PhantomOverlay({
         return highlightImpactSentence(aiResponse.answer);
     }, [aiResponse?.answer]);
 
-    // The effective display text (streaming or final)
-    const displayAnswer = isStreaming ? streamingText : (aiResponse?.answer || "");
+    // The effective display text (streaming or final).
+    // During streaming, fall back to previous answer until new chunks arrive
+    // so the user never sees a blank flash.
+    const displayAnswer = isStreaming
+        ? (streamingText || aiResponse?.answer || "")
+        : (aiResponse?.answer || "");
 
     if (!visible) return null;
 
@@ -284,13 +300,16 @@ export default function PhantomOverlay({
             >
                 <div className="flex items-center gap-2 px-4 py-1.5 rounded-b-xl bg-black/80 backdrop-blur-xl border border-white/[0.08] border-t-0 shadow-lg shadow-black/40">
                     <div className={`w-2 h-2 rounded-full ${isListening ? "bg-brand-green animate-pulse" : "bg-brand-red"}`} />
+                    {audioHealth && isListening && audioHealth.status !== "good" && (
+                        <div className={`w-2 h-2 rounded-full ${audioHealth.status === "weak" ? "bg-brand-amber animate-pulse" : "bg-brand-red animate-pulse"}`} title={`Audio: ${audioHealth.status}`} />
+                    )}
                     {deepThink && <Layers className="w-3 h-3 text-brand-purple animate-pulse" />}
                     {stealthHealth && (
                         <div className={`w-2 h-2 rounded-full ${getHealthBg(stealthHealth.score)} ${stealthHealth.threatLevel !== "NONE" ? "animate-pulse" : ""}`} title={`Stealth: ${stealthHealth.score}/100`} />
                     )}
                     <span className="text-xs text-textSecondary max-w-[400px] truncate">
                         {isStreaming ? (
-                            <>{streamingText}<span className="inline-block w-0.5 h-3 bg-brand-purple ml-0.5 animate-pulse" /></>
+                            <>{streamingText || aiResponse?.answer || "Generating..."}<span className="inline-block w-0.5 h-3 bg-brand-purple ml-0.5 animate-pulse" /></>
                         ) : (
                             aiResponse?.answer || "Waiting for question..."
                         )}
@@ -334,6 +353,20 @@ export default function PhantomOverlay({
                                 className="absolute top-0 left-0 right-0 z-50 px-3 py-2 bg-brand-red/90 text-white text-[10px] font-bold text-center backdrop-blur-sm"
                             >
                                 <ShieldAlert className="w-3 h-3 inline mr-1" />{threatToast}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* ── Audio Warning Toast ── */}
+                    <AnimatePresence>
+                        {audioWarning && !threatToast && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="absolute top-0 left-0 right-0 z-40 px-3 py-2 bg-brand-amber/90 text-white text-[10px] font-bold text-center backdrop-blur-sm"
+                            >
+                                <MicOff className="w-3 h-3 inline mr-1" />{audioWarning}
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -409,6 +442,16 @@ export default function PhantomOverlay({
                             <button onClick={onToggleMic} className="p-1 rounded hover:bg-white/[0.06] transition" tabIndex={0} title={isListening ? "Mute mic" : "Unmute mic"}>
                                 {isListening ? <Mic className="w-3.5 h-3.5 text-brand-green" /> : <MicOff className="w-3.5 h-3.5 text-brand-red" />}
                             </button>
+                            {/* Audio level VU indicator */}
+                            {audioHealth && isListening && (
+                                <div
+                                    className={`w-2 h-2 rounded-full transition-colors ${
+                                        audioHealth.status === "good" ? "bg-brand-green" :
+                                        audioHealth.status === "weak" ? "bg-brand-amber animate-pulse" :
+                                        "bg-brand-red animate-pulse"
+                                    }`}
+                                    title={`Audio: ${audioHealth.status} · Level: ${(audioHealth.level * 100).toFixed(0)}% · ${audioHealth.device || "unknown"}`}
+                                />
                             {isSessionActive && onCaptureScreenshot && (
                                 <button
                                     onClick={onCaptureScreenshot}

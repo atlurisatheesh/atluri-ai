@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 electron_1.contextBridge.exposeInMainWorld("atluriinDesktop", {
     version: "0.3.0",
+    openUrl: async (url) => {
+        return await electron_1.ipcRenderer.invoke("app:openUrl", String(url));
+    },
     getOverlayContentProtection: async () => {
         return await electron_1.ipcRenderer.invoke("overlay:getContentProtection");
     },
@@ -42,6 +45,9 @@ electron_1.contextBridge.exposeInMainWorld("atluriinDesktop", {
     },
     stopLoopback: async () => {
         return await electron_1.ipcRenderer.invoke("loopback:stop");
+    },
+    injectTranscript: async (text) => {
+        return await electron_1.ipcRenderer.invoke("loopback:injectTranscript", text);
     },
     // ═══════════════════════════════════════════════════════════
     // SCREEN CAPTURE APIs
@@ -244,9 +250,35 @@ electron_1.contextBridge.exposeInMainWorld("atluriinDesktop", {
         electron_1.ipcRenderer.on("ws:message", handler);
         return () => { electron_1.ipcRenderer.removeListener("ws:message", handler); };
     },
+    // ═══════════════════════════════════════════════════════════
+    // INSTANT SCREENSHOT + AI ANALYSIS
+    // Captures full screen and sends to backend for GPT-4o vision analysis.
+    // No mouse needed — also triggered by Ctrl+Shift+F hotkey.
+    // ═══════════════════════════════════════════════════════════
+    captureAndAnalyze: async () => {
+        return await electron_1.ipcRenderer.invoke("capture:analyzeFullScreen");
+    },
+    onCaptureTaken: (callback) => {
+        const handler = (_event, info) => callback(info);
+        electron_1.ipcRenderer.on("capture:taken", handler);
+        return () => { electron_1.ipcRenderer.removeListener("capture:taken", handler); };
+    },
     onControlMicMuted: (callback) => {
         const handler = (_event, muted) => callback(muted);
         electron_1.ipcRenderer.on("control:micMuted", handler);
         return () => { electron_1.ipcRenderer.removeListener("control:micMuted", handler); };
+    },
+    // ═══════════════════════════════════════════════════════════
+    // APP WINDOW CONTROLS — hide app window during session
+    // so only the floating overlay is visible
+    // ═══════════════════════════════════════════════════════════
+    hideAppWindow: async () => {
+        return await electron_1.ipcRenderer.invoke("app:hide");
+    },
+    showAppWindow: async () => {
+        return await electron_1.ipcRenderer.invoke("app:show");
+    },
+    minimizeAppWindow: async () => {
+        return await electron_1.ipcRenderer.invoke("app:minimize");
     },
 });

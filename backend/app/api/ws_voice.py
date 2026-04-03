@@ -73,7 +73,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ws_voice")
 
-MAX_WS_TEXT_BYTES = max(1024, int(os.getenv("WS_MAX_TEXT_BYTES", "65536")))
+MAX_WS_TEXT_BYTES = max(1024, int(os.getenv("WS_MAX_TEXT_BYTES", "2097152")))  # 2MB default — screenshots/screen_monitor send base64 images
 WS_HEARTBEAT_INTERVAL_SEC = max(10.0, float(os.getenv("WS_HEARTBEAT_INTERVAL_SEC", "25")))
 WS_HEARTBEAT_TIMEOUT_SEC = max(20.0, float(os.getenv("WS_HEARTBEAT_TIMEOUT_SEC", "120")))  # Increased to prevent timeout during heavy LLM processing
 ALLOW_BROWSER_STT_FALLBACK = str(os.getenv("ALLOW_BROWSER_STT_FALLBACK", "false")).strip().lower() in {"1", "true", "yes", "on"}
@@ -1627,9 +1627,8 @@ async def _voice_ws_inner(websocket: WebSocket):
                 if msg.get("text"):
                     text_payload = str(msg.get("text") or "")
                     if len(text_payload.encode("utf-8")) > MAX_WS_TEXT_BYTES:
-                        logger.warning("WS message too large | session_id=%s bytes=%s", session_id, len(text_payload.encode("utf-8")))
-                        await request_stop("message_too_large")
-                        break
+                        logger.warning("WS message too large, dropping | session_id=%s bytes=%s", session_id, len(text_payload.encode("utf-8")))
+                        continue
                     try:
                         payload = json.loads(text_payload)
 
@@ -1687,6 +1686,24 @@ async def _voice_ws_inner(websocket: WebSocket):
                             # Cancel the active answer generation task
                             await cancel_active_suggestion(reason="user_cancelled")
                             logger.info("User cancelled answer generation")
+                            continue
+
+                        # ── Audio Health Events (forward to overlay) ──
+                        if payload.get("type") in ("audio_health", "audio_warning"):
+                            # Desktop sends audio level/health data — forward to overlay
+                            # so the UI can show a VU meter and silence warnings
+                            if websocket.client_state == WebSocketState.CONNECTED:
+                                await _safe_send(payload)
+                            # Log audio warnings
+                            if payload.get("type") == "audio_warning":
+                                logger.warning("[AUDIO] %s (device=%s type=%s)",
+                                             payload.get("message", ""),
+                                             payload.get("device", "?"),
+                                             payload.get("deviceType", "?"))
+                            elif payload.get("status") == "silent":
+                                logger.warning("[AUDIO] Silent audio stream — device=%s level=%.4f",
+                                             payload.get("device", "?"),
+                                             payload.get("level", 0))
                             continue
 
                         if payload.get("type") == "screen_monitor":
@@ -3292,14 +3309,23 @@ async def _voice_ws_inner(websocket: WebSocket):
     async def deepgram_keepalive():
         if QA_MODE:
             return
+        keepalive_counter = 0
         while not stop_event.is_set():
             await asyncio.sleep(0.4)
-            if time.time() - last_audio_ts > 0.6:
+            silence_duration = time.time() - last_audio_ts
+            if silence_duration > 0.6:
                 if dg:
                     try:
+                        # Send silence bytes to keep the Deepgram stream active
                         dg.send_audio(b"\x00" * 640)
+                        # Every 5 seconds of silence, also send SDK KeepAlive signal
+                        keepalive_counter += 1
+                        if keepalive_counter % 12 == 0:  # ~every 5 seconds (12 * 0.4s)
+                            dg.send_keepalive()
                     except Exception as dg_keepalive_exc:
                         logger.warning("Deepgram keepalive send failed | session_id=%s err=%s", session_id, dg_keepalive_exc)
+            else:
+                keepalive_counter = 0
 
     async def websocket_heartbeat():
         nonlocal last_pong_ts

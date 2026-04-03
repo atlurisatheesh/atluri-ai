@@ -157,6 +157,17 @@ export function usePhantomOverlay() {
     const [isAnalyzingScreenshot, setIsAnalyzingScreenshot] = useState(false);
     const screenshotBufferRef = useRef("");
 
+    // Audio health monitoring
+    const [audioHealth, setAudioHealth] = useState<{
+        level: number;
+        peak: number;
+        status: "good" | "weak" | "silent" | "no_device";
+        device: string;
+        deviceType: string;
+        silenceDurationSec: number;
+    } | null>(null);
+    const [audioWarning, setAudioWarning] = useState<string | null>(null);
+
     // Refs for streaming
     const streamBufferRef = useRef("");
     const streamTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -254,9 +265,13 @@ export function usePhantomOverlay() {
     // ── Streaming Typewriter Effect ──
     const startStreaming = useCallback((fullText?: string) => {
         setIsStreaming(true);
-        setStreamingText("");
+        // Don't blank streamingText here — let the display formula
+        // fall back to the previous answer until new chunks arrive.
         if (fullText) {
             streamBufferRef.current = fullText;
+            setStreamingText("");
+        } else {
+            streamBufferRef.current = "";
         }
     }, []);
 
@@ -332,6 +347,10 @@ export function usePhantomOverlay() {
             case "answer_suggestion_start":
                 startStreaming();
                 setDeepThink(data.deepThink || false);
+                break;
+
+            case "answer_suggestion_done":
+                finishStreaming();
                 break;
 
             case "answer_suggestion_chunk":
@@ -410,12 +429,33 @@ export function usePhantomOverlay() {
                 screenshotBufferRef.current = "";
                 break;
 
+            case "question":
+            case "interviewer_question":
             case "screen_question_detected":
-                // Screen monitor detected a question from chat/shared screen
-                if (data.question) {
-                    setCurrentQuestion(data.question);
+                // Screen monitor or backend detected a question
+                if (data.question || data.text) {
+                    setCurrentQuestion(data.question || data.text);
                     setPartialQuestion("");
                 }
+                break;
+
+            case "audio_health":
+                setAudioHealth({
+                    level: data.level ?? 0,
+                    peak: data.peak ?? 0,
+                    status: data.status ?? "silent",
+                    device: data.device ?? "",
+                    deviceType: data.deviceType ?? "",
+                    silenceDurationSec: data.silenceDurationSec ?? 0,
+                });
+                // Auto-clear warning when audio resumes
+                if (data.status === "good") {
+                    setAudioWarning(null);
+                }
+                break;
+
+            case "audio_warning":
+                setAudioWarning(data.message || "No audio detected");
                 break;
         }
     }, [startStreaming, appendStreamChunk, finishStreaming, transcript]);
@@ -561,6 +601,8 @@ export function usePhantomOverlay() {
         offerProbability,
         screenshotAnalysis,
         isAnalyzingScreenshot,
+        audioHealth,
+        audioWarning,
         // Actions
         setVisible,
         setCollapsed,

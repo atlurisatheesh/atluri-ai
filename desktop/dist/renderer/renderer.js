@@ -131,12 +131,16 @@
             company: document.getElementById("setupCompany")?.value || "",
             position: document.getElementById("setupPosition")?.value || "",
             objective: document.getElementById("setupObjective")?.value || "",
+            procedures: document.getElementById("setupProcedures")?.value || "",
+            priorityQuestions: document.getElementById("setupPriorityQuestions")?.value || "",
             industry: document.getElementById("setupIndustry")?.value || "default",
             experience: document.getElementById("setupExperience")?.value || "mid",
+            codingLanguage: document.getElementById("setupCodingLang")?.value || "",
             companyResearch: document.getElementById("setupCompanyResearch")?.value || "",
             imageContext: document.getElementById("setupImageContext")?.value || "",
-            model: window.getSelectedModel?.() || "gpt4o",
+            model: window.getSelectedModel?.() || "general",
             coachStyle: document.getElementById("coachStyle")?.value || "balanced",
+            coachIndustry: document.getElementById("coachIndustry")?.value || "default",
             coachEnabled: window.isCoachEnabled?.() ?? true,
             mode: "live",
         };
@@ -278,18 +282,23 @@
             setVal("setupCompany", ss.company);
             setVal("setupPosition", ss.position);
             setVal("setupObjective", ss.objective);
+            setVal("setupProcedures", ss.procedures);
+            setVal("setupPriorityQuestions", ss.priorityQuestions);
             setVal("setupIndustry", ss.industry);
             setVal("setupExperience", ss.experience);
+            setVal("setupCodingLang", ss.codingLanguage);
             setVal("setupCompanyResearch", ss.companyResearch);
             setVal("setupImageContext", ss.imageContext);
             setVal("coachStyle", ss.coachStyle);
-            // Restore selected model
+            setVal("coachIndustry", ss.coachIndustry);
+            // Restore selected model (supports legacy id variants)
             if (ss.model) {
-                const modelEl = document.querySelector(`[data-model="${ss.model}"]`);
+                const normalizedModel = ss.model === "gpt4o" ? "gpt-4o" : ss.model;
+                window.__pendingModel = normalizedModel;
+                const modelEl = document.querySelector(`[data-model="${normalizedModel}"]`);
                 if (modelEl) {
-                    document.querySelectorAll(".model-option").forEach(o => o.classList.remove("selected"));
+                    document.querySelectorAll(".model-card").forEach(o => o.classList.remove("selected"));
                     modelEl.classList.add("selected");
-                    window.__pendingModel = ss.model;
                 }
             }
             // Sync resume/JD from setup wizard to settings modal if setup has content
@@ -1318,6 +1327,8 @@ async function start() {
         company: ctx.company || "",
         position: ctx.position || "",
         objective: ctx.objective || "",
+        interview_procedures: ctx.procedures || "",
+        priority_questions: ctx.priorityQuestions || "",
         industry: ctx.industry || "default",
         experience: ctx.experience || "mid",
         model: ctx.model || "gpt4o",
@@ -1326,6 +1337,7 @@ async function start() {
         mode: ctx.mode || "live",
         companyResearch: ctx.companyResearch || "",
         imageContext: ctx.imageContext || "",
+        image_analysis_context: ctx.imageContext || "",
     });
     safeWsSend(pair.interviewer, sessionPayload);
     safeWsSend(pair.candidate, sessionPayload);
@@ -2647,7 +2659,7 @@ void refreshDevices();
 (function initNextGenUI() {
     const $ = (id) => document.getElementById(id);
     // ═══════════════════════════════════════════════════════════
-    // MODE TABS — 5 modes (Live, Mock, Coding, Meeting, Assessment)
+    // MODE TABS — 3 modes (Live, Mock, Coding)
     // ═══════════════════════════════════════════════════════════
     let currentMode = "live";
     const modeTabs = document.querySelectorAll(".mode-tab");
@@ -2671,13 +2683,7 @@ void refreshDevices();
                         scenarioEl.value = "behavioral";
                         break;
                     case "coding":
-                        scenarioEl.value = "coding";
-                        break;
-                    case "meeting":
-                        scenarioEl.value = "general";
-                        break;
-                    case "assessment":
-                        scenarioEl.value = "coding";
+                        scenarioEl.value = "live-coding";
                         break;
                 }
             }
@@ -2692,30 +2698,22 @@ void refreshDevices();
                         coachStyle.value = "behavioral";
                         break;
                     case "coding":
-                        coachStyle.value = "coding";
-                        break;
-                    case "meeting":
-                        coachStyle.value = "balanced";
-                        break;
-                    case "assessment":
-                        coachStyle.value = "coding";
+                        coachStyle.value = "technical";
                         break;
                 }
             }
             // Mode-specific panel visibility
             const speechCard = document.getElementById("speechCard");
-            const setupStep1 = document.getElementById("setupStep1");
-            const kpiCard = document.getElementById("kpiCard");
             // Hide/show sections based on mode
             if (speechCard && isRunning) {
-                // Speech analytics only relevant for interview modes
-                speechCard.style.display = (mode === "coding" || mode === "meeting") ? "none" : "block";
+                speechCard.style.display = mode === "coding" ? "none" : "block";
             }
             // Auto-open relevant setup step based on mode
             if (mode === "coding") {
-                // For coding mode, emphasize the Interview Setup step with coding scenario
-                if (setupStep1 && !setupStep1.classList.contains("open"))
-                    setupStep1.classList.add("open");
+                const setupStep1 = document.getElementById("setupStep1");
+                if (setupStep1 && !setupStep1.classList.contains("open")) {
+                    window.toggleSetupStep(1);
+                }
             }
             console.log(`[mode] switched to: ${mode}`);
         });
@@ -2723,13 +2721,20 @@ void refreshDevices();
     // ═══════════════════════════════════════════════════════════
     // SETUP WIZARD — Accordion toggle + document count
     // ═══════════════════════════════════════════════════════════
-    // Expose toggleSetupStep to global scope for inline onclick
+    // Expose toggleSetupStep to global scope for inline onclick (accordion)
     window.toggleSetupStep = function (stepNum) {
         const step = document.getElementById(`setupStep${stepNum}`);
         if (!step)
             return;
-        step.classList.toggle("open");
-        // Update step numbers to show "done" state
+        const wasOpen = step.classList.contains("open");
+        // Accordion: close all steps, then open the clicked one
+        [1, 2, 3].forEach(n => {
+            const s = document.getElementById(`setupStep${n}`);
+            if (s)
+                s.classList.remove("open");
+        });
+        if (!wasOpen)
+            step.classList.add("open");
         updateStepNumbers();
     };
     function updateStepNumbers() {
@@ -2750,6 +2755,13 @@ void refreshDevices();
         if (stepNum2) {
             stepNum2.classList.toggle("done", step2Done);
             stepNum2.textContent = step2Done ? "✓" : "2";
+        }
+        // Step 3 done if non-default model selected or coach settings changed
+        const step3Done = selectedModel !== "general" || !coachEnabled || $("coachStyle")?.value !== "balanced";
+        const stepNum3 = $("stepNum3");
+        if (stepNum3) {
+            stepNum3.classList.toggle("done", step3Done);
+            stepNum3.textContent = step3Done ? "✓" : "3";
         }
         // Update document count badge
         let docCount = 0;
@@ -2789,7 +2801,7 @@ void refreshDevices();
         }
     };
     // Listen for input changes to update step status
-    ["setupCompany", "setupPosition", "setupResume", "setupJobDesc", "setupCompanyResearch"].forEach((id) => {
+    ["setupCompany", "setupPosition", "setupResume", "setupJobDesc", "setupCompanyResearch", "setupProcedures", "setupPriorityQuestions"].forEach((id) => {
         const el = document.getElementById(id);
         if (el)
             el.addEventListener("input", () => updateStepNumbers());
@@ -2812,19 +2824,307 @@ void refreshDevices();
             imgCharCountEl.textContent = String(remaining);
     });
     // ═══════════════════════════════════════════════════════════
-    // MODEL SELECTOR
+    // SCENARIO CATALOG — 58 scenarios in 13 categories (synced with backend)
     // ═══════════════════════════════════════════════════════════
-    let selectedModel = "gpt4o";
-    window.selectModel = function (el) {
+    const SCENARIO_CATALOG = [
+        { category: "Engineering", scenarios: [
+                { value: "swe-interview", label: "Software Engineering Interview" },
+                { value: "system-design", label: "System Design Interview" },
+                { value: "tech-screen", label: "Technical Phone Screen" },
+                { value: "live-coding", label: "Live Coding Challenge" },
+                { value: "arch-review", label: "Architecture Review" },
+                { value: "code-review", label: "Code Review" },
+            ] },
+        { category: "System Design", scenarios: [
+                { value: "sd-deep-dive", label: "System Design Deep Dive" },
+                { value: "distributed-systems", label: "Distributed Systems Design" },
+                { value: "db-schema-design", label: "Database Schema Design" },
+                { value: "api-design", label: "API Design Interview" },
+            ] },
+        { category: "Behavioral", scenarios: [
+                { value: "behavioral", label: "Behavioral Interview" },
+                { value: "leadership", label: "Leadership Interview" },
+                { value: "conflict-resolution", label: "Conflict Resolution" },
+                { value: "career-story", label: "Career Story" },
+            ] },
+        { category: "Product", scenarios: [
+                { value: "pm-interview", label: "Product Manager Interview" },
+                { value: "product-sense", label: "Product Sense Interview" },
+                { value: "product-strategy", label: "Product Strategy" },
+                { value: "product-analytics", label: "Product Analytics" },
+            ] },
+        { category: "Data / ML", scenarios: [
+                { value: "data-science", label: "Data Science Interview" },
+                { value: "ml-interview", label: "Machine Learning Interview" },
+                { value: "data-engineering", label: "Data Engineering" },
+                { value: "statistical-analysis", label: "Statistical Analysis" },
+            ] },
+        { category: "Management", scenarios: [
+                { value: "eng-manager", label: "Engineering Manager Interview" },
+                { value: "vp-engineering", label: "VP Engineering Interview" },
+                { value: "cto-interview", label: "CTO Interview" },
+                { value: "director-interview", label: "Director Interview" },
+            ] },
+        { category: "Specialized", scenarios: [
+                { value: "devops-sre", label: "DevOps / SRE Interview" },
+                { value: "frontend-interview", label: "Frontend Interview" },
+                { value: "backend-interview", label: "Backend Interview" },
+                { value: "mobile-engineering", label: "Mobile Engineering" },
+                { value: "qa-testing", label: "QA / Testing" },
+            ] },
+        { category: "AI / ML", scenarios: [
+                { value: "ai-research", label: "AI Research Interview" },
+                { value: "nlp-engineer", label: "NLP Engineer Interview" },
+                { value: "computer-vision", label: "Computer Vision" },
+                { value: "mlops", label: "MLOps Interview" },
+            ] },
+        { category: "Security", scenarios: [
+                { value: "security-engineer", label: "Security Engineer Interview" },
+                { value: "pentest", label: "Penetration Testing" },
+                { value: "security-arch", label: "Security Architecture" },
+                { value: "compliance", label: "Compliance Interview" },
+            ] },
+        { category: "Creative", scenarios: [
+                { value: "design-interview", label: "Design Interview" },
+                { value: "ux-research", label: "UX Research Interview" },
+                { value: "creative-director", label: "Creative Director Interview" },
+            ] },
+        { category: "Emerging Tech", scenarios: [
+                { value: "blockchain", label: "Blockchain Interview" },
+                { value: "ar-vr", label: "AR / VR Interview" },
+                { value: "iot", label: "IoT Interview" },
+                { value: "quantum-computing", label: "Quantum Computing" },
+            ] },
+        { category: "Business", scenarios: [
+                { value: "sales-engineer", label: "Sales Engineer Interview" },
+                { value: "solutions-architect", label: "Solutions Architect" },
+                { value: "technical-writer", label: "Technical Writer" },
+                { value: "dev-relations", label: "Developer Relations" },
+            ] },
+        { category: "Infrastructure", scenarios: [
+                { value: "cloud-engineer", label: "Cloud Engineer Interview" },
+                { value: "network-engineer", label: "Network Engineer" },
+                { value: "sre", label: "Site Reliability Engineer" },
+                { value: "platform-engineer", label: "Platform Engineer" },
+            ] },
+    ];
+    function populateScenarios() {
+        const sel = $("setupScenario");
+        if (!sel)
+            return;
+        sel.innerHTML = '<option value="general">General Interview</option>';
+        SCENARIO_CATALOG.forEach(cat => {
+            const optgroup = document.createElement("optgroup");
+            optgroup.label = cat.category;
+            cat.scenarios.forEach(s => {
+                const opt = document.createElement("option");
+                opt.value = s.value;
+                opt.textContent = s.label;
+                optgroup.appendChild(opt);
+            });
+            sel.appendChild(optgroup);
+        });
+    }
+    populateScenarios();
+    const MODEL_CATALOG = [
+        { id: "general", name: "General", description: "Best for everyday questions and quick answers. Simple, fast, and reliable for most casual use cases.", tags: ["General-purpose assistant", "Fast and responsive", "Great for daily Q&A"], search: true },
+        { id: "gpt-5", name: "GPT-5", description: "Next-generation flagship model with powerful reasoning, coding, and multimodal abilities.", tags: ["Advanced long-context reasoning", "Excellent for coding and interviews", "Multimodal support"], beta: true, search: true },
+        { id: "gpt-5.2", name: "GPT-5.2", description: "Powerful next-generation model with strong reasoning, coding, and multimodal understanding.", tags: ["Top-tier reasoning and analysis", "Excellent coding performance", "Supports text, images, and tools"], beta: true, paid: true, search: true },
+        { id: "gpt-5.1", name: "GPT-5.1", description: "High-end reasoning model designed for deep thinking, complex analysis, and professional workflows.", tags: ["Deep reasoning and planning", "Excellent for complex problems", "High-quality structured outputs"], beta: true, paid: true, search: true },
+        { id: "gpt-5-mini", name: "GPT-5 Mini", description: "Compact yet powerful model offering strong reasoning and multimodal support at lower cost.", tags: ["Large context window", "Strong reasoning", "Great for coding and Q&A"], beta: true, paid: true, search: true },
+        { id: "gpt-4.1", name: "GPT-4.1", description: "Model designed for long-context understanding and advanced instruction following.", tags: ["Very large context window", "Strong coding support", "Great for long documents"], beta: true },
+        { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", description: "Fast, cost-efficient model for everyday coding and quick tasks.", tags: ["Fast responses", "Low cost", "Good for quick tasks"], beta: true },
+        { id: "gpt-4o", name: "GPT-4o", description: "Reliable multimodal model for general-purpose tasks with balanced performance.", tags: ["Proven reliability", "Good all-rounder", "Multimodal capable"] },
+        { id: "claude-4.5-sonnet", name: "Claude Sonnet 4.5", description: "Highly capable model optimized for coding, reasoning, and balanced performance.", tags: ["Excellent coding ability", "Strong reasoning", "Multimodal support"], beta: true, paid: true, search: true },
+        { id: "claude-4.5-haiku", name: "Claude Haiku 4.5", description: "Fast, lightweight model designed for quick responses, everyday coding, and low-latency reasoning.", tags: ["Ultra-fast responses", "Efficient everyday coding", "Low-cost reasoning tasks"], beta: true, paid: true },
+        { id: "claude-4.5-opus", name: "Claude Opus 4.5", description: "Premium reasoning model with strong understanding, writing quality, and multimodal support.", tags: ["Advanced reasoning", "High-quality writing", "Multimodal capabilities"], beta: true, paid: true, search: true },
+        { id: "gemini-3-pro", name: "Gemini 3 Pro", description: "State-of-the-art model designed for advanced reasoning and agent-style task execution.", tags: ["Top-level reasoning performance", "Enhanced multimodal understanding", "Agent-like task execution"], beta: true, paid: true, search: true },
+        { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", description: "Ultra-fast and efficient model for lightweight tasks and quick interactions.", tags: ["Very fast responses", "Low-cost performance", "Supports multimodal inputs"], beta: true, search: true },
+        { id: "gemini-3-flash", name: "Gemini 3 Flash", description: "Extremely fast responses optimized for real-time streaming and high throughput.", tags: ["Extremely fast responses", "Optimized for real-time streaming", "High-throughput performance"], beta: true, search: true },
+        { id: "grok-4", name: "Grok 4", description: "Advanced reasoning model with real-time knowledge and strong analytical capabilities.", tags: ["Real-time knowledge", "Strong analysis", "Multimodal support"], beta: true, paid: true, delay: true },
+        { id: "grok-4.1-fast", name: "Grok 4.1 Fast", description: "A frontier multimodal model optimized specifically for high-performance agentic tool calling.", tags: ["Advanced long-context reasoning", "Excellent for coding and interviews", "Multimodal support"], beta: true, search: true },
+        { id: "deepseek-chat", name: "DeepSeek Chat", description: "Open-source model with strong coding and reasoning capabilities at competitive cost.", tags: ["Strong coding performance", "Cost-effective", "Open-source foundation"], beta: true, paid: true },
+        { id: "kimi-k2-turbo", name: "Kimi K2 Turbo", description: "High-performance model excelling at agentic tasks and complex multi-step reasoning.", tags: ["Agentic task execution", "Multi-step reasoning", "Large context window"], beta: true, paid: true },
+        { id: "ollama-local", name: "Ollama Local", description: "Run models locally on your machine for maximum privacy and zero latency.", tags: ["100% private", "No API key needed", "Zero network latency"] },
+    ];
+    let selectedModel = "general";
+    function renderModelList() {
+        const list = $("modelList");
+        if (!list)
+            return;
+        list.innerHTML = MODEL_CATALOG.map(m => {
+            const isSelected = m.id === selectedModel;
+            const isLocked = !!m.paid; // Plan-gate: paid models require upgrade
+            const badges = [
+                m.beta ? '<span class="model-badge beta">BETA</span>' : '',
+                m.delay ? '<span class="model-badge delay">NOTICEABLE DELAY</span>' : '',
+                m.paid ? '<span class="model-badge paid">🔒 Paid</span>' : '',
+            ].filter(Boolean).join('');
+            const tags = m.tags.map(t => `<span class="model-card-tag">${t}</span>`).join('');
+            const searchTag = m.search ? '<span class="model-card-tag search">🔍 Search</span>' : '';
+            return `<div class="model-card${isSelected ? ' selected' : ''}${isLocked ? ' locked' : ''}" data-model="${m.id}" onclick="selectModelCard(this)">
+        <div class="model-card-header"><span class="model-card-name">${m.name}</span>${badges}</div>
+        <div class="model-card-desc">${m.description}</div>
+        <div class="model-card-tags">${tags}${searchTag}</div>
+      </div>`;
+        }).join('');
+    }
+    window.selectModelCard = function (el) {
         const model = el.dataset.model;
         if (!model)
             return;
+        // Plan-gate: prevent selecting locked (paid) models
+        if (el.classList.contains("locked")) {
+            window.open("https://phantomveil.app/upgrade", "_blank");
+            return;
+        }
         selectedModel = model;
-        document.querySelectorAll(".model-option").forEach((opt) => {
-            opt.classList.remove("selected");
-        });
+        document.querySelectorAll(".model-card").forEach(c => c.classList.remove("selected"));
         el.classList.add("selected");
+        // Update tier header with selected model name
+        const def = MODEL_CATALOG.find(m => m.id === model);
+        const tierNameEl = $("tierName");
+        if (tierNameEl && def)
+            tierNameEl.textContent = def.name;
+        updateStepNumbers();
         console.log(`[model] selected: ${model}`);
+    };
+    window.toggleModelTier = function () {
+        const card = $("modelTierCard");
+        if (card)
+            card.classList.toggle("open");
+    };
+    renderModelList();
+    // ═══════════════════════════════════════════════════════════
+    // CUSTOM INDUSTRY
+    // ═══════════════════════════════════════════════════════════
+    window.addCustomIndustry = function () {
+        const name = prompt("Enter custom industry name:");
+        if (!name || !name.trim())
+            return;
+        const sel = $("coachIndustry");
+        if (!sel)
+            return;
+        const value = name.trim().toLowerCase().replace(/\s+/g, "-");
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = name.trim();
+        sel.appendChild(opt);
+        sel.value = value;
+        console.log(`[coach] custom industry added: ${name.trim()}`);
+    };
+    // ═══════════════════════════════════════════════════════════
+    // Q&A PREP — Full modal with categorized questions
+    // ═══════════════════════════════════════════════════════════
+    const QA_PREP_QUESTIONS = [
+        { category: "Tell Me About Yourself", questions: [
+                "Walk me through your background.",
+                "What's your biggest professional achievement?",
+                "Why are you looking for a new role?",
+                "What are you looking for in your next position?",
+            ] },
+        { category: "Company & Role Fit", questions: [
+                "Why do you want to work at this company?",
+                "What do you know about our product/service?",
+                "Why should we hire you over other candidates?",
+                "Where do you see yourself in 5 years?",
+            ] },
+        { category: "Behavioral (STAR)", questions: [
+                "Describe a time you led a difficult project.",
+                "Tell me about a time you failed and what you learned.",
+                "Give an example of how you resolved a conflict.",
+                "Describe a time you went above and beyond.",
+                "Tell me about a time you had to make a tough decision quickly.",
+            ] },
+        { category: "Technical", questions: [
+                "What's your approach to system design?",
+                "How do you handle technical debt?",
+                "Describe your debugging process for production issues.",
+                "How do you stay current with technology trends?",
+            ] },
+        { category: "Salary & Compensation", questions: [
+                "What are your salary expectations?",
+                "What's your current compensation package?",
+                "Are you open to negotiation on compensation?",
+            ] },
+        { category: "Questions for Interviewer", questions: [
+                "What does success look like in this role?",
+                "What are the team's biggest challenges right now?",
+                "How do you measure performance?",
+            ] },
+    ];
+    let qaPrepAnswers = {};
+    function renderQAPrepModal() {
+        const body = $("qaPrepBody");
+        if (!body)
+            return;
+        let html = "";
+        let totalAnswered = 0;
+        QA_PREP_QUESTIONS.forEach((cat, ci) => {
+            html += `<div class="qa-category">`;
+            html += `<div class="qa-category-title">${cat.category} <span class="qa-question-count">${cat.questions.filter((_, qi) => qaPrepAnswers[`${ci}-${qi}`]).length}/${cat.questions.length}</span></div>`;
+            cat.questions.forEach((q, qi) => {
+                const key = `${ci}-${qi}`;
+                const answer = qaPrepAnswers[key] || "";
+                const hasAnswer = !!answer.trim();
+                if (hasAnswer)
+                    totalAnswered++;
+                html += `<div class="qa-question${hasAnswer ? ' has-answer' : ''}" onclick="toggleQAQuestion(this)">`;
+                html += `<div class="qa-question-text">${q}</div>`;
+                html += `<div class="qa-question-answer">`;
+                html += `<textarea placeholder="Type your prepared answer…" rows="3" data-qa-key="${key}" oninput="saveQAAnswer(this)">${answer}</textarea>`;
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+        });
+        body.innerHTML = html;
+        const countEl = $("qaPrepCount");
+        if (countEl)
+            countEl.textContent = `${totalAnswered} answer${totalAnswered !== 1 ? 's' : ''} prepared`;
+    }
+    window.openQAPrep = function () {
+        console.log("[qa-prep] opening configuration");
+        // Load saved answers from storage
+        try {
+            const saved = localStorage.getItem("phantomveil_qa_answers");
+            if (saved)
+                qaPrepAnswers = JSON.parse(saved);
+        }
+        catch { /* ignore */ }
+        renderQAPrepModal();
+        const modal = $("qaPrepModal");
+        if (modal)
+            modal.style.display = "flex";
+    };
+    window.closeQAPrep = function () {
+        const modal = $("qaPrepModal");
+        if (modal)
+            modal.style.display = "none";
+        // Persist answers
+        try {
+            localStorage.setItem("phantomveil_qa_answers", JSON.stringify(qaPrepAnswers));
+        }
+        catch { /* ignore */ }
+    };
+    window.toggleQAQuestion = function (el) {
+        // Don't toggle if click was on textarea
+        if (event?.target?.tagName === "TEXTAREA")
+            return;
+        el.classList.toggle("expanded");
+    };
+    window.saveQAAnswer = function (textarea) {
+        const key = textarea.dataset.qaKey;
+        if (!key)
+            return;
+        qaPrepAnswers[key] = textarea.value;
+        const questionEl = textarea.closest(".qa-question");
+        if (questionEl)
+            questionEl.classList.toggle("has-answer", !!textarea.value.trim());
+        // Update count
+        const total = Object.values(qaPrepAnswers).filter(v => v.trim()).length;
+        const countEl = $("qaPrepCount");
+        if (countEl)
+            countEl.textContent = `${total} answer${total !== 1 ? 's' : ''} prepared`;
     };
     // ═══════════════════════════════════════════════════════════
     // AI COACH TOGGLE
@@ -2994,14 +3294,18 @@ void refreshDevices();
             company: $("setupCompany")?.value || "",
             position: $("setupPosition")?.value || "",
             objective: $("setupObjective")?.value || "",
+            procedures: $("setupProcedures")?.value || "",
+            priorityQuestions: $("setupPriorityQuestions")?.value || "",
             industry: $("setupIndustry")?.value || "default",
             experience: $("setupExperience")?.value || "mid",
+            codingLanguage: $("setupCodingLang")?.value || "",
             resume: $("setupResume")?.value || "",
             jobDescription: $("setupJobDesc")?.value || "",
             companyResearch: $("setupCompanyResearch")?.value || "",
             imageContext: $("setupImageContext")?.value || "",
             model: selectedModel,
             coachStyle: $("coachStyle")?.value || "balanced",
+            coachIndustry: $("coachIndustry")?.value || "default",
             coachEnabled: String(coachEnabled),
             mode: currentMode,
         };
@@ -3010,13 +3314,287 @@ void refreshDevices();
     window.getSessionContext = getSessionContext;
     window.getSelectedModel = () => selectedModel;
     window.isCoachEnabled = () => coachEnabled;
+    // ═══════════════════════════════════════════════════════════
+    // COMPANY INTELLIGENCE PACKS — Auto-fill on company blur
+    // ═══════════════════════════════════════════════════════════
+    const COMPANY_INTEL = {
+        amazon: {
+            procedures: "Step 1: Intro & Background (5 min)\nStep 2: Leadership Principle Deep-Dive × 4 (40 min)\nStep 3: Technical / System Design (15 min)\nStep 4: Candidate Questions (5 min)",
+            priorities: "Customer Obsession — concrete example\nOwnership — end-to-end delivery\nDive Deep — debugging/metrics story\nBias for Action — speed vs perfection trade-off\nDeliver Results — quantified business impact",
+        },
+        google: {
+            procedures: "Step 1: Intro & Warm-up (5 min)\nStep 2: Coding × 2 rounds (45 min)\nStep 3: System Design (30 min)\nStep 4: Googleyness & Leadership (15 min)\nStep 5: Candidate Q&A (5 min)",
+            priorities: "Algorithmic problem-solving approach\nCode quality & edge-case handling\nScalability & distributed systems\nCollaboration & humility\nAmbiguity tolerance",
+        },
+        meta: {
+            procedures: "Step 1: Intro (5 min)\nStep 2: Coding × 2 (45 min)\nStep 3: System Design (35 min)\nStep 4: Behavioral (15 min)\nStep 5: Q&A (5 min)",
+            priorities: "Move Fast — shipping velocity story\nBe Bold — risk-taking example\nFocus on Impact — metrics-driven decision\nBuild Social Value — community/team impact\nBe Open — feedback culture example",
+        },
+        microsoft: {
+            procedures: "Step 1: Recruiter Screen (30 min)\nStep 2: Technical Phone Screen (45 min)\nStep 3: On-site Loop × 4-5 rounds (full day)\nStep 4: As-Appropriate (senior hire bar-raiser)",
+            priorities: "Growth Mindset — learning from failure\nCustomer-focused engineering\nDiversity & Inclusion awareness\nOne Microsoft collaboration\nTechnical depth + breadth balance",
+        },
+        apple: {
+            procedures: "Step 1: Phone Screen with Recruiter (20 min)\nStep 2: Technical Phone Interview (45 min)\nStep 3: On-site × 5-6 rounds (full day)\nStep 4: Executive Review",
+            priorities: "Attention to detail & craft\nSimplicity in design\nCross-functional collaboration\nSecrecy & discretion awareness\nPassion for product excellence",
+        },
+    };
+    const companyInput = $("setupCompany");
+    if (companyInput) {
+        companyInput.addEventListener("blur", () => {
+            const raw = companyInput.value.trim().toLowerCase();
+            const intel = COMPANY_INTEL[raw];
+            if (!intel)
+                return;
+            const procEl = $("setupProcedures");
+            const prioEl = $("setupPriorityQuestions");
+            // Only auto-fill if the fields are empty (don't overwrite user input)
+            if (procEl && !procEl.value.trim()) {
+                procEl.value = intel.procedures;
+            }
+            if (prioEl && !prioEl.value.trim()) {
+                prioEl.value = intel.priorities;
+            }
+            // Show intel badge
+            const badge = document.getElementById("companyIntelBadge");
+            if (badge) {
+                badge.textContent = `🧠 ${companyInput.value.trim()} Intel Pack loaded`;
+                badge.className = "intel-badge active";
+                badge.style.display = "inline-flex";
+            }
+        });
+    }
+    // ═══════════════════════════════════════════════════════════
+    // STEALTH SCORE PANEL — Poll from desktop IPC or backend
+    // ═══════════════════════════════════════════════════════════
+    function updateStealthPanel(health) {
+        const ring = $("stealthScoreRing");
+        const scoreVal = $("stealthScoreVal");
+        const threatText = $("stealthThreatText");
+        const threatsContainer = $("stealthThreats");
+        if (!ring || !scoreVal)
+            return;
+        const score = typeof health?.score === "number" ? health.score : 97;
+        scoreVal.textContent = String(score);
+        // Color the ring based on score
+        ring.classList.remove("warn", "danger");
+        if (score < 50)
+            ring.classList.add("danger");
+        else if (score < 80)
+            ring.classList.add("warn");
+        // Threat text
+        const level = health?.threat_level || health?.threatLevel || "CLEAN";
+        const threats = health?.active_threats || health?.threats || [];
+        if (threatText) {
+            threatText.textContent = threats.length > 0
+                ? `Threat Level: ${level} — ${threats.length} active threat${threats.length > 1 ? "s" : ""}`
+                : `Threat Level: CLEAN — No threats detected`;
+        }
+        // Render active threats
+        if (threatsContainer) {
+            threatsContainer.innerHTML = "";
+            for (const t of threats) {
+                const name = typeof t === "string" ? t : (t.name || t.processName || "Unknown");
+                const severity = typeof t === "string" ? "warn" : (t.severity === "high" || t.severity === "critical" ? "" : "warn");
+                threatsContainer.innerHTML += `<div class="stealth-threat-item ${severity}">⚠ ${name}</div>`;
+            }
+        }
+        // Update layer statuses from health data
+        const layers = health?.layers || health?.protection_layers || {};
+        const layerMap = {
+            content_protection: "slContentProtect",
+            process_masking: "slProcessMask",
+            proctoring_detection: "slProctorDetect",
+            screen_capture_block: "slScreenBlock",
+            window_cloak: "slWindowCloak",
+            network_stealth: "slNetStealth",
+            audio_fingerprint: "slAudioFP",
+            memory_protection: "slMemProtect",
+            auto_evasion: "slAutoEvade",
+            dns_masking: "slDNSMask",
+        };
+        for (const [key, elId] of Object.entries(layerMap)) {
+            const el = document.getElementById(elId);
+            if (!el)
+                continue;
+            const active = layers[key] !== false;
+            el.textContent = active ? "ON" : "OFF";
+            el.className = `sl-status ${active ? "on" : "off"}`;
+        }
+    }
+    // Poll stealth health every 5 seconds
+    async function pollStealthHealth() {
+        try {
+            const dApi = window.atluriinDesktop;
+            if (dApi?.getStealthHealth) {
+                const health = await dApi.getStealthHealth();
+                updateStealthPanel(health);
+            }
+            else {
+                // Fallback: fetch from backend
+                const base = $("backendUrl")?.value || "http://localhost:9010";
+                const resp = await fetch(`${base}/api/stealth/health`, { signal: AbortSignal.timeout(3000) });
+                if (resp.ok) {
+                    const health = await resp.json();
+                    updateStealthPanel(health);
+                }
+            }
+        }
+        catch { /* silent */ }
+    }
+    // Initial load + interval
+    pollStealthHealth();
+    setInterval(pollStealthHealth, 5000);
+    // ═══════════════════════════════════════════════════════════
+    // OPACITY SLIDER — Inline title-bar control
+    // ═══════════════════════════════════════════════════════════
+    const opacitySlider = $("opacitySlider");
+    if (opacitySlider) {
+        opacitySlider.addEventListener("input", () => {
+            const val = parseInt(opacitySlider.value, 10) / 100;
+            const desktop = window.atluriinDesktop;
+            if (desktop?.setOpacity) {
+                desktop.setOpacity(val);
+            }
+            else {
+                document.body.style.opacity = String(val);
+            }
+        });
+    }
+    // ═══════════════════════════════════════════════════════════
+    // PRESET SYSTEM — Save/load session presets
+    // ═══════════════════════════════════════════════════════════
+    const PRESET_KEY = "phantomveil_presets";
+    function getPresets() {
+        try {
+            const raw = localStorage.getItem(PRESET_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }
+        catch {
+            return [];
+        }
+    }
+    function savePresets(presets) {
+        localStorage.setItem(PRESET_KEY, JSON.stringify(presets.slice(0, 20)));
+    }
+    window.savePreset = function () {
+        const ctx = getSessionContext();
+        const name = prompt("Name this preset:", ctx.company ? `${ctx.company} — ${ctx.position || ctx.scenario}` : ctx.scenario);
+        if (!name || !name.trim())
+            return;
+        const presets = getPresets();
+        presets.unshift({ name: name.trim(), data: ctx, ts: Date.now() });
+        savePresets(presets);
+        console.log(`[preset] saved: ${name.trim()}`);
+    };
+    window.togglePresetList = function () {
+        const dropdown = $("presetDropdown");
+        if (!dropdown)
+            return;
+        const isOpen = dropdown.classList.contains("open");
+        if (isOpen) {
+            dropdown.classList.remove("open");
+            return;
+        }
+        const presets = getPresets();
+        if (presets.length === 0) {
+            dropdown.innerHTML = '<div class="preset-item" style="color:var(--tx3)">No saved presets. Click 🔖 to save.</div>';
+        }
+        else {
+            dropdown.innerHTML = presets.map((p, i) => {
+                const ago = Math.round((Date.now() - p.ts) / 60000);
+                const timeStr = ago < 60 ? `${ago}m ago` : ago < 1440 ? `${Math.round(ago / 60)}h ago` : `${Math.round(ago / 1440)}d ago`;
+                return `<div class="preset-item" onclick="loadPreset(${i})">
+          <div>${p.name}</div>
+          <div class="preset-item-sub">${p.data.company || ''} · ${p.data.scenario || ''} · ${timeStr}</div>
+        </div>`;
+            }).join('');
+        }
+        dropdown.classList.add("open");
+        // Close on outside click
+        const closeHandler = (e) => {
+            if (!e.target.closest(".preset-bar")) {
+                dropdown.classList.remove("open");
+                document.removeEventListener("click", closeHandler);
+            }
+        };
+        setTimeout(() => document.addEventListener("click", closeHandler), 0);
+    };
+    window.loadPreset = function (index) {
+        const presets = getPresets();
+        const preset = presets[index];
+        if (!preset)
+            return;
+        const data = preset.data;
+        const setVal = (id, v) => { const el = document.getElementById(id); if (el && v)
+            el.value = v; };
+        setVal("setupScenario", data.scenario);
+        setVal("setupCompany", data.company);
+        setVal("setupPosition", data.position);
+        setVal("setupObjective", data.objective);
+        setVal("setupIndustry", data.industry);
+        setVal("setupExperience", data.experience);
+        setVal("setupCodingLang", data.codingLanguage);
+        setVal("setupResume", data.resume);
+        setVal("setupJobDesc", data.jobDescription);
+        setVal("setupCompanyResearch", data.companyResearch);
+        setVal("setupImageContext", data.imageContext);
+        setVal("coachStyle", data.coachStyle);
+        setVal("coachIndustry", data.coachIndustry);
+        if (data.model) {
+            selectedModel = data.model;
+            renderModelList();
+            const def = MODEL_CATALOG.find(m => m.id === selectedModel);
+            const tierNameEl = $("tierName");
+            if (tierNameEl && def)
+                tierNameEl.textContent = def.name;
+        }
+        const presetSearch = $("presetSearch");
+        if (presetSearch)
+            presetSearch.value = preset.name;
+        const dropdown = $("presetDropdown");
+        if (dropdown)
+            dropdown.classList.remove("open");
+        updateStepNumbers();
+        console.log(`[preset] loaded: ${preset.name}`);
+    };
+    // ═══════════════════════════════════════════════════════════
+    // BOTTOM BAR — Quick actions
+    // ═══════════════════════════════════════════════════════════
+    window.quickRun = function () {
+        // Quick-start: click the START button if not already running
+        const startBtn = $("startBtn");
+        if (startBtn && !startBtn.classList.contains("hidden")) {
+            startBtn.click();
+        }
+    };
+    window.showHelp = function () {
+        const helpText = [
+            "⌨️ Keyboard Shortcuts:",
+            "  Ctrl+Shift+H — Toggle overlay",
+            "  Ctrl+Shift+C — Screen capture",
+            "  Ctrl+Shift+M — Toggle microphone",
+            "  Ctrl+Shift+A — Toggle AI",
+            "",
+            "🔧 Tips:",
+            "  • Use the opacity slider for stealth mode",
+            "  • Save presets for quick session setup",
+            "  • Q&A Prep helps you prepare answers in advance",
+        ].join("\n");
+        alert(helpText);
+    };
     // Initialize
     updateStepNumbers();
     // Restore pending model from settings load
     const pendingModel = window.__pendingModel;
     if (pendingModel) {
         selectedModel = pendingModel;
+        renderModelList();
+        const def = MODEL_CATALOG.find(m => m.id === selectedModel);
+        const tierNameEl = $("tierName");
+        if (tierNameEl && def)
+            tierNameEl.textContent = def.name;
         delete window.__pendingModel;
     }
-    console.log("[next-gen] Mode tabs, setup wizard, speech analytics, model selector, AI coach initialized");
+    console.log("[next-gen] Mode tabs, setup wizard, speech analytics, model selector, AI coach, Q&A prep, presets initialized");
 })();

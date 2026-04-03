@@ -244,8 +244,15 @@ function SideNav({ onClose, sessionMode, onSessionMode }: {
         { id: "assessment", label: "Online Assessment", icon: FileText },
     ];
     const extItems = [
-        { label: "Resume Builder", icon: FileText },
-        { label: "Resource Hub", icon: HelpCircle },
+        { label: "Resume / ARIA", icon: FileText, path: "/resume" },
+        { label: "Coding Lab", icon: Code2, path: "/coding" },
+        { label: "Mock Interviews", icon: Users, path: "/mock" },
+        { label: "Copilot Mode", icon: Zap, path: "/copilot" },
+        { label: "Salary Negotiation", icon: Briefcase, path: "/negotiation" },
+        { label: "Question Bank", icon: HelpCircle, path: "/questions" },
+        { label: "LinkedIn Optimizer", icon: ExternalLink, path: "/linkedin-optimizer" },
+        { label: "JD Analyzer", icon: FileText, path: "/jd-analyzer" },
+        { label: "Analytics", icon: Clock, path: "/analytics" },
     ];
     return (
         <div className="absolute inset-0 z-50 flex">
@@ -294,6 +301,14 @@ function SideNav({ onClose, sessionMode, onSessionMode }: {
                     {extItems.map((item) => (
                         <button
                             key={item.label}
+                            onClick={() => {
+                                const bridge = getBridge();
+                                const base = typeof window !== "undefined" ? window.location.origin : "http://localhost:3001";
+                                const url = `${base}${(item as any).path}`;
+                                if (bridge?.openUrl) { bridge.openUrl(url); }
+                                else { window.open(url, "_blank"); }
+                                onClose();
+                            }}
                             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-300 transition mb-0.5"
                         >
                             <item.icon className="w-3.5 h-3.5" />
@@ -1064,6 +1079,8 @@ export default function OverlayPage() {
                 screenshotAnalysis={phantom.screenshotAnalysis}
                 isAnalyzingScreenshot={phantom.isAnalyzingScreenshot}
                 onCaptureScreenshot={handleCaptureScreenshot}
+                audioHealth={phantom.audioHealth}
+                audioWarning={phantom.audioWarning}
             />
 
             {/* ── Interviewer Simulation Panel (Ctrl+Shift+Q) ── */}

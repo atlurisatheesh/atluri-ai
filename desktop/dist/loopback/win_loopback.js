@@ -8,26 +8,66 @@ const ws_1 = __importDefault(require("ws"));
 function wsUrl(baseHttp, path) {
     return baseHttp.replace(/^http/i, "ws") + path;
 }
-function clamp(n, lo, hi) {
-    return Math.max(lo, Math.min(hi, n));
-}
-function floatToPcm16Frame(float32, inSampleRate) {
-    // Resample to 16kHz mono with linear interpolation.
-    const outRate = 16000;
-    const ratio = inSampleRate / outRate;
-    const outLen = Math.floor(float32.length / ratio);
-    const out = new Int16Array(outLen);
-    for (let i = 0; i < outLen; i += 1) {
-        const srcPos = i * ratio;
-        const srcIdx = Math.floor(srcPos);
-        const frac = srcPos - srcIdx;
-        const s0 = float32[srcIdx] || 0;
-        const s1 = float32[srcIdx + 1] || 0;
-        const sample = s0 + (s1 - s0) * frac;
-        const clamped = clamp(sample, -1, 1);
-        out[i] = (clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff) | 0;
+/**
+ * Calculate RMS (Root Mean Square) audio level from PCM16 buffer.
+ * Returns a value between 0.0 (silence) and 1.0 (max volume).
+ */
+function calculateRMS(pcm16Buffer) {
+    const samples = pcm16Buffer.length / 2;
+    if (samples === 0)
+        return 0;
+    let sumSquares = 0;
+    for (let i = 0; i < pcm16Buffer.length; i += 2) {
+        const sample = pcm16Buffer.readInt16LE(i);
+        sumSquares += sample * sample;
     }
-    return Buffer.from(out.buffer);
+    return Math.sqrt(sumSquares / samples) / 32768;
+}
+/**
+ * Discover the best available audio device for capturing interview audio.
+ * Priority: Stereo Mix (system loopback) → WASAPI loopback → microphone → default.
+ * Logs all discovered devices for debugging.
+ */
+async function findBestDevice(ac) {
+    try {
+        const devices = await ac.getDevices();
+        if (Array.isArray(devices) && devices.length > 0) {
+            console.log(`[loopback] Discovered ${devices.length} audio device(s):`);
+            devices.forEach((d, i) => {
+                console.log(`  [${i}] "${d.name || d.id}" type=${d.deviceType || "unknown"} recommended=${!!d.isRecommended}`);
+            });
+            // 1. Prefer Stereo Mix (system loopback) — captures ALL system audio including Zoom
+            const stereoMix = devices.find((d) => /stereo mix|立体声混音|what you hear|wave out|loopback/i.test(d.name || "") ||
+                d.deviceType === "stereo_mix");
+            if (stereoMix) {
+                const name = stereoMix.name || stereoMix.id;
+                console.log(`[loopback] Selected STEREO MIX device: "${name}"`);
+                return { device: name, type: "stereo_mix" };
+            }
+            // 2. Prefer recommended device
+            const recommended = devices.find((d) => d.isRecommended);
+            if (recommended) {
+                const name = recommended.name || recommended.id;
+                console.log(`[loopback] Selected RECOMMENDED device: "${name}"`);
+                return { device: name, type: "recommended" };
+            }
+            // 3. Take the first microphone
+            const mic = devices.find((d) => /microphone|mic|麦克风/i.test(d.name || ""));
+            if (mic) {
+                const name = mic.name || mic.id;
+                console.log(`[loopback] Selected MICROPHONE device: "${name}" (WARNING: may not capture interviewer audio)`);
+                return { device: name, type: "microphone" };
+            }
+            const name = devices[0].name || devices[0].id || "default";
+            console.log(`[loopback] Selected FALLBACK device[0]: "${name}"`);
+            return { device: name, type: "fallback" };
+        }
+    }
+    catch (err) {
+        console.warn("[loopback] getDevices failed:", err);
+    }
+    console.warn("[loopback] No devices discovered — using 'default'");
+    return { device: "default", type: "default" };
 }
 async function startWindowsLoopback(params) {
     // Dynamic require so the app still works without the native module installed.
@@ -64,74 +104,155 @@ async function startWindowsLoopback(params) {
     }
     catch {
     }
-    // --- Capture ---
-    // The library API is not standardized; we handle a couple common patterns.
-    // Expected: 32-bit float mono frames at some sample rate.
-    const capture = winCap.createCapture ? winCap.createCapture({ loopback: true }) : (winCap.create && winCap.create({ loopback: true }));
-    if (!capture)
-        throw new Error("win-audio-capture did not provide a capture instance");
-    const inputRate = Number(capture.sampleRate || capture.sample_rate || 48000) || 48000;
-    const chunkMs = 20;
-    const chunkSamples = Math.floor((inputRate * chunkMs) / 1000);
-    let buffered = [];
-    const onData = (data) => {
-        if (ws.readyState !== ws_1.default.OPEN)
-            return;
-        // Normalize incoming to Float32Array
-        let floats = null;
-        if (data instanceof Float32Array)
-            floats = data;
-        else if (Buffer.isBuffer(data))
-            floats = new Float32Array(data.buffer, data.byteOffset, Math.floor(data.byteLength / 4));
-        else if (data?.buffer) {
-            try {
-                floats = new Float32Array(data.buffer);
-            }
-            catch {
-            }
-        }
-        if (!floats || floats.length === 0)
-            return;
-        // Accumulate and frame
-        for (let i = 0; i < floats.length; i += 1)
-            buffered.push(floats[i]);
-        while (buffered.length >= chunkSamples) {
-            const slice = buffered.slice(0, chunkSamples);
-            buffered = buffered.slice(chunkSamples);
-            const pcm = floatToPcm16Frame(new Float32Array(slice), inputRate);
-            // 20ms at 16kHz mono PCM16 => 640 bytes (but resampler may produce slightly different lengths; backend tolerates >=320)
-            if (ws.bufferedAmount > 256 * 1024) {
-                // drop on backpressure
-                continue;
-            }
-            try {
-                ws.send(pcm);
-            }
-            catch {
+    // --- Incoming message handler (backend → overlay) ---
+    let messageHandler = null;
+    ws.on("message", (raw) => {
+        try {
+            const str = typeof raw === "string" ? raw : raw.toString("utf-8");
+            const parsed = JSON.parse(str);
+            // Respond to backend heartbeat pings to prevent timeout disconnects
+            if (parsed.type === "ping") {
+                try {
+                    ws.send(JSON.stringify({ type: "pong", ts: Date.now() / 1000 }));
+                }
+                catch { /* ignore send errors */ }
                 return;
             }
+            if (parsed.type && messageHandler) {
+                messageHandler(parsed.type, parsed);
+            }
         }
-    };
-    if (typeof capture.on === "function") {
-        capture.on("data", onData);
-        capture.on("error", () => {
-            // no-op; ws close will stop
-        });
-        if (typeof capture.start === "function")
-            capture.start();
-    }
-    else if (typeof capture.addListener === "function") {
-        capture.addListener("data", onData);
-        if (typeof capture.start === "function")
-            capture.start();
-    }
-    else {
-        throw new Error("capture instance does not support events");
-    }
+        catch {
+            // binary frame or non-JSON — ignore
+        }
+    });
+    // --- Audio Capture ---
+    // win-audio-capture is an ffmpeg dshow wrapper. API:
+    //   const ac = new AudioCapture();
+    //   await ac.start({ device, sampleRate, channels, bitDepth, onData(chunk: Buffer) })
+    //   await ac.stop();
+    // The onData callback receives raw PCM16LE buffers at the configured sample rate.
+    const ac = new winCap.AudioCapture();
+    const { device: deviceName, type: deviceType } = await findBestDevice(ac);
+    const captureRate = 16000; // 16kHz mono PCM16 — backend expects this
+    let stopped = false;
+    // ── Audio Health Monitoring ──
+    // Track audio levels to detect silence/broken capture. Send periodic health
+    // events to the overlay so the user knows if audio is actually being received.
+    let totalChunks = 0;
+    let silentChunks = 0; // chunks with RMS below threshold
+    let peakLevel = 0;
+    let recentLevels = [];
+    const SILENCE_RMS_THRESHOLD = 0.005; // below this = silence
+    const HEALTH_INTERVAL_MS = 3000; // send health event every 3 seconds
+    const SILENCE_WARN_AFTER_SEC = 8; // warn user after N seconds of silence
+    let captureStartTime = Date.now();
+    let lastSpeechTime = Date.now();
+    let silenceWarned = false;
+    const healthTimer = setInterval(() => {
+        if (stopped)
+            return;
+        const avgLevel = recentLevels.length
+            ? recentLevels.reduce((a, b) => a + b, 0) / recentLevels.length
+            : 0;
+        const silenceRatio = totalChunks > 0 ? silentChunks / totalChunks : 1;
+        const silenceDurationSec = (Date.now() - lastSpeechTime) / 1000;
+        const hasAudio = avgLevel > SILENCE_RMS_THRESHOLD;
+        // Determine health status
+        let status = "good";
+        if (avgLevel < 0.001)
+            status = "silent";
+        else if (avgLevel < SILENCE_RMS_THRESHOLD)
+            status = "weak";
+        // Send audio health event to overlay via WS
+        if (ws.readyState === ws_1.default.OPEN) {
+            try {
+                ws.send(JSON.stringify({
+                    type: "audio_health",
+                    level: Math.round(avgLevel * 1000) / 1000,
+                    peak: Math.round(peakLevel * 1000) / 1000,
+                    status,
+                    device: deviceName,
+                    deviceType,
+                    silenceDurationSec: Math.round(silenceDurationSec),
+                    totalChunks,
+                    silentChunks,
+                    ts: Date.now() / 1000,
+                }));
+            }
+            catch { /* ignore */ }
+        }
+        // Warn user about prolonged silence
+        if (!silenceWarned && silenceDurationSec > SILENCE_WARN_AFTER_SEC && !hasAudio) {
+            silenceWarned = true;
+            console.warn(`[loopback] ⚠ No speech detected for ${Math.round(silenceDurationSec)}s on "${deviceName}" (${deviceType})`);
+            if (ws.readyState === ws_1.default.OPEN) {
+                try {
+                    ws.send(JSON.stringify({
+                        type: "audio_warning",
+                        message: `No speech detected for ${Math.round(silenceDurationSec)}s. Check microphone/audio device.`,
+                        device: deviceName,
+                        deviceType,
+                        suggestion: deviceType === "microphone"
+                            ? "Enable 'Stereo Mix' in Windows Sound settings to capture interviewer audio from Zoom/Teams."
+                            : "Check that your audio device is working and not muted.",
+                    }));
+                }
+                catch { /* ignore */ }
+            }
+        }
+        // Reset recent tracking
+        recentLevels = [];
+        peakLevel = 0;
+        // Log periodically
+        console.log(`[loopback] audio health: status=${status} avgLevel=${avgLevel.toFixed(4)} device="${deviceName}" silence=${Math.round(silenceDurationSec)}s`);
+    }, HEALTH_INTERVAL_MS);
+    await ac.start({
+        device: deviceName,
+        sampleRate: captureRate,
+        channels: 1,
+        bitDepth: 16,
+        onData: (chunk) => {
+            if (stopped)
+                return;
+            if (ws.readyState !== ws_1.default.OPEN)
+                return;
+            // The chunk is already PCM16LE at 16kHz mono — send directly.
+            if (!Buffer.isBuffer(chunk) || chunk.length < 320)
+                return;
+            // ── Audio Level Monitoring ──
+            const rms = calculateRMS(chunk);
+            totalChunks++;
+            recentLevels.push(rms);
+            if (rms > peakLevel)
+                peakLevel = rms;
+            if (rms < SILENCE_RMS_THRESHOLD) {
+                silentChunks++;
+            }
+            else {
+                lastSpeechTime = Date.now();
+                if (silenceWarned) {
+                    silenceWarned = false; // Reset warning when speech resumes
+                    console.log(`[loopback] ✓ Speech detected again (level=${rms.toFixed(4)})`);
+                }
+            }
+            // Drop on backpressure
+            if (ws.bufferedAmount > 256 * 1024)
+                return;
+            try {
+                ws.send(chunk);
+            }
+            catch {
+                // WS send failed — will be cleaned up on close
+            }
+        },
+    });
+    console.log(`[loopback] Audio capture started on device: "${deviceName}" (${deviceType}) @ ${captureRate}Hz mono PCM16`);
     const stop = async () => {
+        stopped = true;
+        clearInterval(healthTimer);
         try {
-            if (typeof capture.stop === "function")
-                capture.stop();
+            await ac.stop();
         }
         catch {
         }
@@ -147,5 +268,54 @@ async function startWindowsLoopback(params) {
         catch {
         }
     };
-    return { stop };
+    const injectTranscript = (text) => {
+        if (ws.readyState !== ws_1.default.OPEN) {
+            console.warn("[loopback] cannot inject transcript — WS not open");
+            return;
+        }
+        const msg = {
+            type: "transcript",
+            text,
+            participant: "interviewer",
+            is_final: true,
+            source: "injection",
+        };
+        console.log(`[loopback] injecting transcript: "${text.slice(0, 60)}..."`);
+        ws.send(JSON.stringify(msg));
+    };
+    const _sendScreenshot = (base64) => {
+        if (ws.readyState !== ws_1.default.OPEN) {
+            console.warn("[loopback] cannot send screenshot — WS not open");
+            return;
+        }
+        const msg = {
+            type: "screenshot",
+            base64,
+            ts: Date.now() / 1000,
+        };
+        console.log(`[loopback] sending screenshot for analysis (${Math.round(base64.length / 1024)}KB)`);
+        ws.send(JSON.stringify(msg));
+    };
+    const _sendScreenMonitor = (base64) => {
+        if (ws.readyState !== ws_1.default.OPEN) {
+            console.warn("[loopback] cannot send screen_monitor — WS not open");
+            return;
+        }
+        const msg = {
+            type: "screen_monitor",
+            base64,
+            ts: Date.now() / 1000,
+        };
+        console.log(`[loopback] sending screen_monitor frame (${Math.round(base64.length / 1024)}KB)`);
+        ws.send(JSON.stringify(msg));
+    };
+    return {
+        stop,
+        onMessage: (handler) => {
+            messageHandler = handler;
+        },
+        injectTranscript,
+        _sendScreenshot,
+        _sendScreenMonitor,
+    };
 }
