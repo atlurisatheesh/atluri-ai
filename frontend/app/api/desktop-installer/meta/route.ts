@@ -4,7 +4,7 @@ const INSTALLER_URL =
   `https://github.com/atlurisatheesh/atluri-ai/releases/download/atluri-ai/${INSTALLER_FILE}`;
 
 // Update this after building/signing the installer.
-const INSTALLER_SHA256 = "PENDING_BUILD_SHA256";
+const INSTALLER_SHA256 = "25B451A4A126FF5E9339B47C2565DB057802AE20C1E87E9ADAE906086EB2D674";
 
 export async function GET() {
   return Response.json({
