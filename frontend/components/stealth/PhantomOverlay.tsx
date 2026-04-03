@@ -452,6 +452,7 @@ export default function PhantomOverlay({
                                     }`}
                                     title={`Audio: ${audioHealth.status} · Level: ${(audioHealth.level * 100).toFixed(0)}% · ${audioHealth.device || "unknown"}`}
                                 />
+                            )}
                             {isSessionActive && onCaptureScreenshot && (
                                 <button
                                     onClick={onCaptureScreenshot}
