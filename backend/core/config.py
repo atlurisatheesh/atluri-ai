@@ -8,4 +8,4 @@ load_dotenv(dotenv_path=_BACKEND_ENV_PATH, override=True)
 
 OPENAI_API_KEY = str(os.getenv("OPENAI_API_KEY") or "").strip()
 MODEL_NAME = str(os.getenv("MODEL_NAME") or "gpt-4.1-mini").strip()  # accurate + affordable for MVP
-QA_MODE = False
+QA_MODE = os.getenv("QA_MODE", "false").strip().lower() in ("true", "1", "yes")
