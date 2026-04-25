@@ -155,6 +155,6 @@ export default function Sidebar() {
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <><ChevronLeft className="w-4 h-4" /> <span>Collapse</span></>}
         </button>
       </div>
-    </motion.aside>
+    </aside>
   );
 }
