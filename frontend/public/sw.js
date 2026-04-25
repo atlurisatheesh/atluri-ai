@@ -1,5 +1,5 @@
-const CACHE_NAME = "ig-v2";
-const PRECACHE_URLS = ["/dashboard", "/interview", "/offline"];
+const CACHE_NAME = "ig-v3";
+const PRECACHE_URLS = ["/offline"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
