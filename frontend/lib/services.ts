@@ -149,7 +149,7 @@ export const documentService = {
     const authToken = await getAccessTokenOrThrow();
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:9010"}/api/documents/upload`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/documents/upload`, {
       method: "POST",
       headers: { Authorization: `Bearer ${authToken}` },
       body: formData,
@@ -201,7 +201,7 @@ export const resumeService = {
     const formData = new FormData();
     formData.append("file", file);
     if (jobDescription) formData.append("job_description", jobDescription);
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:9010"}/api/resume/analyze`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/resume/analyze`, {
       method: "POST",
       headers: { Authorization: `Bearer ${authToken}` },
       body: formData,
@@ -528,7 +528,7 @@ export const ariaV2Service = {
   exportPDF: async (data: PDFExportInput): Promise<Blob> => {
     const authToken = await getAccessTokenOrThrow();
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:9010"}/api/resume/v2/export/pdf`,
+      `${process.env.NEXT_PUBLIC_API_URL || ""}/api/resume/v2/export/pdf`,
       {
         method: "POST",
         headers: {

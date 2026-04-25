@@ -6,7 +6,7 @@ import { DollarSign, TrendingUp, TrendingDown, AlertTriangle, Mail, Loader2 } fr
 import { DashboardLayout } from "@/components/dashboard";
 import { GlassCard, NeonButton } from "@/components/ui";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9010";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 const ROLE_CATEGORIES = [
   { value: "software_engineering", label: "Software Engineering" },

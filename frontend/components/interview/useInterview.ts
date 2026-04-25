@@ -90,7 +90,7 @@ interface UseInterviewOptions {
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:9010';
+const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || (typeof window !== 'undefined' ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}` : 'ws://localhost:9010');
 const RECONNECT_DELAYS = [1000, 2000, 5000, 10000]; // Exponential backoff
 const HEARTBEAT_INTERVAL = 30000;
 const LATENCY_SAMPLE_SIZE = 5;
@@ -319,19 +319,24 @@ export function useInterview({ sessionId, token, onError }: UseInterviewOptions)
   const handleSuggestionStart = useCallback((msg: any) => {
     streamingTextRef.current = '';
     
-    const newSuggestion: Suggestion = {
-      id: msg.id || crypto.randomUUID(),
-      question: msg.question || '',
-      text: '',
-      keyPoints: [],
-      isStreaming: true,
-    };
-
     setState(prev => {
       // Move current to previous (if exists)
       const previousSuggestions = prev.currentSuggestion
         ? [...prev.previousSuggestions.slice(-5), prev.currentSuggestion]
         : prev.previousSuggestions;
+
+      // IMPORTANT: Carry forward the previous answer text as placeholder
+      // so the UI never goes blank during the 2-3s OpenAI latency gap.
+      // The text will be replaced once actual streaming chunks arrive.
+      const previousText = prev.currentSuggestion?.text || '';
+
+      const newSuggestion: Suggestion = {
+        id: msg.id || crypto.randomUUID(),
+        question: msg.question || '',
+        text: previousText,
+        keyPoints: [],
+        isStreaming: true,
+      };
 
       return {
         ...prev,

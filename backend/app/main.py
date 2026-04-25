@@ -86,6 +86,10 @@ def _get_allowed_origins() -> list[str]:
             "http://127.0.0.1:3000",
             "http://localhost:3001",
             "http://127.0.0.1:3001",
+            # Production frontend origins (Vercel + custom domain)
+            "https://app.atluriin.com",
+            "https://atluri-ai.vercel.app",
+            "https://atluriin.com",
         ]
     return [item.strip() for item in raw.split(",") if item.strip()]
 
@@ -97,7 +101,7 @@ app.add_middleware(
     allow_origins=_allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
-    allow_credentials=False,
+    allow_credentials=True,
 )
 
 # ARIA rate limiting middleware

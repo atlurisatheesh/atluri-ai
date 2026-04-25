@@ -18,9 +18,10 @@ COPY . .
 # Default: 4 workers for horizontal scaling
 ENV WORKERS=4 HOST=0.0.0.0 LOG_LEVEL=info
 
-# PORT is set by Render.com at runtime; default to 9010 for local
+# PORT is set by Railway/Render at runtime; default to 9010 for local
 ENV PORT=9010
 
-EXPOSE 9010
+# Railway will override this with its own port at runtime
+EXPOSE ${PORT}
 
 CMD ["python", "uvicorn_config.py"]

@@ -6,7 +6,7 @@ import { Linkedin, Star, Target, Loader2, Copy, Check } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard";
 import { GlassCard, NeonButton } from "@/components/ui";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9010";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface LinkedInOptimization {
   headline: string;

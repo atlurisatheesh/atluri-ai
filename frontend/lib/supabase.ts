@@ -6,7 +6,7 @@
  */
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:9010";
+  process.env.NEXT_PUBLIC_API_URL || "";
 
 const TOKEN_KEY = "atluriin.auth.token";
 const USER_KEY = "atluriin.auth.user";

@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE = "http://127.0.0.1:9010";
+const DEFAULT_API_BASE = "";
 
 export function getApiBaseUrl(): string {
   const raw =

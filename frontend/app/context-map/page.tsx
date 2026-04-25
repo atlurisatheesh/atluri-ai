@@ -6,7 +6,7 @@ import { Map, Target, AlertTriangle, Star, Brain, Loader2, MessageSquare } from 
 import { DashboardLayout } from "@/components/dashboard";
 import { GlassCard, NeonButton } from "@/components/ui";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9010";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface ContextMap {
   top_5_strengths: string[];
