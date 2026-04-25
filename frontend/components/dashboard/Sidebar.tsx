@@ -78,10 +78,10 @@ export default function Sidebar() {
   };
 
   return (
-    <motion.aside
-      className="fixed left-0 top-0 bottom-0 z-40 bg-canvas/80 backdrop-blur-xl border-r border-white/[0.06] flex flex-col"
-      animate={{ width: collapsed ? 64 : 260 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+    <aside
+      className={`fixed left-0 top-0 bottom-0 z-50 bg-canvas/95 md:bg-canvas/80 backdrop-blur-xl border-r border-white/[0.06] flex flex-col transition-all duration-300 ease-in-out ${
+        collapsed ? "-translate-x-full w-[260px] md:translate-x-0 md:w-16" : "translate-x-0 w-[260px]"
+      }`}
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b border-white/[0.06]">

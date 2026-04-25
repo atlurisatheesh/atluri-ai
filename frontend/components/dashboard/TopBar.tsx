@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Search, User, LogOut } from "lucide-react";
+import { Bell, Search, User, LogOut, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { useSidebar } from "./Sidebar";
 
 export default function TopBar() {
   const router = useRouter();
-  const { collapsed } = useSidebar();
+  const { collapsed, toggle } = useSidebar();
   const [displayName, setDisplayName] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -46,10 +46,15 @@ export default function TopBar() {
   };
 
   return (
-    <header
-      className="h-16 border-b border-white/[0.06] bg-canvas/50 backdrop-blur-xl flex items-center justify-between px-6 transition-all"
-      ref={(el) => { if (el) el.style.marginLeft = `${collapsed ? 64 : 260}px`; }}
-    >
+    <header className="h-16 border-b border-white/[0.06] bg-canvas/50 backdrop-blur-xl flex items-center justify-between px-4 md:px-6 transition-all w-full sticky top-0 z-30">
+      <div className="flex items-center gap-3 md:hidden mr-2">
+        <button 
+          onClick={toggle}
+          className="p-2 rounded-lg hover:bg-white/[0.04] transition text-textMuted hover:text-textPrimary cursor-pointer"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      </div>
       {/* Search */}
       <div className="flex items-center gap-3 flex-1 max-w-md">
         <Search className="w-4 h-4 text-textMuted" />
