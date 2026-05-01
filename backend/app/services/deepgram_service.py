@@ -294,7 +294,7 @@ class DeepgramService:
         self.active = False
         self._closed = False
         self._degraded = False
-        self._max_reconnect_attempts = 1
+        self._max_reconnect_attempts = 3
         self._reconnect_attempts = 0
 
     def _can_reconnect(self) -> bool:
@@ -333,14 +333,17 @@ class DeepgramService:
                 return False
 
             self._reconnect_attempts += 1
-            logger.warning("Reconnecting Deepgram... attempt=%s", self._reconnect_attempts)
+            logger.warning("Reconnecting Deepgram... attempt=%s/%s", self._reconnect_attempts, self._max_reconnect_attempts)
             try:
                 self._safe_finish_connection()
-                await asyncio.sleep(1)
+                # Exponential backoff: 1s, 2s, 4s
+                backoff = min(2 ** (self._reconnect_attempts - 1), 4)
+                await asyncio.sleep(backoff)
                 await self.connect()
                 if self.guard:
                     self.guard.note_audio_activity()
                 self._reconnect_attempts = 0
+                logger.info("[DG] Reconnect succeeded")
                 return True
             except Exception as e:
                 logger.error("Deepgram reconnect failed: %s", e)

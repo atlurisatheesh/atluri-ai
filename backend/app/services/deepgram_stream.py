@@ -47,8 +47,9 @@ class DeepgramStreamGuard:
 				if self._should_reconnect and not self._should_reconnect():
 					break
 
-				if time.monotonic() - self.last_audio_time > 10:
-					logger.error("Deepgram stalled — reconnecting")
+				idle_sec = time.monotonic() - self.last_audio_time
+				if idle_sec > 15:
+					logger.warning("Deepgram idle for %.1fs — attempting reconnect", idle_sec)
 					success = await self._reconnect_coro()
 					if not success:
 						logger.error("[DG] Reconnect failed — disabling watchdog")

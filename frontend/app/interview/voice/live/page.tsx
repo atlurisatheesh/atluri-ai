@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest } from "../../../../lib/api";
@@ -114,6 +114,7 @@ export default function LiveVoiceInterview() {
   // Stealth Mode: Auto-reconnect
   const [reconnecting, setReconnecting] = useState(false);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const reconnectAttemptsRef = useRef(0);
   const MAX_RECONNECT_ATTEMPTS = 3;
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const shouldReconnectRef = useRef(false);
@@ -657,50 +658,59 @@ export default function LiveVoiceInterview() {
       setConnected(true);
       setReconnecting(false);
       setReconnectAttempts(0);
-      pushLog("ðŸŸ¢ Connected");
+      reconnectAttemptsRef.current = 0;
+      pushLog("🟢 Connected");
       ws.current?.send(JSON.stringify({ type: "sync_state_request" }));
     };
 
     ws.current.onclose = (event) => {
       setConnected(false);
-      setRunning(false);
       clearStreamTimeout();
       setLiveAnswerStreaming(false);
       setLiveAnswerMode("idle");
       setAudioLevel(0);
 
       const closeCode = Number(event?.code || 0);
+      const currentAttempts = reconnectAttemptsRef.current;
       
       // Stealth mode: User-friendly error messages (hide raw errors)
       if (closeCode === 1008 || closeCode === 4401) {
-        pushLog("ðŸ”’ Session expired. Please refresh and try again.");
+        setRunning(false);
+        pushLog("🔑 Session expired. Please refresh and try again.");
         shouldReconnectRef.current = false;
       } else if (closeCode === 1006 || closeCode === 1001) {
         // Auto-reconnect on network issues
-        if (shouldReconnectRef.current && reconnectAttempts < MAX_RECONNECT_ATTEMPTS && !finalSummary) {
+        if (shouldReconnectRef.current && currentAttempts < MAX_RECONNECT_ATTEMPTS && !finalSummary) {
           setReconnecting(true);
-          pushLog(`ðŸ”„ Reconnecting (${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
+          setRunning(false);
+          const nextAttempt = currentAttempts + 1;
+          reconnectAttemptsRef.current = nextAttempt;
+          setReconnectAttempts(nextAttempt);
+          pushLog(`🔄 Reconnecting (${nextAttempt}/${MAX_RECONNECT_ATTEMPTS})...`);
           reconnectTimeoutRef.current = setTimeout(() => {
-            setReconnectAttempts(prev => prev + 1);
             start();  // Reconnect using start() function
-          }, 1500 * (reconnectAttempts + 1));
+          }, 1500 * nextAttempt);
           return;
         }
+        setRunning(false);
         // Max retries exhausted - show clear failure state
-        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        if (currentAttempts >= MAX_RECONNECT_ATTEMPTS) {
           setReconnecting(false);
-          pushLog("âŒ Connection failed. Please refresh the page.");
+          pushLog("❌ Connection failed. Please refresh the page.");
         } else {
-          pushLog("ðŸ›œ Connection lost. Please try again.");
+          pushLog("🛜 Connection lost. Please try again.");
         }
-      } else if (closeCode && closeCode !== 1000) {
-        pushLog("âš ï¸ Connection closed unexpectedly.");
+      } else {
+        setRunning(false);
+        if (closeCode && closeCode !== 1000) {
+          pushLog("⚠️ Connection closed unexpectedly.");
+        }
       }
 
       if (finalSummary) {
-        pushLog("ðŸ Interview completed");
+        pushLog("🏁 Interview completed");
       } else if (!reconnecting) {
-        pushLog("ðŸ›‘ Session ended");
+        pushLog("🛑 Session ended");
       }
       shouldReconnectRef.current = false;
     };
@@ -1183,6 +1193,7 @@ export default function LiveVoiceInterview() {
     }
     setReconnecting(false);
     setReconnectAttempts(0);
+    reconnectAttemptsRef.current = 0;
 
     pushLog("ðŸ›‘ Stopping session...");
 
