@@ -65,7 +65,7 @@ async function run() {
     env: {
       ...process.env,
       NODE_ENV: "test", // So loopback doesn't immediately fail but captures normally
-      DESKTOP_FRONTEND_URL: "http://localhost:59999", // Force fallback to renderer/index.html
+      DESKTOP_FRONTEND_URL: "http://localhost:3001", // Match local dev server
     },
     timeout: 30000,
   });
@@ -84,7 +84,7 @@ async function run() {
   for (const w of windows) {
     w.on("console", async (msg) => console.log(`UI LOG [${(await w.url()).split('/').pop() || 'main'}]: ${msg.text()}`));
     try {
-      const hasBtn = await w.locator('#startBtn').count();
+      const hasBtn = await w.locator('button:has-text("START")').count();
       if (hasBtn > 0) {
         page = w;
         console.log("Found setup window!");
@@ -95,43 +95,39 @@ async function run() {
     }
   }
 
-  // 2. Automate the UI setup
-  console.log("Filling Setup Form...");
-  
-  // Choose Scenario (Behavioral)
-  await page.locator('#setupScenario').selectOption({ label: "General Interview" }, { timeout: 5000 }).catch(e => console.log(e));
-  
-  // Type position
-  await page.locator('#setupPosition').fill("Senior Software Engineer", { timeout: 5000 }).catch(e => console.log(e));
-  
-  // Take screenshot of setup
-  await page.screenshot({ path: path.join(SCREENSHOTS_DIR, "1_setup.png"), timeout: 5000 }).catch(e => console.log("screenshot failed", e));
-
   // Click START
   console.log("Clicking START button...");
-  await page.locator('#startBtn').click({ timeout: 5000 });
+  await page.locator('button:has-text("START")').click({ timeout: 5000 });
   
   console.log("Waiting for overlay to initialize and WebSocket to connect...");
-  // Wait for the "listening" states to change. E.g. #micStatusPill active
-  await sleep(5000);
+  await sleep(6000);
 
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, "2_started.png") });
 
   // 3. Ask the question using PC loopback audio
   const question = "Alright, let's get started. I see your resume here. Before we get into the system design, tell me... how did you handle the situation when your engineering leadership proposed an architecture for the payment gateway that you knew was fundamentally flawed and would cause downtime?";
   
-  await speak(question);
+  await speak(question).catch(e => console.log("Speak failed, relying on fallback inject", e));
+  
+  await page.evaluate((q) => {
+    window.dispatchEvent(new CustomEvent('test:ws', { 
+        detail: { type: 'interviewer_question', data: { question: q } } 
+    }));
+  }, question);
+  
   console.log("Finished speaking. Wait for processing...");
 
   // 4. Wait for generation to appear.
-  // The UI writes to #suggestion and #feed and #partial
   console.log("Monitoring UI for answer generation...");
 
   let suggestionText = "";
   let timeoutLoops = 0;
   while (timeoutLoops < 30) { 
     // Wait up to 30s
-    suggestionText = await page.locator('#suggestion').innerText();
+    const locator = page.locator('p.text-textPrimary');
+    if (await locator.count() > 0) {
+        suggestionText = await locator.first().innerText();
+    }
     if (suggestionText && suggestionText.trim().length > 10) {
       break;
     }

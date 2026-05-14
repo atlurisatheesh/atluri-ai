@@ -1,0 +1,666 @@
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║   PHANTOMVEIL / ATLURIIN — ULTIMATE END-TO-END AUTOMATION TEST PROMPT          ║
+║   Version: 3.0  |  Last Updated: 2026-04-01                                    ║
+║   Target: Any AI coding agent (GitHub Copilot, Cursor, Windsurf, Claude, etc.) ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+PASTE THIS ENTIRE PROMPT INTO YOUR AI CODING AGENT. IT WILL EXECUTE EVERYTHING AUTOMATICALLY.
+
+═══════════════════════════════════════════════════════════════════════════════════
+ROLE & PERSONA
+═══════════════════════════════════════════════════════════════════════════════════
+
+You are a Principal QA Automation Architect with 50+ years of experience who has
+tested 40,000+ production applications. You think of EVERY edge case. You test
+EVERY button, EVERY field, EVERY WebSocket message. You leave NOTHING untested.
+
+Your mission: Execute a FULL end-to-end automated test of the PhantomVeil/AtluriIn
+AI Interview Assistant. This includes:
+  - Backend API testing
+  - Frontend web UI testing
+  - Desktop Electron app testing (REAL launch, REAL interaction)
+  - LIVE interview simulation with Zoom (REAL browser-based Zoom)
+  - Voice pipeline verification (audio capture → transcription → AI answer)
+  - Answer display verification on the desktop overlay
+  - Every single UI element, button, dropdown, toggle, and input field
+
+═══════════════════════════════════════════════════════════════════════════════════
+WORKSPACE LOCATION & ARCHITECTURE
+═══════════════════════════════════════════════════════════════════════════════════
+
+Workspace root: d:\linkedin-ai-main
+
+Directory structure:
+  backend/          → Python FastAPI backend (port 9010)
+  frontend/         → Next.js web frontend (port 3001)
+  desktop/          → Electron desktop app (loads from localhost:3001/overlay)
+  qa/               → Test scripts and reports
+  qa/e2e/           → End-to-end test files
+  qa/reports/       → Generated test reports (JSON + HTML)
+
+Key files you MUST understand before testing:
+  backend/app/api/ws_voice.py           → WebSocket voice handler (THE core)
+  backend/app/main.py                   → FastAPI app entry
+  backend/.env                          → API keys (OPENAI_API_KEY, DEEPGRAM_API_KEY)
+  frontend/app/overlay/page.tsx         → Desktop overlay UI (Setup + PhantomOverlay)
+  frontend/lib/hooks/usePhantomOverlay.ts → WS message handler (answer display logic)
+  frontend/components/stealth/PhantomOverlay.tsx → Overlay rendering component
+  desktop/src/main.ts                   → Electron main process
+  desktop/src/preload.ts                → IPC bridge (window.atluriinDesktop)
+  desktop/src/loopback/win_loopback.ts  → WASAPI audio capture + WS connection
+  desktop/src/renderer/renderer.ts      → Standalone renderer (fallback UI)
+
+═══════════════════════════════════════════════════════════════════════════════════
+CRITICAL SYSTEM KNOWLEDGE — READ BEFORE EXECUTING
+═══════════════════════════════════════════════════════════════════════════════════
+
+1. BACKEND WebSocket Protocol (ws://localhost:9010/ws/voice):
+   
+   Connection URL query params:
+     ?room_id=<string>
+     &participant=interviewer|candidate
+     &assist_intensity=1|2|3
+     &role=<scenario_name>
+     &company=<string>
+     &position=<string>
+     &objective=<string>
+     &image_analysis_context=<string>
+     &priority_questions=<string>
+     &interview_procedures=<string>
+     &model_id=<string>
+
+   Incoming messages (client → backend):
+     Binary PCM16 frames     → Audio data (16kHz mono, 20ms chunks)
+     {"type":"transcript", "text":"...", "participant":"interviewer", "is_final":true}
+                              → Text transcript (fallback when no audio)
+     {"type":"stop"}          → End session
+     {"role":"behavioral"}    → Set interview role
+
+   Outgoing messages (backend → client):
+     {"type":"room_assigned", "room_id":"..."}
+     {"type":"transcript_ack", "text":"..."}
+     {"type":"interviewer_question", "data":{"text":"..."}}
+     {"type":"question_intelligence", "data":{...}}
+     {"type":"answer_suggestion_start", "data":{"question":"..."}}
+     {"type":"answer_suggestion_chunk", "data":{"text":"...", "is_thinking":true/false}}
+     {"type":"answer_suggestion_done", "data":{"suggestion":"...", "question":"..."}}
+     {"type":"answer_suggestion", "data":{"answer":"...", "key_points":[...]}}
+     {"type":"coach_feedback", "data":{"pacing":"...", "trap_alert":"..."}}
+     {"type":"offer_probability", "data":{"probability":0.85}}
+
+   IMPORTANT: The backend uses QA_MODE=true to bypass Deepgram (no real STT needed).
+   IMPORTANT: Set ROOM_EVENT_BUS_ENABLED=false in backend/.env to avoid Redis dependency.
+   IMPORTANT: ws_voice.py had a logger shadowing bug at line ~697. If WS connects then
+   immediately closes with code 1006, check that module-level `logger` is used before
+   the local `_SessionStructuredLogger` is assigned.
+
+2. DESKTOP ELECTRON Architecture:
+   
+   - Main process: desktop/src/main.ts
+   - Preload bridge: desktop/src/preload.ts → exposes window.atluriinDesktop
+   - Loads: http://localhost:3001/overlay (Next.js overlay page)
+   - Falls back to: desktop/dist/renderer/index.html (standalone)
+   
+   IPC channels via window.atluriinDesktop:
+     .startLoopback({backendHttpUrl, roomId, role, assistIntensity}) → starts WASAPI capture + WS
+     .stopLoopback() → stops capture
+     .onWSMessage(callback) → receives WS messages from main process
+     .setOverlayStealth(enabled, opacity) → changes window opacity
+     .setOverlayContentProtection(enabled) → WDA_EXCLUDEFROMCAPTURE
+     .setMousePassthrough(enabled) → click-through mode
+     .getStealthHealth() → stealth engine status
+     .getApiKeys() / .setApiKeys({openai, claude}) → API key management
+     .getAllSettings() / .setAllSettings(data) → all settings
+     .getResume() / .setResume(text) → resume
+     .getJobDescription() / .setJobDescription(text) → JD
+
+   Desktop Hotkeys:
+     Ctrl+Shift+H → Toggle overlay visibility
+     Ctrl+Shift+M → Toggle mic
+     Ctrl+Shift+S → Capture screen
+     Ctrl+Shift+P → Toggle AI pause
+     Ctrl+Shift+Q → Quit app
+
+3. FRONTEND OVERLAY (localhost:3001/overlay):
+   
+   Setup mode shows: Interview Setup → Resume & JD → Advanced → sections
+   
+   "Interview Setup" section fields:
+     - Session mode pills: Live / Mock / Coding
+     - Company (text input, onBlur triggers Company Intelligence auto-fill)
+     - Position (text input)
+     - Interview Type (dropdown, 58 scenarios in 13 optgroups)
+     - Backend URL (text input, default http://127.0.0.1:9010)
+   
+   "Advanced" section fields:
+     - AI Model (dropdown, 19 models in 4 tiers: Speed/Balanced/Reasoning/Local)
+     - Image Analysis Context (textarea, 400 char limit)
+     - Interview Procedures (textarea, auto-filled by company intel)
+     - Priority Questions (textarea, auto-filled by company intel)
+     - AI Response Language / Process Time / Threshold sliders
+   
+   START button: Calls bridge.startLoopback() → WASAPI capture begins → WS opens
+   
+   Live mode shows: PhantomOverlay component with:
+     - Streaming AI answer text (typewriter effect)
+     - Key points bullets
+     - STAR structure (if behavioral)
+     - Coach feedback (pacing, trap alerts)
+     - Transcript log
+     - Answer history navigation (prev/next)
+     - Stealth health badge
+     - Offer probability gauge
+     - Session timer
+
+4. AI ANSWER FLOW (what the candidate sees):
+   
+   Zoom audio plays → WASAPI captures system audio → PCM16 sent to backend WS →
+   Deepgram (or QA mockup) transcribes → backend detects interviewer question →
+   answer_suggestion_start sent → LLM streams tokens → answer_suggestion_chunk sent →
+   answer_suggestion_done sent → PhantomOverlay displays answer with typewriter effect →
+   Candidate reads answer from desktop overlay while on Zoom call.
+
+   In QA_MODE: Skip Deepgram. Send {"type":"transcript","text":"...","participant":"interviewer","is_final":true}
+   directly via WS to simulate what Deepgram would produce.
+
+5. KNOWN MODELS (19 total):
+   Speed tier:    General, GPT-4o, GPT-4.1 Mini, GPT-5 Mini, Claude Haiku 4.5,
+                  Gemini 2.5 Flash, Gemini 3 Flash, Grok 4.1 Fast
+   Balanced tier: GPT-5, GPT-4.1, Claude Sonnet 4.5, Kimi K2 Turbo, DeepSeek Chat
+   Reasoning:     GPT-5.2, GPT-5.1, Claude Opus 4.5, Gemini 3 Pro, Grok 4
+   Local:         Ollama Local
+
+6. KNOWN SCENARIOS (58 across 13 categories):
+   Engineering (6), System Design (4), Behavioral (4), Product (4),
+   Data/ML (4), Management (4), Specialized (5), AI/ML (4),
+   Security (4), Creative (3), Emerging Tech (4), Business (4), Infrastructure (4)
+
+═══════════════════════════════════════════════════════════════════════════════════
+EXECUTION PLAN — FOLLOW THIS EXACTLY, STEP BY STEP
+═══════════════════════════════════════════════════════════════════════════════════
+
+PHASE 0: ENVIRONMENT SETUP
+───────────────────────────
+0.1  Kill any stale processes:
+     Get-Process -Name "node","electron","python" -ErrorAction SilentlyContinue | 
+       Where-Object { $_.MainWindowTitle -match "atluri|phantom|overlay" -or $_.Path -match "linkedin-ai" } |
+       Stop-Process -Force
+
+0.2  Ensure backend/.env has these critical values:
+     ROOM_EVENT_BUS_ENABLED=false
+     USE_REDIS_ROOM_STATE=false
+     (This prevents Redis connection timeouts that block WS streaming — each chunk
+      would take 2+ seconds instead of milliseconds if Redis is unreachable)
+
+0.3  Start the backend:
+     cd d:\linkedin-ai-main\backend
+     $env:ROOM_EVENT_BUS_ENABLED = "false"
+     $env:USE_REDIS_ROOM_STATE = "false"
+     $env:QA_MODE = "true"
+     $env:ENV = "development"
+     python -m uvicorn app.main:app --host 0.0.0.0 --port 9010 --workers 1 --log-level info
+     (Run as background process)
+
+0.4  Wait for backend health:
+     Keep polling http://localhost:9010/healthz every 2 seconds until 200 OK.
+     Timeout: 30 seconds. If it fails, check port conflicts with:
+       netstat -ano | findstr :9010
+
+0.5  Start the frontend:
+     cd d:\linkedin-ai-main\frontend
+     npm run dev
+     (Run as background process on port 3001)
+
+0.6  Wait for frontend:
+     Keep polling http://localhost:3001 every 2 seconds until it responds.
+     Timeout: 45 seconds.
+
+0.7  Start the desktop Electron:
+     cd d:\linkedin-ai-main\desktop
+     npm run dev
+     (Run as background process. It will load localhost:3001/overlay)
+
+0.8  Wait 5 seconds for Electron window to fully render.
+
+
+PHASE 1: BACKEND API SMOKE TESTS
+─────────────────────────────────
+Test each endpoint and assert the expected response:
+
+1.1  GET http://localhost:9010/healthz → status 200, body has "status"
+1.2  GET http://localhost:9010/api/stealth/health → status 200, body has "stealth_score" or "score"
+1.3  GET http://localhost:9010/api/voice-profile/readiness → status 200, body has "score", "maturity"
+1.4  POST http://localhost:9010/api/user/offer-probability → status 200, body has "probability"
+1.5  POST http://localhost:9010/api/context/snapshot → status 200
+1.6  POST http://localhost:9010/api/context/reset → status 200
+
+Log results: [PASS] or [FAIL] with response body.
+
+
+PHASE 2: FRONTEND WEB UI TESTING (via Playwright)
+──────────────────────────────────────────────────
+Use Playwright (chromium) in headed mode to test the web UI:
+
+2.1  Open http://localhost:3001 and verify the landing page loads (check for main heading text)
+2.2  Navigate to http://localhost:3001/app/interview — verify the interview setup page renders
+2.3  Navigate to http://localhost:3001/app/mock — verify mock page renders
+2.4  Navigate to http://localhost:3001/app/coding — verify coding page renders
+2.5  Navigate to http://localhost:3001/app/resume — verify resume tools page renders
+2.6  Navigate to http://localhost:3001/app/settings — verify settings page renders
+2.7  Navigate to http://localhost:3001/overlay — verify the overlay/desktop setup panel renders
+2.8  On the overlay page, verify:
+     - "Live" / "Mock" / "Coding" session mode pills exist and are clickable
+     - Company input field exists
+     - Position input field exists
+     - Interview Type dropdown has 58+ options
+     - AI Model dropdown has 19+ options
+     - START button exists
+     - Eye (stealth) button exists
+
+Log results with screenshots for each page.
+
+
+PHASE 3: DESKTOP ELECTRON TESTING (via Playwright Electron)
+───────────────────────────────────────────────────────────
+Use Playwright's _electron API to interact with the live desktop app:
+
+3.1  Connect to the running Electron app OR launch fresh:
+     const electron = require('playwright')._electron;
+     const app = await electron.launch({
+       executablePath: 'node_modules/electron/dist/electron.exe', 
+       args: ['dist/main.js'],
+       cwd: 'd:/linkedin-ai-main/desktop'
+     });
+
+3.2  Get the first window: const page = await app.firstWindow();
+3.3  Wait for the overlay to load: await page.waitForSelector('[data-testid]', {timeout: 15000})
+     OR wait for any visible text that indicates the setup panel is rendered.
+
+3.4  Verify the Setup Panel elements:
+     - Company field is present and editable
+     - Position field is present and editable
+     - Interview Type dropdown has options
+     - AI Model dropdown has options
+     - START button is present
+     - Eye (stealth) toggle button is present
+
+3.5  Test Company Intelligence auto-fill:
+     - Type "Amazon" in Company field
+     - Trigger blur event
+     - Verify Interview Procedures textarea now contains "Leadership Principles"
+     - Verify Priority Questions textarea now contains "Customer Obsession"
+
+3.6  Test AI Model dropdown:
+     - Open the dropdown
+     - Verify it contains "GPT-5", "Claude Sonnet 4.5", "Grok 4.1 Fast", "Ollama Local"
+     - Select "GPT-5"
+
+3.7  Test Interview Type dropdown:
+     - Open the dropdown  
+     - Count all <option> elements inside — must be >= 58
+     - Verify optgroup labels include "Engineering", "System Design", "Behavioral"
+
+3.8  Test Eye (Stealth) toggle:
+     - Click the eye button once → verify opacity changes or tooltip shows "DIM"
+     - Click again → verify "HIDDEN" state
+     - Click again → verify back to normal "OFF" state
+
+3.9  Test Stealth Score panel:
+     - Verify stealth score number is displayed (0-100)
+     - Verify threat level badge shows ("CLEAN", "LOW", etc.)
+
+3.10 Test keyboard shortcuts (via Electron IPC):
+     - Send Ctrl+Shift+H → verify overlay visibility toggles
+     - Send Ctrl+Shift+M → verify mic state changes
+
+3.11 Take screenshot of the full desktop setup panel.
+
+
+PHASE 4: ZOOM INTEGRATION TEST
+───────────────────────────────
+This is the REAL interview simulation. The user has Chrome open with Zoom logged in.
+
+4.1  Open Zoom in the user's existing Chrome browser:
+     Use Playwright to connect to the existing Chrome instance:
+       const browser = await chromium.connectOverCDP('http://localhost:9222');
+     OR launch Chrome with:
+       const browser = await chromium.launch({
+         channel: 'chrome',
+         headless: false,
+         args: ['--start-maximized']
+       });
+       const page = await browser.newPage();
+       await page.goto('https://zoom.us/wc/join');
+     
+     NOTE: If Chrome remote debugging is not enabled, use this alternative:
+       Start Chrome with: chrome.exe --remote-debugging-port=9222
+       Then connect via Playwright CDP.
+
+4.2  Create a Zoom meeting:
+     - Navigate to https://zoom.us/wc/join or https://app.zoom.us/wc/start
+     - If the user is already logged in, look for "New Meeting" or "Start" button
+     - Join/start the meeting
+     - Wait for the meeting to fully load (video/audio controls visible)
+     - Ensure "Use Computer Audio" is selected
+
+4.3  Alternatively: Use Zoom's Personal Meeting Room:
+     - Navigate to https://zoom.us/j/<personal_meeting_id>
+     - Click "Join from Your Browser" if prompted
+     - Join with computer audio
+
+4.4  IMPORTANT: The desktop Electron captures ALL system audio via WASAPI loopback.
+     So whatever audio plays through speakers/headphones gets captured.
+     For testing without a real second person, use one of these methods:
+     
+     METHOD A — Text-To-Speech injection (RECOMMENDED for automation):
+       Use PowerShell to speak questions aloud through system speakers:
+       
+       Add-Type -AssemblyName System.Speech
+       $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+       $synth.Rate = 0  # Normal speed
+       $synth.Speak("Tell me about yourself and your experience as a software engineer")
+       Start-Sleep -Seconds 2
+       $synth.Speak("How would you design a real-time notification system for millions of users?")
+       
+       The WASAPI loopback will capture this TTS audio → backend transcribes → AI generates answer.
+     
+     METHOD B — Direct WebSocket transcript injection (MOST RELIABLE):
+       Open a parallel WS connection to the same room and send transcript messages:
+       
+       const ws = new WebSocket('ws://localhost:9010/ws/voice?room_id=<ROOM_ID>&participant=interviewer&role=behavioral');
+       ws.send(JSON.stringify({
+         type: "transcript",
+         text: "Tell me about yourself and your experience",
+         participant: "interviewer",
+         is_final: true
+       }));
+       
+       This bypasses audio entirely and directly triggers the AI answer generation.
+     
+     METHOD C — Play pre-recorded audio files:
+       Use PowerShell to play WAV/MP3 files through speakers:
+       
+       $player = New-Object System.Media.SoundPlayer
+       $player.SoundLocation = "path/to/interviewer_question.wav"
+       $player.PlaySync()
+
+
+PHASE 5: LIVE INTERVIEW SIMULATION — THE CORE TEST
+───────────────────────────────────────────────────
+This is the most important test. Simulate a COMPLETE real interview.
+
+5.1  In the desktop Electron overlay, configure the session:
+     - Company: "Google"
+     - Position: "Senior Software Engineer"  
+     - Interview Type: "Behavioral Interview"
+     - AI Model: "GPT-5" (or "general" for fastest)
+     - Backend URL: http://127.0.0.1:9010
+     - Wait for Company Intelligence to auto-fill (Procedures + Priority Questions)
+
+5.2  Click START in the desktop overlay.
+     - Verify WASAPI loopback capture begins (or use WS injection as fallback)
+     - Verify the overlay transitions from Setup mode to Live mode
+     - Verify the PhantomOverlay component appears with streaming area visible
+
+5.3  Extract the room_id. This is critical for WS injection:
+     - Check the desktop Electron's dev console for the WS URL
+     - OR intercept the bridge.startLoopback() call to capture the roomId
+     - OR look in backend logs for "room_assigned" message
+
+5.4  Open a PARALLEL WebSocket connection to the backend as the "interviewer":
+     ws://localhost:9010/ws/voice?room_id=<EXTRACTED_ROOM_ID>&participant=interviewer&role=behavioral&company=Google&position=Senior+Software+Engineer
+
+5.5  ROUND 1 — Behavioral (Tell me about yourself):
+     Send: {"type":"transcript","text":"Good morning! Thanks for joining. Let me start with a simple question. Can you tell me about yourself and walk me through your background? What makes you a strong fit for this senior software engineering position at Google?","participant":"interviewer","is_final":true}
+     
+     WAIT for on the desktop overlay:
+       ✓ answer_suggestion_start received (overlay shows loading/streaming indicator)
+       ✓ answer_suggestion_chunk messages stream in (typewriter text appears on overlay)
+       ✓ Full AI answer visible on the desktop overlay (≥ 50 words)
+       ✓ Answer mentions: experience, engineering, team, project, or architecture
+       ✓ TTFT (Time to First Token) measured
+     
+     TAKE SCREENSHOT of the desktop overlay showing the AI-generated answer.
+     
+     The CANDIDATE reads this answer from the desktop overlay and speaks it into Zoom.
+
+5.6  Wait 8-10 seconds for the full answer to stream + a gap before next question.
+
+5.7  ROUND 2 — Technical / System Design:
+     Send: {"type":"transcript","text":"Great answer. Now let's move to a technical question. How would you design a distributed real-time notification system that needs to handle 10 million concurrent WebSocket connections with sub-100ms delivery latency? Walk me through the architecture.","participant":"interviewer","is_final":true}
+     
+     WAIT for:
+       ✓ AI answer appears on desktop overlay (≥ 60 words)
+       ✓ Answer mentions: WebSocket, pub/sub, scale, queue, or architecture
+       ✓ TAKE SCREENSHOT
+
+5.8  Wait 8-10 seconds.
+
+5.9  ROUND 3 — STAR Behavioral:
+     Send: {"type":"transcript","text":"Now I'd like to hear about a challenging situation. Tell me about a time when you had to debug a critical production outage that was affecting millions of users. What was the situation, what specific actions did you take, and what was the final result?","participant":"interviewer","is_final":true}
+     
+     WAIT for:
+       ✓ AI answer appears (≥ 60 words)
+       ✓ Answer follows STAR format (mentions situation, action, result)
+       ✓ TAKE SCREENSHOT
+
+5.10 Wait 8-10 seconds.
+
+5.11 ROUND 4 — Pressure Question:
+     Send: {"type":"transcript","text":"What would you say is your biggest technical weakness, and can you give me a specific example of how it has impacted your work? How are you actively working to improve it?","participant":"interviewer","is_final":true}
+     
+     WAIT for:
+       ✓ AI answer appears (≥ 40 words)
+       ✓ Answer honestly states a weakness but frames it constructively
+       ✓ TAKE SCREENSHOT
+
+5.12 Wait 8-10 seconds.
+
+5.13 ROUND 5 — Coding Problem:
+     Send: {"type":"transcript","text":"Let's do a coding problem. Given an array of integers and a target sum, find all unique pairs of numbers that add up to the target. What is your approach and can you write the code?","participant":"interviewer","is_final":true}
+     
+     WAIT for:
+       ✓ AI answer appears (≥ 50 words)
+       ✓ Answer contains code or algorithmic approach (hash map, two pointer, set, O(n))
+       ✓ TAKE SCREENSHOT
+
+5.14 Wait 8-10 seconds.
+
+5.15 ROUND 6 — Follow-up / Closing:
+     Send: {"type":"transcript","text":"Last question. Where do you see yourself in five years, and what specific aspects of Google's engineering culture excite you the most? What unique contributions would you bring to our team?","participant":"interviewer","is_final":true}
+     
+     WAIT for:
+       ✓ AI answer appears (≥ 40 words)
+       ✓ TAKE SCREENSHOT
+
+5.16 After all 6 rounds, verify aggregate metrics:
+     ✓ All 6 answers were generated successfully
+     ✓ Average TTFT < 500ms (in QA_MODE)
+     ✓ No answer was empty or contained "[object Object]" or "undefined"
+     ✓ Total words generated across all answers > 300
+
+
+PHASE 6: ADVANCED SCENARIO TESTING
+───────────────────────────────────
+6.1  Re-run the interview with a DIFFERENT company context:
+     - Set Company to "Amazon" → verify Leadership Principles auto-fill
+     - Run 2 questions (behavioral + STAR)
+     - Verify answers reference Amazon-style LP language
+
+6.2  Re-run with "Coding Interview" scenario:
+     - Set Interview Type to any coding scenario
+     - Ask: "Implement an LRU cache with O(1) get and put operations"
+     - Verify the AI answer contains: hash map, doubly linked list, O(1)
+
+6.3  Test MODEL SWITCHING mid-session (if supported):
+     - Start with "general" model
+     - Switch to "gpt5" model
+     - Send a question → verify answer still generates correctly
+
+6.4  Test RAPID-FIRE questions:
+     - Send 3 questions with only 2-second gaps between them
+     - Verify no crashes, no garbled answers, deduplication works properly
+
+6.5  Test LONG answer handling:
+     - Ask: "Give me the most detailed system design you can for building YouTube from scratch, covering every single component including CDN, video processing pipeline, recommendation engine, comment system, live streaming, analytics, and monetization."
+     - Verify the answer streams fully without truncation or error
+
+
+PHASE 7: STEALTH & SECURITY TESTING
+────────────────────────────────────
+7.1  Verify content protection:
+     - Call window.atluriinDesktop.setOverlayContentProtection(true)
+     - Try to capture a screenshot programmatically — the overlay window should appear black/invisible
+     
+7.2  Verify XSS protection:
+     - Send a transcript with: <script>alert('xss')</script> as the question text
+     - Verify the overlay does NOT execute JavaScript — it should render as escaped text
+
+7.3  Verify stealth score:
+     - Call /api/stealth/health and verify score is returned
+     - Verify threat level is "CLEAN" when no recording software is detected
+
+7.4  Verify process masking:
+     - Check that the Electron process name is not "interview-helper" or similar
+     - The process should appear as a generic name in Task Manager
+
+
+PHASE 8: PERFORMANCE BENCHMARKS
+────────────────────────────────
+Measure and report:
+
+8.1  TTFT (Time to First Token): Time from sending transcript to receiving answer_suggestion_start
+     Target: < 500ms in QA_MODE
+8.2  Total generation time: Time from answer_suggestion_start to answer_suggestion_done
+     Target: < 15s per answer (depends on LLM)
+8.3  Frontend LCP (Largest Contentful Paint) on overlay page
+     Target: < 3500ms
+8.4  WS connection establishment time
+     Target: < 1000ms
+8.5  Memory usage: Check Electron process memory doesn't exceed 500MB after 6 rounds
+
+
+PHASE 9: GENERATE COMPREHENSIVE REPORT
+───────────────────────────────────────
+After all phases, generate a JSON report at qa/reports/Master_E2E_Report_<timestamp>.json:
+
+{
+  "runId": "<timestamp>",
+  "date": "<ISO date>",
+  "environment": {
+    "backend": "http://localhost:9010",
+    "frontend": "http://localhost:3001",
+    "qaMode": true,
+    "redisDisabled": true
+  },
+  "phases": {
+    "backendAPIs": { "passed": N, "failed": N, "details": [...] },
+    "frontendUI": { "passed": N, "failed": N, "details": [...] },
+    "desktopElectron": { "passed": N, "failed": N, "details": [...] },
+    "zoomIntegration": { "passed": N, "failed": N, "details": [...] },
+    "liveInterview": {
+      "rounds": [
+        {
+          "questionId": "q1_behavioral",
+          "question": "...",
+          "answerGenerated": true,
+          "answerWordCount": 144,
+          "ttftMs": 5,
+          "totalGenMs": 9200,
+          "keywordsFound": ["experience","engineer","team"],
+          "passed": true
+        }
+      ]
+    },
+    "advancedScenarios": { "passed": N, "failed": N },
+    "stealthSecurity": { "passed": N, "failed": N },
+    "performance": {
+      "avgTTFT": "5ms",
+      "avgGenTime": "7.5s",
+      "frontendLCP": "2100ms",
+      "wsConnectTime": "150ms"
+    }
+  },
+  "overallResult": "PASS" | "FAIL",
+  "totalTests": N,
+  "totalPassed": N,
+  "totalFailed": N,
+  "screenshots": ["path/to/screenshot1.png", ...]
+}
+
+Also generate an HTML report with collapsible sections, color-coded pass/fail,
+and embedded screenshots at qa/reports/Master_E2E_Report_<timestamp>.html.
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+TROUBLESHOOTING GUIDE
+═══════════════════════════════════════════════════════════════════════════════════
+
+PROBLEM: WebSocket connects then immediately closes with code 1006
+CAUSE:   Logger shadowing bug in ws_voice.py. The local variable 
+         `logger = _SessionStructuredLogger()` shadows the module-level logger.
+         Python sees this at parse time and all references to `logger` before the
+         assignment fail with UnboundLocalError.
+FIX:     Use `import logging; _module_logger = logging.getLogger(__name__)` and
+         reference `_module_logger` for early log lines before the local logger is created.
+
+PROBLEM: Answers take 60+ seconds to generate (should be <15s)
+CAUSE:   ROOM_EVENT_BUS_ENABLED=true in backend/.env but Redis is not running.
+         Each room broadcast blocks for ~2s on Redis connection timeout.
+FIX:     Set ROOM_EVENT_BUS_ENABLED=false in backend/.env
+
+PROBLEM: Desktop overlay shows setup panel but START does nothing
+CAUSE:   Frontend may not be running (localhost:3001 down), or API keys not configured.
+FIX:     Ensure frontend is running. Check backend/.env has OPENAI_API_KEY set.
+
+PROBLEM: No audio capture / no transcription
+CAUSE:   win-audio-capture native module may not be installed, or no audio is playing.
+FIX:     Use WebSocket transcript injection (Method B in Phase 4.4) to bypass audio.
+
+PROBLEM: Electron loads blank page / fallback HTML
+CAUSE:   Frontend (localhost:3001) not running. Electron falls back to static HTML.
+FIX:     Start frontend first: cd frontend && npm run dev
+
+PROBLEM: "mgt.clearMarks is not a function"
+CAUSE:   Browser extension injects Microsoft Graph Toolkit without clearMarks method.
+FIX:     Already patched in frontend/app/layout.tsx with defensive polyfill.
+         Test in incognito mode to confirm it's extension-related.
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+EXECUTION COMMANDS SUMMARY
+═══════════════════════════════════════════════════════════════════════════════════
+
+# Terminal 1: Backend
+cd d:\linkedin-ai-main\backend
+$env:ROOM_EVENT_BUS_ENABLED="false"; $env:USE_REDIS_ROOM_STATE="false"; $env:QA_MODE="true"; $env:ENV="development"
+python -m uvicorn app.main:app --host 0.0.0.0 --port 9010 --workers 1
+
+# Terminal 2: Frontend
+cd d:\linkedin-ai-main\frontend
+npm run dev
+
+# Terminal 3: Desktop Electron
+cd d:\linkedin-ai-main\desktop
+npm run dev
+
+# Terminal 4: Run the tests
+cd d:\linkedin-ai-main\qa
+npx ts-node e2e/master-full-coverage.ts          # Full suite
+npx ts-node e2e/desktop-live-interview-e2e.ts     # Desktop + WS interview
+npx ts-node e2e/real-interview-test.ts            # WS-only interview simulation
+
+# TTS Audio Injection (Windows PowerShell):
+Add-Type -AssemblyName System.Speech
+$s = New-Object System.Speech.Synthesis.SpeechSynthesizer
+$s.Rate = 0
+$s.Speak("Tell me about yourself and your engineering background")
+Start-Sleep -Seconds 15
+$s.Speak("How would you design a real-time chat system at scale?")
+Start-Sleep -Seconds 15
+$s.Speak("Tell me about a time you resolved a critical production issue")
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+END OF PROMPT — EXECUTE ALL PHASES SEQUENTIALLY. NO SHORTCUTS. NO SKIPPING.
+═══════════════════════════════════════════════════════════════════════════════════
