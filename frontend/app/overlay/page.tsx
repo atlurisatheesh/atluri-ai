@@ -39,7 +39,7 @@ function generateRoomId(): string {
 }
 
 const PRODUCTION_BACKEND_ORIGIN = "https://atluri-ai.vercel.app";
-const PRODUCTION_WS_BACKEND = "https://atluriin-backend-production-5f8d.up.railway.app";
+const PRODUCTION_WS_BACKEND = "https://linkedin-ai-production-d2ec.up.railway.app";
 
 function normalizeBackendUrl(url: string): string {
     return String(url || "").trim().replace(/\/+$/g, "");
