@@ -17,12 +17,16 @@ type ContextSnapshotUi = {
 export default function LiveVoiceInterview() {
   const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:9010").replace(/\/+$/, "");
   // Vercel does NOT proxy WebSockets — connect directly to Railway backend
-  const WS_BASE = (
-    process.env.NEXT_PUBLIC_WS_URL ||
-    (typeof window !== "undefined" && window.location.hostname !== "localhost"
-      ? "wss://linkedin-ai-production-d2ec.up.railway.app"
-      : API_BASE.replace(/^http/i, "ws"))
-  ).replace(/\/+$/, "");
+  // Must use useMemo to evaluate at runtime (not SSR build time)
+  const WS_BASE = useMemo(() => {
+    const envWs = (process.env.NEXT_PUBLIC_WS_URL || "").trim();
+    if (envWs) return envWs.replace(/\/+$/, "");
+    // Runtime detection: if we're in a browser and NOT localhost, use Railway directly
+    if (typeof window !== "undefined" && !["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+      return "wss://linkedin-ai-production-d2ec.up.railway.app";
+    }
+    return API_BASE.replace(/^http/i, "ws");
+  }, [API_BASE]);
 
   const ws = useRef<WebSocket | null>(null);
   const streamTimeoutRef = useRef<number | null>(null);
