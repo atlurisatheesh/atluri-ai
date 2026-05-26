@@ -17,19 +17,23 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://linkedin-ai-production-d2ec.up.railway.app/api/:path*"
+      "destination": "https://atluriin-backend-production-94e7.up.railway.app/api/:path*"
     },
     {
       "source": "/ws/:path*",
-      "destination": "https://linkedin-ai-production-d2ec.up.railway.app/ws/:path*"
+      "destination": "https://atluriin-backend-production-94e7.up.railway.app/ws/:path*"
     },
     {
       "source": "/docs",
-      "destination": "https://linkedin-ai-production-d2ec.up.railway.app/docs"
+      "destination": "https://atluriin-backend-production-94e7.up.railway.app/docs"
+    },
+    {
+      "source": "/healthz",
+      "destination": "https://atluriin-backend-production-94e7.up.railway.app/healthz"
     },
     {
       "source": "/openapi.json",
-      "destination": "https://linkedin-ai-production-d2ec.up.railway.app/openapi.json"
+      "destination": "https://atluriin-backend-production-94e7.up.railway.app/openapi.json"
     }
   ]
 }
