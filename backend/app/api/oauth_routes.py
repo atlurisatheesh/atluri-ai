@@ -12,6 +12,7 @@ import uuid
 import json
 import logging
 import secrets
+import time
 from datetime import datetime, timezone
 from urllib.parse import urlencode, quote
 
@@ -82,31 +83,94 @@ SUPPORTED_PROVIDERS = {"google", "github", "microsoft"}
 # ── State tokens (CSRF protection) ───────────────────────────
 # In production, use Redis or DB. For local dev, in-memory is fine.
 _oauth_states: dict[str, dict] = {}
+STATE_TOKEN_TTL_SEC = int(os.getenv("OAUTH_STATE_TTL_SEC", "600"))  # 10 min default
+
+
+def _cleanup_expired_states() -> None:
+    """Remove state tokens older than TTL to prevent memory leaks."""
+    now = time.time()
+    expired = [
+        key for key, val in _oauth_states.items()
+        if now - val.get("created_at", 0) > STATE_TOKEN_TTL_SEC
+    ]
+    for key in expired:
+        _oauth_states.pop(key, None)
+    if expired:
+        logger.info("OAuth state cleanup: removed %d expired tokens", len(expired))
+
+
+# ── Diagnostic endpoint ──────────────────────────────────────
+
+@router.get("/status")
+async def oauth_status():
+    """Diagnostic endpoint — shows which OAuth providers are configured (no secrets exposed)."""
+    providers_status = {}
+    for name in SUPPORTED_PROVIDERS:
+        try:
+            cfg = _provider_cfg(name)
+            has_id = bool(cfg.get("client_id", "").strip())
+            has_secret = bool(cfg.get("client_secret", "").strip())
+            providers_status[name] = {
+                "client_id_set": has_id,
+                "client_secret_set": has_secret,
+                "ready": has_id and has_secret,
+                "client_id_prefix": cfg["client_id"][:12] + "..." if has_id else None,
+            }
+        except Exception:
+            providers_status[name] = {"ready": False, "error": "config_load_failed"}
+
+    _public_base = os.getenv("BACKEND_PUBLIC_URL", "").rstrip("/") or FRONTEND_URL.rstrip("/")
+    return {
+        "frontend_url": FRONTEND_URL,
+        "backend_public_url": os.getenv("BACKEND_PUBLIC_URL", "(not set)"),
+        "callback_base_url": _public_base,
+        "example_callback": _public_base + "/api/auth/oauth/google/callback",
+        "providers": providers_status,
+        "active_state_tokens": len(_oauth_states),
+        "note": "Add the 'example_callback' URL as an Authorized redirect URI in Google Cloud Console.",
+    }
 
 
 # ── Step 1: Redirect to provider ─────────────────────────────
 
 @router.get("/{provider}")
 async def oauth_redirect(provider: str, request: Request):
+    # Skip the diagnostic endpoint — it's handled above
+    if provider == "status":
+        return await oauth_status()
+
     if provider not in SUPPORTED_PROVIDERS:
         raise HTTPException(400, f"Unsupported provider: {provider}. Use: {', '.join(SUPPORTED_PROVIDERS)}")
 
     cfg = _provider_cfg(provider)
     if not cfg["client_id"] or not cfg["client_secret"]:
+        logger.error(
+            "OAuth %s not configured: client_id=%s client_secret=%s",
+            provider,
+            "SET" if cfg["client_id"] else "MISSING",
+            "SET" if cfg["client_secret"] else "MISSING",
+        )
         raise HTTPException(
             501,
             f"{provider.title()} OAuth is not configured. "
             f"Set {provider.upper()}_CLIENT_ID and {provider.upper()}_CLIENT_SECRET in .env",
         )
 
+    # Cleanup expired state tokens periodically
+    _cleanup_expired_states()
+
     # Build callback URL — use FRONTEND_URL so OAuth flows through Vercel proxy
     _public_base = os.getenv("BACKEND_PUBLIC_URL", "").rstrip("/") or FRONTEND_URL.rstrip("/")
     callback_url = _public_base + f"/api/auth/oauth/{provider}/callback"
 
-    # CSRF state token
+    # CSRF state token with timestamp
     state = secrets.token_urlsafe(32)
     next_path = request.query_params.get("next", "/app")
-    _oauth_states[state] = {"provider": provider, "next": next_path}
+    _oauth_states[state] = {
+        "provider": provider,
+        "next": next_path,
+        "created_at": time.time(),
+    }
 
     params = {
         "client_id": cfg["client_id"],
@@ -124,6 +188,10 @@ async def oauth_redirect(provider: str, request: Request):
         params["response_mode"] = "query"
 
     auth_url = f"{cfg['authorize_url']}?{urlencode(params)}"
+    logger.info(
+        "OAuth %s redirect: callback_url=%s state_tokens_active=%d",
+        provider, callback_url, len(_oauth_states),
+    )
     return RedirectResponse(auth_url)
 
 
@@ -140,8 +208,15 @@ async def oauth_callback(
 ):
     # Handle provider-side errors
     if error:
-        logger.warning("OAuth %s error: %s", provider, error)
-        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=oauth_denied")
+        error_desc = request.query_params.get("error_description", "")
+        logger.warning(
+            "OAuth %s provider error: error=%s description=%s",
+            provider, error, error_desc,
+        )
+        return RedirectResponse(
+            f"{FRONTEND_URL}/auth/callback?error=oauth_denied"
+            f"&error_detail={quote(error_desc or error)}"
+        )
 
     if provider not in SUPPORTED_PROVIDERS:
         raise HTTPException(400, f"Unsupported provider: {provider}")
@@ -149,12 +224,31 @@ async def oauth_callback(
     # Validate CSRF state
     state_data = _oauth_states.pop(state, None)
     if not state_data or state_data["provider"] != provider:
-        logger.warning("OAuth %s: invalid state token", provider)
+        # Check if state expired vs never existed
+        is_expired = state and any(
+            state == k for k in list(_oauth_states.keys())
+        )
+        logger.warning(
+            "OAuth %s: invalid state token (state_present=%s, data_found=%s, "
+            "active_tokens=%d, may_be_expired=%s)",
+            provider, bool(state), bool(state_data),
+            len(_oauth_states), is_expired,
+        )
         return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=invalid_state")
+
+    # Check if state token expired
+    state_age = time.time() - state_data.get("created_at", 0)
+    if state_age > STATE_TOKEN_TTL_SEC:
+        logger.warning(
+            "OAuth %s: state token expired (age=%.0fs, ttl=%ds)",
+            provider, state_age, STATE_TOKEN_TTL_SEC,
+        )
+        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=state_expired")
 
     next_path = state_data.get("next", "/app")
 
     if not code:
+        logger.warning("OAuth %s: callback received without authorization code", provider)
         return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=no_code")
 
     cfg = _provider_cfg(provider)
@@ -173,14 +267,17 @@ async def oauth_callback(
     headers = {"Accept": "application/json"}
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             token_resp = await client.post(cfg["token_url"], data=token_data, headers=headers)
     except Exception as exc:
-        logger.error("OAuth %s token exchange failed: %s", provider, exc)
+        logger.error("OAuth %s token exchange network error: %s", provider, exc, exc_info=True)
         return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=token_exchange_failed")
 
     if token_resp.status_code != 200:
-        logger.error("OAuth %s token response %s: %s", provider, token_resp.status_code, token_resp.text[:200])
+        logger.error(
+            "OAuth %s token exchange failed: status=%s body=%s redirect_uri=%s",
+            provider, token_resp.status_code, token_resp.text[:500], callback_url,
+        )
         return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error=token_exchange_failed")
 
     token_json = token_resp.json()
@@ -246,6 +343,10 @@ async def oauth_callback(
         f"?token={jwt_token}"
         f"&user={user_json}"
         f"&next={quote(next_path)}"
+    )
+    logger.info(
+        "OAuth %s login success: email=%s user_id=%s is_new=%s",
+        provider, email, user.id, not bool(state_data),  # approximate
     )
     return RedirectResponse(redirect_url)
 
