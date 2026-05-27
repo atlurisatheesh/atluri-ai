@@ -15,8 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app
 COPY . .
 
-# Default: 4 workers for horizontal scaling
-ENV WORKERS=4 HOST=0.0.0.0 LOG_LEVEL=info
+# Default: 1 worker for in-memory session persistence
+ENV WORKERS=1 HOST=0.0.0.0 LOG_LEVEL=info
 
 # PORT is set by Railway/Render at runtime; default to 9010 for local
 ENV PORT=9010
