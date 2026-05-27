@@ -226,7 +226,7 @@ export default function LiveVoiceInterview() {
       items.push(`Ownership clarity dropped ${drop}% during pressure moments.`);
     }
     if (items.length === 0 && miniScores.structure < 65) {
-      items.push("Your structure weakened under pressure. Use a fixed frame: decision â†’ action â†’ measurable result.");
+      items.push("Your structure weakened under pressure. Use a fixed frame: decision → action → measurable result.");
     }
     if (items.length === 0 && miniScores.depth < 65) {
       items.push("Depth is inconsistent. Add constraints, trade-offs, and explicit risk handling.");
@@ -259,7 +259,7 @@ export default function LiveVoiceInterview() {
     if (miniScores.structure < 65) {
       return {
         label: "Answer structure",
-        goal: "Use decision â†’ action â†’ measurable result.",
+        goal: "Use decision → action → measurable result.",
       };
     }
     return {
@@ -277,9 +277,9 @@ export default function LiveVoiceInterview() {
     if (!liveGeneratedAnswer) return;
     try {
       await navigator.clipboard.writeText(liveGeneratedAnswer);
-      pushLog("ðŸ“‹ Answer copied to clipboard");
+      pushLog("📋 Answer copied to clipboard");
     } catch {
-      pushLog("âŒ Failed to copy to clipboard");
+      pushLog("❌ Failed to copy to clipboard");
     }
   };
 
@@ -290,7 +290,7 @@ export default function LiveVoiceInterview() {
     setLiveAnswerStreaming(false);
     setCanStopGeneration(false);
     setLiveAnswerMode("idle");
-    pushLog("â¹ï¸ Stopped answer generation");
+    pushLog("⏹️ Stopped answer generation");
   };
 
   // ========== PHASE 1: ADD TO HISTORY ==========
@@ -306,7 +306,7 @@ export default function LiveVoiceInterview() {
   const speakAnswer = () => {
     if (!liveGeneratedAnswer || ttsPlaying) return;
     if (!window.speechSynthesis) {
-      pushLog("âš ï¸ TTS not supported in this browser");
+      pushLog("⚠️ TTS not supported in this browser");
       return;
     }
     
@@ -322,12 +322,12 @@ export default function LiveVoiceInterview() {
     utterance.onend = () => setTtsPlaying(false);
     utterance.onerror = () => {
       setTtsPlaying(false);
-      pushLog("âŒ TTS error");
+      pushLog("❌ TTS error");
     };
     
     ttsUtteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
-    pushLog("ðŸ”Š Reading answer aloud");
+    pushLog("🔊 Reading answer aloud");
   };
 
   const stopTts = () => {
@@ -340,7 +340,7 @@ export default function LiveVoiceInterview() {
   // ========== PHASE 2: EXPORT SESSION ==========
   const exportSessionAsMarkdown = () => {
     if (answerHistory.length === 0 && !liveGeneratedAnswer) {
-      pushLog("âš ï¸ No session data to export");
+      pushLog("⚠️ No session data to export");
       return;
     }
     setExportingSession(true);
@@ -392,7 +392,7 @@ export default function LiveVoiceInterview() {
     URL.revokeObjectURL(url);
     
     setExportingSession(false);
-    pushLog("ðŸ“„ Session exported as Markdown");
+    pushLog("📄 Session exported as Markdown");
   };
 
   const setCaptureState = (enabled: boolean) => {
@@ -416,7 +416,7 @@ export default function LiveVoiceInterview() {
     streamTimeoutRef.current = window.setTimeout(() => {
       setLiveAnswerStreaming(false);
       setLiveAnswerMode("fallback");
-      pushLog("âš ï¸ Answer stream timed out, finalized safely");
+      pushLog("⚠️ Answer stream timed out, finalized safely");
     }, STREAM_TIMEOUT_MS);
   };
 
@@ -596,7 +596,7 @@ export default function LiveVoiceInterview() {
     } catch {
       setRunning(false);
       setConnected(false);
-      pushLog("ðŸ”’ Sign in required. Please log in and retry Live Mode.");
+      pushLog("🔒 Sign in required. Please log in and retry Live Mode.");
       return;
     }
 
@@ -655,7 +655,7 @@ export default function LiveVoiceInterview() {
     const normalizedRoomId = isUuidV4(roomId) ? roomId : createRoomId();
     if (normalizedRoomId !== roomId) {
       setRoomId(normalizedRoomId);
-      pushLog("ðŸ” Room ID normalized to UUID for secure room mode");
+      pushLog("🔐 Room ID normalized to UUID for secure room mode");
     }
 
     const roomParam = encodeURIComponent(normalizedRoomId.trim());
@@ -730,25 +730,25 @@ export default function LiveVoiceInterview() {
 
     ws.current.onerror = () => {
       // Stealth mode: Hide raw error messages
-      pushLog("âš ï¸ Connection issue. Retrying...");
+      pushLog("⚠️ Connection issue. Retrying...");
     };
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("ðŸ“© WS MESSAGE:", data);
+      console.log("📩 WS MESSAGE:", data);
       if (typeof data.session_id === "string" && data.session_id.trim()) {
         setFinalSessionId(data.session_id.trim());
       }
 
       if (data.type === "partial_transcript") {
         setLog((l) => {
-          const withoutLastPartial = l.filter((x) => !x.startsWith("ðŸŽ¤ You (speaking):"));
-          return [...withoutLastPartial, `ðŸŽ¤ You (speaking): ${data.text}`];
+          const withoutLastPartial = l.filter((x) => !x.startsWith("🎤 You (speaking):"));
+          return [...withoutLastPartial, `🎤 You (speaking): ${data.text}`];
         });
       }
 
       if (data.type === "transcript") {
-        pushLog(`ðŸŽ¤ You said: ${data.text}`);
+        pushLog(`🎤 You said: ${data.text}`);
       }
 
       if (data.type === "waiting_for_interviewer") {
@@ -757,12 +757,12 @@ export default function LiveVoiceInterview() {
         setLiveAnswerStreaming(false);
         clearStreamTimeout();
         // Only log if we don't have an answer showing
-        // pushLog("â³ Ready for next interviewer question.");
+        // pushLog("⏳ Ready for next interviewer question.");
       }
 
       if (data.type === "stt_warning") {
         const message = String(data.message || "Speech pipeline warning");
-        pushLog(`âš ï¸ STT: ${message}`);
+        pushLog(`⚠️ STT: ${message}`);
       }
 
       if (data.type === "ping") {
@@ -782,7 +782,7 @@ export default function LiveVoiceInterview() {
         }
 
         if (data.decision?.message) {
-          pushLog(`ðŸ¤– AI: ${data.decision.message}`);
+          pushLog(`🤖 AI: ${data.decision.message}`);
         }
 
         if (
@@ -796,7 +796,7 @@ export default function LiveVoiceInterview() {
             structure: Number(data.decision?.structure_score || 0),
           });
           pushLog(
-            `ðŸ“Š Score â†’ Clarity: ${data.decision?.clarity_score ?? 0}% | Depth: ${data.decision?.depth_score ?? 0}% | Structure: ${data.decision?.structure_score ?? 0}%`
+            `📊 Score → Clarity: ${data.decision?.clarity_score ?? 0}% | Depth: ${data.decision?.depth_score ?? 0}% | Structure: ${data.decision?.structure_score ?? 0}%`
           );
         }
 
@@ -828,7 +828,7 @@ export default function LiveVoiceInterview() {
 
         if (data.decision?.verdict || data.decision?.explanation) {
           pushLog(
-            `ðŸ§¾ Verdict: ${data.decision?.verdict ?? "Average"}${data.decision?.explanation ? ` â€” ${data.decision.explanation}` : ""}`
+            `🧾 Verdict: ${data.decision?.verdict ?? "Average"}${data.decision?.explanation ? ` â€” ${data.decision.explanation}` : ""}`
           );
         }
       }
@@ -851,13 +851,13 @@ export default function LiveVoiceInterview() {
 
         if (shouldShowHint(severity, priority)) {
           showAssistHint({ rule_id: ruleId, text, severity, priority, confidence, key });
-          pushLog(`ðŸ’¡ Hint (${severity}): ${text}`);
+          pushLog(`💡 Hint (${severity}): ${text}`);
         }
       }
 
       if (data.type === "live_coaching" && Array.isArray(data.tips)) {
         data.tips.forEach((tip: string) => {
-          pushLog(`ðŸ§  Coach: ${tip}`);
+          pushLog(`🧠 Coach: ${tip}`);
         });
       }
 
@@ -872,7 +872,7 @@ export default function LiveVoiceInterview() {
         setQuestionIndex((q) => Math.min(TOTAL_QUESTIONS, q + 1));
         setConfidence(0);
         setHesitation(0);
-        pushLog(`ðŸ¤– Next Question: ${nextQuestion}`);
+        pushLog(`🤖 Next Question: ${nextQuestion}`);
 
         if (participantMode === "candidate" && ws.current?.readyState === WebSocket.OPEN) {
           ws.current.send(JSON.stringify({ type: "set_question", question: nextQuestion }));
@@ -902,7 +902,7 @@ export default function LiveVoiceInterview() {
         setQuestionIndex((q) => Math.min(TOTAL_QUESTIONS, q + 1));
         setConfidence(0);
         setHesitation(0);
-        pushLog(`ðŸ§‘ Interviewer: ${liveQuestion}`);
+        pushLog(`🧑 Interviewer: ${liveQuestion}`);
         setCurrentQuestion(liveQuestion);
         setLiveAnswerStreaming(true);
         armStreamTimeout();
@@ -913,19 +913,19 @@ export default function LiveVoiceInterview() {
       if (data.type === "tone_shift_event") {
         const message = String(data?.payload?.message || "Tone shifted to increase interview pressure.");
         setEmotionalEvent({ type: "tone", message });
-        pushLog(`ðŸŽ­ Tone Shift: ${message}`);
+        pushLog(`🎭 Tone Shift: ${message}`);
       }
 
       if (data.type === "interruption_simulation") {
         const message = String(data?.payload?.message || "Interviewer interruption simulated.");
         setEmotionalEvent({ type: "interrupt", message });
-        pushLog(`â›” Interruption: ${message}`);
+        pushLog(`⛔ Interruption: ${message}`);
       }
 
       if (data.type === "pressure_spike_event") {
         const message = String(data?.payload?.message || "Pressure spike injected.");
         setEmotionalEvent({ type: "pressure", message });
-        pushLog(`ðŸ”¥ Pressure Spike: ${message}`);
+        pushLog(`🔥 Pressure Spike: ${message}`);
       }
 
       if (data.type === "answer_suggestion_start") {
@@ -982,10 +982,10 @@ export default function LiveVoiceInterview() {
         // Only show fallback mode for actual model failures (timeout_fallback, error_fallback)
         if (reason === "timeout_fallback" || reason === "error_fallback") {
           setLiveAnswerMode("fallback");
-          pushLog("âš ï¸ Using fallback answer mode (model provider unavailable)");
+          pushLog("⚠️ Using fallback answer mode (model provider unavailable)");
         } else {
           setLiveAnswerMode("live");
-          pushLog(`âœ… Answer done (reason=${reason}, len=${fullSuggestion.length})`);
+          pushLog(`✅ Answer done (reason=${reason}, len=${fullSuggestion.length})`);
         }
         if (fullSuggestion) {
           setLiveGeneratedAnswer(fullSuggestion);
@@ -1006,7 +1006,7 @@ export default function LiveVoiceInterview() {
         setCanStopGeneration(false);
         clearStreamTimeout();
         setCaptureState(true);
-        pushLog("ðŸŽ™ Listening for next interviewer question.");
+        pushLog("🎙 Listening for next interviewer question.");
       }
 
       if (data.type === "answer_suggestion" && data.suggestion) {
@@ -1034,9 +1034,9 @@ export default function LiveVoiceInterview() {
             severity: "medium",
             confidence: 0.92,
           });
-          pushLog("ðŸ’¡ AI generated answer draft from interviewer question");
+          pushLog("💡 AI generated answer draft from interviewer question");
           setCaptureState(true);
-          pushLog("ðŸŽ™ Listening for next interviewer question.");
+          pushLog("🎙 Listening for next interviewer question.");
         }
       }
 
@@ -1044,7 +1044,7 @@ export default function LiveVoiceInterview() {
         const assigned = String(data.room_id);
         if (assigned && assigned !== roomId) {
           setRoomId(assigned);
-          pushLog(`ðŸ” Assigned secure room ID: ${assigned}`);
+          pushLog(`🔐 Assigned secure room ID: ${assigned}`);
         }
       }
 
@@ -1075,7 +1075,7 @@ export default function LiveVoiceInterview() {
       if (data.type === "final_summary") {
         setFinalSummary(data.data);
         setRunning(false);
-        pushLog("ðŸ Final summary received");
+        pushLog("🏁 Final summary received");
       }
     };
 
@@ -1170,7 +1170,7 @@ export default function LiveVoiceInterview() {
 
             lastQuestionTriggerRef.current = { key, ts: now };
             ws.current.send(JSON.stringify({ type: "interviewer_question", text: transcript }));
-            pushLog(`âš¡ Question detected: ${transcript}`);
+            pushLog(`⚡ Question detected: ${transcript}`);
           }
         };
 
@@ -1184,13 +1184,13 @@ export default function LiveVoiceInterview() {
         speechRecognitionRef.current = recognition;
         try {
           recognition.start();
-          pushLog("ðŸ§­ Browser question-detect assist enabled");
+          pushLog("🧭 Browser question-detect assist enabled");
         } catch {}
       }
       */
-      pushLog("ðŸŽ™ Deepgram streaming STT active");
+      pushLog("🎙 Deepgram streaming STT active");
     } catch {
-      pushLog("âš ï¸ Audio capture unavailable. Enable mic permission and restart session.");
+      pushLog("⚠️ Audio capture unavailable. Enable mic permission and restart session.");
     }
   };
 
@@ -1208,7 +1208,7 @@ export default function LiveVoiceInterview() {
     setReconnectAttempts(0);
     reconnectAttemptsRef.current = 0;
 
-    pushLog("ðŸ›‘ Stopping session...");
+    pushLog("🛑 Stopping session...");
 
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify({ type: "stop" }));
@@ -1291,7 +1291,7 @@ export default function LiveVoiceInterview() {
           <div className="flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-[10px] bg-[#f7f9fb] border border-[#e5e7eb]">
             <span className="font-semibold text-[#374151]">Live Status</span>
             <span className="font-semibold text-[#111827]">
-              {reconnecting ? "ðŸ”„ Reconnecting..." : running ? "ðŸŽ™ Listening" : finalSummary ? "ðŸ Completed" : connected ? "ðŸŸ¢ Connected" : "ðŸ”´ Idle"}
+              {reconnecting ? "🔄 Reconnecting..." : running ? "🎙 Listening" : finalSummary ? "🏁 Completed" : connected ? "🟢 Connected" : "🔴 Idle"}
             </span>
             {running && connected && (
               <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] shadow-[0_0_8px_2px_rgba(34,197,94,0.6)] ml-2">â—</span>
@@ -1334,7 +1334,7 @@ export default function LiveVoiceInterview() {
               </div>
 
               {driftDetected && (
-                <div className="border border-[#fecaca] bg-[#fff1f2] text-[#9f1239] rounded-[10px] px-[11px] py-[9px] text-[13px] font-bold">âš ï¸ Drift detected. Tighten answer to outcomes, ownership, and measurable impact.</div>
+                <div className="border border-[#fecaca] bg-[#fff1f2] text-[#9f1239] rounded-[10px] px-[11px] py-[9px] text-[13px] font-bold">⚠️ Drift detected. Tighten answer to outcomes, ownership, and measurable impact.</div>
               )}
             </>
           )}
@@ -1410,7 +1410,7 @@ export default function LiveVoiceInterview() {
                   disabled={!liveGeneratedAnswer}
                   title="Copy answer to clipboard"
                 >
-                  ðŸ“‹ Copy
+                  📋 Copy
                 </button>
                 
                 {/* Stop Generation button */}
@@ -1420,7 +1420,7 @@ export default function LiveVoiceInterview() {
                     onClick={stopGeneration}
                     title="Stop generating answer"
                   >
-                    â¹ï¸ Stop
+                    ⏹️ Stop
                   </button>
                 )}
                 
@@ -1431,7 +1431,7 @@ export default function LiveVoiceInterview() {
                   disabled={!liveGeneratedAnswer}
                   title={ttsPlaying ? "Stop reading" : "Read answer aloud"}
                 >
-                  {ttsPlaying ? "ðŸ”‡ Stop" : "ðŸ”Š Read"}
+                  {ttsPlaying ? "🔇 Stop" : "🔊 Read"}
                 </button>
                 
                 {/* TTS Auto toggle */}
@@ -1450,7 +1450,7 @@ export default function LiveVoiceInterview() {
                 onClick={() => {
                   const next = !captureEnabled;
                   setCaptureState(next);
-                  pushLog(next ? "ðŸŽ™ Listening resumed for next interviewer question." : "â¸ Mic paused while you read.");
+                  pushLog(next ? "🎙 Listening resumed for next interviewer question." : "⏸ Mic paused while you read.");
                 }}
               >
                 {captureEnabled ? "Pause mic while I read" : "Listen for next question"}
@@ -1473,7 +1473,7 @@ export default function LiveVoiceInterview() {
               className="bg-[var(--surface-2)] text-[var(--text-muted)] border-none px-3.5 py-2.5 rounded-[10px] cursor-pointer font-semibold"
               title="Show answer history"
             >
-              ðŸ“œ History ({answerHistory.length})
+              📜 History ({answerHistory.length})
             </button>
             
             {/* Export button */}
@@ -1483,14 +1483,14 @@ export default function LiveVoiceInterview() {
               disabled={exportingSession || (answerHistory.length === 0 && !liveGeneratedAnswer)}
               title="Export session as Markdown"
             >
-              {exportingSession ? "ðŸ“„ Exporting..." : "ðŸ“„ Export"}
+              {exportingSession ? "📄 Exporting..." : "📄 Export"}
             </button>
           </div>
           
           {/* Answer History Panel */}
           {showHistory && answerHistory.length > 0 && (
             <div className="border border-[#e5e7eb] rounded-[10px] bg-[#fafafa] p-3 flex flex-col gap-2.5 max-h-[400px] overflow-y-auto">
-              <div className="text-[13px] font-bold text-[#374151] border-b border-b-[#e5e7eb] pb-2">ðŸ“œ Answer History (Last 5)</div>
+              <div className="text-[13px] font-bold text-[#374151] border-b border-b-[#e5e7eb] pb-2">📜 Answer History (Last 5)</div>
               {answerHistory.map((item, idx) => (
                 <div key={idx} className="border border-[#e2e8f0] rounded-lg bg-white p-2.5 flex flex-col gap-1.5">
                   <div className="text-xs font-bold text-[#1d4ed8]">Q: {item.question}</div>
@@ -1499,10 +1499,10 @@ export default function LiveVoiceInterview() {
                     className="self-start border border-[#d1d5db] bg-white text-[#374151] rounded-[6px] px-2 py-1 text-[11px] font-semibold cursor-pointer"
                     onClick={async () => {
                       await navigator.clipboard.writeText(item.answer);
-                      pushLog(`ðŸ“‹ Copied answer ${idx + 1} to clipboard`);
+                      pushLog(`📋 Copied answer ${idx + 1} to clipboard`);
                     }}
                   >
-                    ðŸ“‹ Copy
+                    📋 Copy
                   </button>
                 </div>
               ))}
