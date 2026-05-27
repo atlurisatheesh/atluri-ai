@@ -45,7 +45,6 @@ export default function LiveVoiceInterview() {
   const speakingMillisRef = useRef<number>(0);
   const captureEnabledRef = useRef<boolean>(true);
 
-  const TOTAL_QUESTIONS = 5;
   const STREAM_TIMEOUT_MS = 20000;
   const NEXT_SESSION_GOAL_KEY = "atluriin.interview.nextGoal.v1";
 
@@ -134,6 +133,17 @@ export default function LiveVoiceInterview() {
   
   // Show diagnostics (collapsed by default for cleaner UX)
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+
+  const [manualQuestionInput, setManualQuestionInput] = useState("");
+
+  const handleManualQuestionSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualQuestionInput.trim() || !ws.current || ws.current.readyState !== WebSocket.OPEN) return;
+    
+    ws.current.send(JSON.stringify({ type: "interviewer_question", text: manualQuestionInput.trim() }));
+    pushLog(`⚡ Manual question sent: ${manualQuestionInput.trim()}`);
+    setManualQuestionInput("");
+  };
 
   const formatClock = (totalSeconds: number): string => {
     const safeSeconds = Math.max(0, Number(totalSeconds || 0));
@@ -869,7 +879,7 @@ export default function LiveVoiceInterview() {
         setLiveAnswerStreaming(true);
         setLiveAnswerMode("generating");
         armStreamTimeout();
-        setQuestionIndex((q) => Math.min(TOTAL_QUESTIONS, q + 1));
+        setQuestionIndex((q) => q + 1);
         setConfidence(0);
         setHesitation(0);
         pushLog(`🤖 Next Question: ${nextQuestion}`);
@@ -899,7 +909,7 @@ export default function LiveVoiceInterview() {
         setLiveInterviewerQuestion(liveQuestion);
         setLiveGeneratedAnswer("");
         setLiveAnswerMode("generating");
-        setQuestionIndex((q) => Math.min(TOTAL_QUESTIONS, q + 1));
+        setQuestionIndex((q) => q + 1);
         setConfidence(0);
         setHesitation(0);
         pushLog(`🧑 Interviewer: ${liveQuestion}`);
@@ -1381,10 +1391,30 @@ export default function LiveVoiceInterview() {
 
           <div className={running ? "rounded-xl bg-[var(--surface-2)] p-5" : "p-5 rounded-xl bg-[var(--surface-2)]"}>
             <div className="text-[13px] font-bold text-[#0a66c2]">
-              Question {questionIndex} of {TOTAL_QUESTIONS}
+              Question {questionIndex}
             </div>
             <div className="mt-2 leading-[1.5] text-[#111827]">{currentQuestion}</div>
             <div className="mt-2 text-xs text-[#1d4ed8] font-bold">{recruiterState}</div>
+            
+            {/* Manual Question Input */}
+            {running && (
+              <form onSubmit={handleManualQuestionSubmit} className="mt-4 flex gap-2">
+                <input
+                  type="text"
+                  value={manualQuestionInput}
+                  onChange={(e) => setManualQuestionInput(e.target.value)}
+                  placeholder="Type a question manually to ask the AI..."
+                  className="flex-1 px-3 py-2 rounded-lg border border-[#e5e7eb] text-sm focus:outline-none focus:ring-2 focus:ring-[#3b82f6]/50 bg-white text-[#111827]"
+                />
+                <button
+                  type="submit"
+                  disabled={!manualQuestionInput.trim()}
+                  className="px-4 py-2 bg-[#2563eb] text-white text-sm font-semibold rounded-lg disabled:opacity-50 transition-colors hover:bg-[#1d4ed8]"
+                >
+                  Send
+                </button>
+              </form>
+            )}
           </div>
 
           {liveInterviewerQuestion && (
