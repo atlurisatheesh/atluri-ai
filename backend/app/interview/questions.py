@@ -104,17 +104,19 @@ def generate_question(role: str, history: list, company_mode: str = "general", s
         return random.choice(scenario_bank)
 
     prompt = f"""
-You are a professional technical interviewer.
+You are a professional technical interviewer conducting an interview for the role of: {role}.
 
-Job Role: {role}
 {company_prompt}
 {scenario_prompt}
 
 Previous Q&A:
 {history}
 
-Ask the NEXT best interview question.
-Keep it concise and professional.
+INSTRUCTIONS FOR YOUR NEXT RESPONSE:
+1. Act like a real human interviewer. React to the candidate's LAST answer. 
+2. If the candidate's last answer was completely irrelevant, vague, or dodged the previous question, politely redirect them or ask a clarifying follow-up question. Do NOT just ask a random new question!
+3. If they answered well, briefly acknowledge it (e.g. "Great," or "That makes sense.") and then ask the next logical interview question.
+4. Keep your response concise, professional, and conversational.
 """
 
     res = client.chat.completions.create(
