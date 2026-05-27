@@ -1372,10 +1372,10 @@ export default function LiveVoiceInterview() {
             <div className="text-xs text-[#374151] leading-[1.4]">
               Interview: {snapshot?.interview?.active ? "Active" : snapshot?.interview?.done ? "Completed" : "Not started"}
             </div>
-            <div className="text-xs text-[#374151] leading-[1.4]">Role: {snapshot?.interview?.role || "â€”"}</div>
+            <div className="text-xs text-[#374151] leading-[1.4]">Role: {snapshot?.interview?.role || "—"}</div>
             <div className="text-xs text-[#374151] leading-[1.4]">Credibility: {snapshot?.credibility?.has_snapshot ? "Available" : "Unavailable"}</div>
             <div className="mt-1 text-[11px] text-[#6b7280]">
-              Updated: {snapshot?.interview?.updated_at ? new Date(snapshot.interview.updated_at * 1000).toLocaleString() : "â€”"}
+              Updated: {snapshot?.interview?.updated_at ? new Date(snapshot.interview.updated_at * 1000).toLocaleString() : "—"}
             </div>
           </div>
 

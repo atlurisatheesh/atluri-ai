@@ -23,7 +23,11 @@ import os
 # Default: 4 workers, or CPU_COUNT if available.
 # For WebSocket workloads, 2-4 workers per CPU core is typical
 # because each worker blocks on I/O (OpenAI API, Deepgram, Redis).
-_default_workers = min(max(2, multiprocessing.cpu_count()), 8)
+import sys
+if sys.platform == "win32":
+    _default_workers = 1
+else:
+    _default_workers = min(max(2, multiprocessing.cpu_count()), 8)
 workers = int(os.getenv("WORKERS", str(_default_workers)))
 
 # ─── Bind ─────────────────────────────────────────────────────────────
