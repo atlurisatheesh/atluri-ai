@@ -24,7 +24,7 @@ const FRONTEND_URL =
   process.env.E2E_FRONTEND_URL || "https://atluri-ai.vercel.app";
 const BACKEND_URL =
   process.env.E2E_BACKEND_URL ||
-  "https://linkedin-ai-production-d2ec.up.railway.app";
+  "https://atluriin-backend-production-94e7.up.railway.app";
 
 const TOKEN_KEY = "atluriin.auth.token";
 const USER_KEY = "atluriin.auth.user";
