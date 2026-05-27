@@ -27,8 +27,8 @@ const plans = [
   },
   {
     name: "Pro",
-    monthly: 29,
-    yearly: 290,
+    monthly: 19,
+    yearly: 190,
     badge: "Most Popular",
     description: "Unlimited power for active job seekers.",
     features: [
@@ -45,8 +45,8 @@ const plans = [
   },
   {
     name: "Enterprise",
-    monthly: 99,
-    yearly: 990,
+    monthly: 49,
+    yearly: 490,
     badge: null,
     description: "For teams, bootcamps, and universities.",
     features: [
@@ -61,13 +61,6 @@ const plans = [
     href: "/signup?plan=enterprise",
     variant: "accent" as const,
   },
-];
-
-const creditPacks = [
-  { credits: 10, price: 5, label: "Starter" },
-  { credits: 50, price: 20, label: "Power" },
-  { credits: 200, price: 60, label: "Bulk" },
-  { credits: 500, price: 120, label: "Max" },
 ];
 
 export default function Pricing() {
@@ -126,21 +119,6 @@ export default function Pricing() {
             </motion.div>
           ))}
         </div>
-
-        {/* credit packs */}
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
-          <h3 className="text-xl font-semibold text-textPrimary mb-6">Or Buy Credit Packs</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            {creditPacks.map((pack) => (
-              <GlassCard key={pack.credits} hover className="p-4 text-center cursor-pointer">
-                <p className="text-xs text-textMuted tracking-wider uppercase mb-1">{pack.label}</p>
-                <p className="text-2xl font-bold gradient-text">{pack.credits}</p>
-                <p className="text-xs text-textMuted mb-2">credits</p>
-                <p className="text-sm text-textSecondary font-medium">${pack.price}</p>
-              </GlassCard>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );

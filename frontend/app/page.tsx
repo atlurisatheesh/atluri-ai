@@ -8,20 +8,12 @@ import InlineToast from "../components/InlineToast";
 import {
   Navbar,
   Hero,
-  Features,
-  HowItWorks,
   StealthShowcase,
-  DemoVideos,
-  FeatureDeepDive,
-  ResumeCallout,
-  Integrations,
   Pricing,
-  Testimonials,
-  FAQ,
-  CreatorSection,
   CTABanner,
   Footer,
 } from "../components/landing";
+import AppShowcase from "../components/landing/AppShowcase";
 import { Modal } from "../components/ui";
 
 export default function LandingPage() {
@@ -77,17 +69,9 @@ export default function LandingPage() {
 
       <main>
         <Hero />
-        <Features />
-        <HowItWorks />
+        <AppShowcase />
         <StealthShowcase />
-        <DemoVideos />
-        <FeatureDeepDive />
-        <ResumeCallout />
-        <Integrations />
         <Pricing />
-        <Testimonials />
-        <FAQ />
-        <CreatorSection />
         <CTABanner />
       </main>
 
