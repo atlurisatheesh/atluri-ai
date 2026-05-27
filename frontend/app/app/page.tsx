@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 const PRODUCTION_BACKEND_ORIGIN = "https://atluri-ai.vercel.app";
-const PRODUCTION_WS_BACKEND = "https://linkedin-ai-production-d2ec.up.railway.app";
+const PRODUCTION_WS_BACKEND = "https://atluriin-backend-production-94e7.up.railway.app";
 
 
 function normalizeBackendUrl(url: string): string {

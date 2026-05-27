@@ -19,7 +19,7 @@ export default function LiveVoiceInterview() {
 
   // ── WebSocket URL: Vercel does NOT proxy WebSockets ──
   // Hardcoded production Railway URL (same pattern as overlay/app pages)
-  const PRODUCTION_WS_BACKEND = "wss://linkedin-ai-production-d2ec.up.railway.app";
+  const PRODUCTION_WS_BACKEND = "wss://atluriin-backend-production-94e7.up.railway.app";
 
   // useState + useEffect guarantees this runs ONLY in the browser, never during SSR
   const [WS_BASE, setWsBase] = useState(API_BASE.replace(/^http/i, "ws"));
