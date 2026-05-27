@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -360,8 +360,16 @@ export default function CopilotPage() {
   const [dualModel, setDualModel] = useState(true);
   const [panicKey, setPanicKey] = useState("Ctrl+Shift+P");
   const [resumeUploaded, setResumeUploaded] = useState(false);
+  const [resumeFileName, setResumeFileName] = useState<string | null>(null);
   const [jdUploaded, setJdUploaded] = useState(false);
+  const [jdFileName, setJdFileName] = useState<string | null>(null);
+  const [jdPasteMode, setJdPasteMode] = useState(false);
+  const [jdPasteText, setJdPasteText] = useState("");
   const [knowledgeUploaded, setKnowledgeUploaded] = useState(false);
+  const [knowledgeFileName, setKnowledgeFileName] = useState<string | null>(null);
+  const resumeInputRef = useRef<HTMLInputElement>(null);
+  const jdInputRef = useRef<HTMLInputElement>(null);
+  const knowledgeInputRef = useRef<HTMLInputElement>(null);
   const [qaEntries, setQaEntries] = useState<QA[]>([{ question: "", answer: "" }]);
   const [instructions, setInstructions] = useState(
     `Act as an elite Executive Interview Coach for [Company]. Mirror the resume, elevate answers with the STAR framework.\n\n1. Every answer must include a quantifiable metric.\n2. Infuse the company's core values into every response.\n3. Maintain a 'Confident, Visionary, yet Humble' tone.\n4. Predict the follow-up question and pre-position for it.`
@@ -373,6 +381,37 @@ export default function CopilotPage() {
   const [imageContext, setImageContext] = useState("");
   const screenshotInputRef = useRef<HTMLInputElement>(null);
   const liveScreenshotInputRef = useRef<HTMLInputElement>(null);
+
+  // File upload handlers
+  const handleResumeUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setResumeUploaded(true);
+    setResumeFileName(file.name);
+  }, []);
+
+  const handleJdUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setJdUploaded(true);
+    setJdFileName(file.name);
+    setJdPasteMode(false);
+  }, []);
+
+  const handleKnowledgeUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setKnowledgeUploaded(true);
+    setKnowledgeFileName(file.name);
+  }, []);
+
+  const handleJdPasteSave = useCallback(() => {
+    if (jdPasteText.trim().length > 10) {
+      setJdUploaded(true);
+      setJdFileName(`Pasted text (${jdPasteText.split(/\s+/).filter(Boolean).length} words)`);
+      setJdPasteMode(false);
+    }
+  }, [jdPasteText]);
 
   // ── Live State ──
   const [micOn, setMicOn] = useState(true);
@@ -617,20 +656,93 @@ export default function CopilotPage() {
 
                   {/* Document uploads */}
                   <div className="grid md:grid-cols-4 gap-3">
-                    {[
-                      { label: "Resume", sub: "PDF, DOCX", icon: Upload, state: resumeUploaded, toggle: () => setResumeUploaded(v => !v), color: "brand-green" },
-                      { label: "Job Description", sub: "Paste text or upload", icon: FileText, state: jdUploaded, toggle: () => setJdUploaded(v => !v), color: "brand-cyan" },
-                      { label: "Knowledge Bank", sub: "Research, prep notes", icon: BookOpen, state: knowledgeUploaded, toggle: () => setKnowledgeUploaded(v => !v), color: "brand-amber" },
-                    ].map(({ label, sub, icon: Icon, state, toggle, color }) => (
-                      <div key={label}
-                        onClick={toggle}
-                        className={`border border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${state ? `border-${color}/40 bg-${color}/8` : "border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]"}`}
-                      >
-                        {state ? <CheckCircle className={`w-5 h-5 text-${color} mb-2`} /> : <Icon className="w-5 h-5 text-textMuted mb-2" />}
-                        <span className="text-sm font-medium text-textPrimary">{state ? `${label} ✓` : label}</span>
-                        <span className="text-[10px] text-textMuted mt-1">{sub}</span>
-                      </div>
-                    ))}
+                    {/* Resume Upload */}
+                    <div
+                      onClick={() => { if (!resumeUploaded) resumeInputRef.current?.click(); }}
+                      className={`border border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all relative ${resumeUploaded ? "border-brand-green/40 bg-brand-green/8" : "border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]"}`}
+                    >
+                      {resumeUploaded ? (
+                        <>
+                          <CheckCircle className="w-5 h-5 text-brand-green mb-2" />
+                          <span className="text-sm font-medium text-textPrimary">Resume ✓</span>
+                          <span className="text-[10px] text-textMuted mt-1 truncate max-w-full">{resumeFileName}</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setResumeUploaded(false); setResumeFileName(null); if (resumeInputRef.current) resumeInputRef.current.value = ""; }}
+                            className="absolute top-2 right-2 p-1 rounded-md hover:bg-brand-red/15 text-textMuted hover:text-brand-red transition"
+                            title="Remove resume"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-5 h-5 text-textMuted mb-2" />
+                          <span className="text-sm font-medium text-textPrimary">Resume</span>
+                          <span className="text-[10px] text-textMuted mt-1">PDF, DOCX</span>
+                        </>
+                      )}
+                    </div>
+                    <input ref={resumeInputRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleResumeUpload} aria-label="Upload resume" />
+
+                    {/* Job Description Upload/Paste */}
+                    <div
+                      className={`border border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all relative ${jdUploaded ? "border-brand-cyan/40 bg-brand-cyan/8" : "border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]"}`}
+                    >
+                      {jdUploaded ? (
+                        <>
+                          <CheckCircle className="w-5 h-5 text-brand-cyan mb-2" />
+                          <span className="text-sm font-medium text-textPrimary">JD ✓</span>
+                          <span className="text-[10px] text-textMuted mt-1 truncate max-w-full">{jdFileName}</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setJdUploaded(false); setJdFileName(null); setJdPasteText(""); if (jdInputRef.current) jdInputRef.current.value = ""; }}
+                            className="absolute top-2 right-2 p-1 rounded-md hover:bg-brand-red/15 text-textMuted hover:text-brand-red transition"
+                            title="Remove JD"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center" onClick={() => setJdPasteMode(true)}>
+                          <FileText className="w-5 h-5 text-textMuted mb-2" />
+                          <span className="text-sm font-medium text-textPrimary">Job Description</span>
+                          <span className="text-[10px] text-textMuted mt-1">Paste text or upload</span>
+                          <div className="flex gap-1.5 mt-2">
+                            <button onClick={(e) => { e.stopPropagation(); jdInputRef.current?.click(); }} className="text-[9px] px-2 py-0.5 rounded bg-white/[0.06] text-textMuted hover:text-brand-cyan transition">Upload File</button>
+                            <button onClick={(e) => { e.stopPropagation(); setJdPasteMode(true); }} className="text-[9px] px-2 py-0.5 rounded bg-white/[0.06] text-textMuted hover:text-brand-cyan transition">Paste Text</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <input ref={jdInputRef} type="file" accept=".pdf,.doc,.docx,.txt" className="hidden" onChange={handleJdUpload} aria-label="Upload JD" />
+
+                    {/* Knowledge Bank Upload */}
+                    <div
+                      onClick={() => { if (!knowledgeUploaded) knowledgeInputRef.current?.click(); }}
+                      className={`border border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all relative ${knowledgeUploaded ? "border-brand-amber/40 bg-brand-amber/8" : "border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]"}`}
+                    >
+                      {knowledgeUploaded ? (
+                        <>
+                          <CheckCircle className="w-5 h-5 text-brand-amber mb-2" />
+                          <span className="text-sm font-medium text-textPrimary">Knowledge ✓</span>
+                          <span className="text-[10px] text-textMuted mt-1 truncate max-w-full">{knowledgeFileName}</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setKnowledgeUploaded(false); setKnowledgeFileName(null); if (knowledgeInputRef.current) knowledgeInputRef.current.value = ""; }}
+                            className="absolute top-2 right-2 p-1 rounded-md hover:bg-brand-red/15 text-textMuted hover:text-brand-red transition"
+                            title="Remove knowledge"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <BookOpen className="w-5 h-5 text-textMuted mb-2" />
+                          <span className="text-sm font-medium text-textPrimary">Knowledge Bank</span>
+                          <span className="text-[10px] text-textMuted mt-1">Research, prep notes</span>
+                        </>
+                      )}
+                    </div>
+                    <input ref={knowledgeInputRef} type="file" accept=".pdf,.doc,.docx,.txt,.md" className="hidden" onChange={handleKnowledgeUpload} aria-label="Upload knowledge" />
+
                     {/* Screenshot / Image upload */}
                     <div
                       onClick={() => triggerScreenshotUpload(false)}
@@ -647,6 +759,28 @@ export default function CopilotPage() {
                     </div>
                     <input ref={screenshotInputRef} type="file" accept="image/*" className="hidden" onChange={e => handleScreenshot(e)} aria-label="Upload screenshot" />
                   </div>
+
+                  {/* JD Paste Modal */}
+                  {jdPasteMode && !jdUploaded && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="overflow-hidden">
+                      <div className="p-4 rounded-xl border border-brand-cyan/20 bg-brand-cyan/5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-brand-cyan font-medium">Paste Job Description</p>
+                          <button onClick={() => setJdPasteMode(false)} className="text-textMuted hover:text-textPrimary text-xs">Cancel</button>
+                        </div>
+                        <textarea
+                          value={jdPasteText}
+                          onChange={e => setJdPasteText(e.target.value)}
+                          placeholder="Paste the full job description here..."
+                          className="w-full h-32 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-textPrimary placeholder-textMuted resize-none outline-none focus:border-brand-cyan transition"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-textMuted">{jdPasteText.split(/\s+/).filter(Boolean).length} words</span>
+                          <NeonButton size="sm" onClick={handleJdPasteSave} disabled={jdPasteText.trim().length < 10}>Save JD</NeonButton>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
 
                   {/* Image Analysis Context */}
                   <div className="space-y-1.5">
