@@ -116,12 +116,12 @@ Candidate Answer:
 {eval_instruction}
 """
 
-    res = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt
+    res = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
     )
 
-    parsed = _extract_json_dict(getattr(res, "output_text", ""))
+    parsed = _extract_json_dict(res.choices[0].message.content)
     if isinstance(parsed, dict):
         return _normalize_eval(parsed)
 

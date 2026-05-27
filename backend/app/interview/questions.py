@@ -117,9 +117,9 @@ Ask the NEXT best interview question.
 Keep it concise and professional.
 """
 
-    res = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt
+    res = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
     )
 
-    return res.output_text.strip()
+    return res.choices[0].message.content.strip()
