@@ -9,7 +9,6 @@ import GhostButton from "../ui/GhostButton";
 
 const navLinks = [
   { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
   { label: "Stealth", href: "/stealth", highlight: true },
 ];
@@ -76,8 +75,8 @@ export default function Navbar() {
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/login"><GhostButton size="sm">Log In</GhostButton></Link>
-          <Link href="/signup?next=/app"><NeonButton size="sm">Deploy Free</NeonButton></Link>
+          <Link href="/login"><GhostButton size="sm">Sign In</GhostButton></Link>
+          <Link href="/signup?next=/app"><NeonButton size="sm">Get Started Free</NeonButton></Link>
         </div>
 
         {/* Mobile Toggle */}
@@ -110,8 +109,8 @@ export default function Navbar() {
                 </motion.a>
               ))}
               <div className="flex gap-3 pt-4">
-                <Link href="/login" className="flex-1"><GhostButton size="sm" className="w-full">Log In</GhostButton></Link>
-                <Link href="/signup?next=/app" className="flex-1"><NeonButton size="sm" className="w-full">Deploy Free</NeonButton></Link>
+                <Link href="/login" className="flex-1"><GhostButton size="sm" className="w-full">Sign In</GhostButton></Link>
+                <Link href="/signup?next=/app" className="flex-1"><NeonButton size="sm" className="w-full">Get Started Free</NeonButton></Link>
               </div>
             </div>
           </motion.div>

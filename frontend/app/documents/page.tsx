@@ -21,13 +21,7 @@ interface Doc {
   chunks: number;
 }
 
-const INITIAL_DOCS: Doc[] = [
-  { id: "1", name: "Company_Research_Google.pdf", size: "2.4 MB", type: "pdf", status: "indexed", active: true, uploadedAt: "2 hours ago", chunks: 47 },
-  { id: "2", name: "System_Design_Notes.docx", size: "890 KB", type: "docx", status: "indexed", active: true, uploadedAt: "1 day ago", chunks: 23 },
-  { id: "3", name: "Behavioral_Questions.txt", size: "45 KB", type: "txt", status: "indexed", active: false, uploadedAt: "3 days ago", chunks: 8 },
-  { id: "4", name: "Resume_v3_Final.pdf", size: "1.1 MB", type: "pdf", status: "processing", active: true, uploadedAt: "5 min ago", chunks: 0 },
-  { id: "5", name: "Job_Description_SDE3.txt", size: "12 KB", type: "txt", status: "indexed", active: true, uploadedAt: "6 hours ago", chunks: 3 },
-];
+const INITIAL_DOCS: Doc[] = [];
 
 const FILE_ICONS: Record<string, React.ReactNode> = {
   pdf: <FileText className="w-5 h-5 text-brand-red" />,

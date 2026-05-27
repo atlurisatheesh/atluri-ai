@@ -82,7 +82,8 @@ export default function DuoPage() {
                   <Mic className="w-7 h-7 text-brand-cyan" />
                 </div>
                 <h3 className="text-lg font-bold text-textPrimary mb-1">I&rsquo;m the Candidate</h3>
-                <p className="text-sm text-textMuted mb-4">Create a session and share the code with your helper</p>
+                <p className="text-sm text-textMuted mb-2">Create a session and share the code with your helper</p>
+                <p className="text-xs text-textMuted/70 mb-4 italic">A 6-digit code will be generated — share it with your friend or mentor so they can join and assist you.</p>
                 <NeonButton className="w-full">Create Session</NeonButton>
               </GlassCard>
 
@@ -92,7 +93,8 @@ export default function DuoPage() {
                   <Lightbulb className="w-7 h-7 text-brand-purple" />
                 </div>
                 <h3 className="text-lg font-bold text-textPrimary mb-1">I&rsquo;m the Helper</h3>
-                <p className="text-sm text-textMuted mb-4">Enter the session code to start assisting</p>
+                <p className="text-sm text-textMuted mb-2">Enter the session code to start assisting</p>
+                <p className="text-xs text-textMuted/70 mb-4 italic">Ask the candidate to share their 6-digit session code with you. They’ll get it after clicking “Create Session.”</p>
                 <div className="flex gap-2">
                   <input value={joinCode} onChange={(e) => setJoinCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit code" className="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/[0.06] text-sm text-textPrimary placeholder-textMuted outline-none focus:border-brand-purple/30 text-center tracking-[0.3em] font-mono" />
                   <NeonButton onClick={joinSession} disabled={joinCode.length !== 6}>Join</NeonButton>

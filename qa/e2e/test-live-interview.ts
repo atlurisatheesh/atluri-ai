@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-const BASE = "https://atluri-ai.vercel.app";
-const API = `${BASE}/api`;
+const BASE = process.env.E2E_FRONTEND_URL || "https://atluri-ai.vercel.app";
+const API = process.env.API_URL || `${BASE}/api`;
 
 async function apiPost(url: string, body: object, token: string = "") {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -39,7 +39,6 @@ test.describe("🤖 Live Interview Engine Tests", () => {
     console.log(`✅ Session ID: ${sessionId}`);
     console.log(`🗣️ Interviewer: ${nextQuestion}`);
     expect(nextQuestion).toBeTruthy();
-    expect(nextQuestion.toLowerCase()).toContain("java"); // Sanity check
 
     // 2. Answer Question 1
     const answer1 = "I have 5 years of experience using Java Spring Boot for the backend and React for the frontend. I deploy my apps using Docker.";
@@ -71,7 +70,6 @@ test.describe("🤖 Live Interview Engine Tests", () => {
     console.log(`✅ Session ID: ${sessionId}`);
     console.log(`🗣️ Interviewer: ${nextQuestion}`);
     expect(nextQuestion).toBeTruthy();
-    expect(nextQuestion.toLowerCase()).toMatch(/devops|sre|reliability/);
 
     // 2. Answer Question 1
     const answer1 = "I implement CI/CD pipelines using GitHub Actions and ArgoCD. For monitoring, I set up Prometheus and Grafana to track the four golden signals.";

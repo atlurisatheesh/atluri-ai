@@ -240,27 +240,10 @@ export default function BillingPage() {
         <div className="space-y-3">
           <GlassCard className="p-5">
             <h3 className="text-sm font-semibold text-textPrimary mb-4 flex items-center gap-2"><Receipt className="w-4 h-4 text-brand-amber" /> Invoice History</h3>
-            <div className="space-y-2">
-              {[
-                { id: "INV-2025-001", date: "2025-02-01", amount: "$29.00", plan: "Pro Monthly", status: "Paid" },
-                { id: "INV-2025-002", date: "2025-02-15", amount: "$9.99", plan: "50 Credits", status: "Paid" },
-                { id: "INV-2025-003", date: "2025-01-01", amount: "$29.00", plan: "Pro Monthly", status: "Paid" },
-              ].map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-4 h-4 text-brand-cyan" />
-                    <div>
-                      <p className="text-sm text-textPrimary">{inv.id}</p>
-                      <p className="text-[10px] text-textMuted">{inv.date} · {inv.plan}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-textPrimary">{inv.amount}</span>
-                    <StatusBadge variant="green">{inv.status}</StatusBadge>
-                    <button title="Download invoice" className="p-1.5 rounded-lg hover:bg-white/5 text-textMuted hover:text-brand-cyan transition"><Download className="w-4 h-4" /></button>
-                  </div>
-                </div>
-              ))}
+            <div className="text-center py-8">
+              <Receipt className="w-8 h-8 text-textMuted mx-auto mb-3" />
+              <p className="text-textMuted text-sm">No invoices yet.</p>
+              <p className="text-textMuted text-xs mt-1">Invoices will appear here after your first purchase or subscription.</p>
             </div>
           </GlassCard>
         </div>

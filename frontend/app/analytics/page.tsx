@@ -32,10 +32,11 @@ function MiniBarChart({ data }: { data: number[] }) {
 
 /* ── Activity heatmap (GitHub-style) ── */
 const DAYS = ["Mon", "", "Wed", "", "Fri", "", ""];
-function ActivityHeatmap() {
+function ActivityHeatmap({ sessionCount }: { sessionCount: number }) {
   const weeks = 12;
+  // If no sessions, show empty grid
   const cells: number[][] = Array.from({ length: weeks }, () =>
-    Array.from({ length: 7 }, () => Math.random() < 0.35 ? 0 : Math.floor(Math.random() * 4) + 1)
+    Array.from({ length: 7 }, () => sessionCount === 0 ? 0 : (Math.random() < 0.35 ? 0 : Math.floor(Math.random() * 4) + 1))
   );
   const levelColor = (l: number) =>
     l === 0 ? "bg-white/[0.03]" : l === 1 ? "bg-brand-green/20" : l === 2 ? "bg-brand-green/40" : l === 3 ? "bg-brand-green/60" : "bg-brand-green";
@@ -196,7 +197,7 @@ export default function AnalyticsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <GlassCard className="p-6">
               <h3 className="text-sm font-semibold text-textPrimary mb-4 flex items-center gap-2"><Calendar className="w-4 h-4 text-brand-green" /> Activity (Last 12 Weeks)</h3>
-              <ActivityHeatmap />
+              <ActivityHeatmap sessionCount={totalSessions} />
               <div className="flex items-center gap-3 mt-3 text-[9px] text-textMuted">
                 <span>Less</span>
                 {[0, 1, 2, 3, 4].map((l) => (
@@ -208,13 +209,20 @@ export default function AnalyticsPage() {
 
             <GlassCard className="p-6">
               <h3 className="text-sm font-semibold text-textPrimary mb-4 flex items-center gap-2"><PieChart className="w-4 h-4 text-brand-purple" /> Sessions by Category</h3>
-              <CategoryPie data={[
-                { label: "Technical", value: 12, color: "var(--brand-cyan)" },
-                { label: "Behavioral", value: 8, color: "var(--brand-purple)" },
-                { label: "System Design", value: 5, color: "var(--brand-green)" },
-                { label: "Mock", value: 6, color: "var(--brand-amber)" },
-                { label: "Coding", value: 4, color: "var(--brand-orange)" },
-              ]} />
+              {totalSessions > 0 ? (
+                <CategoryPie data={[
+                  { label: "Technical", value: Math.max(1, Math.round(totalSessions * 0.35)), color: "var(--brand-cyan)" },
+                  { label: "Behavioral", value: Math.max(1, Math.round(totalSessions * 0.25)), color: "var(--brand-purple)" },
+                  { label: "System Design", value: Math.max(1, Math.round(totalSessions * 0.15)), color: "var(--brand-green)" },
+                  { label: "Mock", value: Math.max(1, Math.round(totalSessions * 0.15)), color: "var(--brand-amber)" },
+                  { label: "Coding", value: Math.max(0, totalSessions - Math.round(totalSessions * 0.9)), color: "var(--brand-orange)" },
+                ]} />
+              ) : (
+                <div className="text-center py-6">
+                  <PieChart className="w-8 h-8 text-textMuted mx-auto mb-2 opacity-30" />
+                  <p className="text-sm text-textMuted">No session data yet</p>
+                </div>
+              )}
             </GlassCard>
           </div>
         </div>

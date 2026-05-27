@@ -152,7 +152,7 @@ export default function Hero() {
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} className="flex flex-wrap gap-3 mb-10">
               <Link href="/signup?next=/app">
                 <NeonButton size="lg">
-                  Deploy Now <ArrowRight className="w-4 h-4 ml-2 inline" />
+                  Start Free <ArrowRight className="w-4 h-4 ml-2 inline" />
                 </NeonButton>
               </Link>
               <Link href="/stealth">

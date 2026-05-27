@@ -59,11 +59,11 @@ export default function JDAnalyzerPage() {
     <DashboardLayout>
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-neutral-100 flex items-center gap-3">
-            <Search className="w-6 h-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-textPrimary flex items-center gap-3">
+            <Search className="w-6 h-6 text-brand-cyan" />
             JD Signal Decoder
           </h1>
-          <p className="text-neutral-500 mt-1 text-sm">
+          <p className="text-textMuted mt-1 text-sm">
             Decode hidden cultural signals, red flags, and requirements from any job description.
           </p>
         </div>
@@ -73,10 +73,10 @@ export default function JDAnalyzerPage() {
             value={jdText}
             onChange={(e) => setJdText(e.target.value)}
             placeholder="Paste the job description here..."
-            className="w-full h-48 bg-transparent text-neutral-200 placeholder-neutral-600 resize-none outline-none text-sm leading-relaxed"
+            className="w-full h-48 bg-transparent text-textPrimary placeholder-textMuted resize-none outline-none text-sm leading-relaxed"
           />
           <div className="flex items-center justify-between mt-4">
-            <span className="text-xs text-neutral-600">
+            <span className="text-xs text-textMuted">
               {jdText.split(/\s+/).filter(Boolean).length} words
             </span>
             <NeonButton onClick={handleAnalyze} disabled={loading || jdText.trim().length < 20}>
@@ -92,7 +92,7 @@ export default function JDAnalyzerPage() {
         </GlassCard>
 
         {error && (
-          <div className="text-red-400 text-sm mb-4 px-4 py-2 bg-red-500/10 rounded-lg border border-red-500/20">
+          <div className="text-brand-red text-sm mb-4 px-4 py-2 bg-brand-red/10 rounded-lg border border-brand-red/20">
             {error}
           </div>
         )}
@@ -108,67 +108,67 @@ export default function JDAnalyzerPage() {
               {/* Red Flag Score */}
               <GlassCard>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-medium text-neutral-300 flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-amber-400" />
+                  <h2 className="text-sm font-medium text-textSecondary flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-brand-amber" />
                     Risk Assessment
                   </h2>
                   <div className="flex items-center gap-3">
-                    <div className="h-2 w-32 bg-neutral-800 rounded-full overflow-hidden">
+                    <div className="h-2 w-32 bg-white/[0.06] rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          analysis.red_flag_score <= 3 ? "bg-green-500" :
-                          analysis.red_flag_score <= 6 ? "bg-amber-500" : "bg-red-500"
+                          analysis.red_flag_score <= 3 ? "bg-brand-green" :
+                          analysis.red_flag_score <= 6 ? "bg-brand-amber" : "bg-brand-red"
                         }`}
                         ref={(el) => { if (el) el.style.width = `${analysis.red_flag_score * 10}%`; }}
                       />
                     </div>
                     <span className={`text-lg font-bold ${
-                      analysis.red_flag_score <= 3 ? "text-green-400" :
-                      analysis.red_flag_score <= 6 ? "text-amber-400" : "text-red-400"
+                      analysis.red_flag_score <= 3 ? "text-brand-green" :
+                      analysis.red_flag_score <= 6 ? "text-brand-amber" : "text-brand-red"
                     }`}>
                       {analysis.red_flag_score}/10
                     </span>
                   </div>
                 </div>
-                <p className="text-xs text-neutral-500 mt-2">
-                  Seniority: <span className="text-neutral-300">{analysis.estimated_seniority}</span>
+                <p className="text-xs text-textMuted mt-2">
+                  Seniority: <span className="text-textSecondary">{analysis.estimated_seniority}</span>
                 </p>
               </GlassCard>
 
               {/* Red & Green Flags */}
               <div className="grid grid-cols-2 gap-4">
                 <GlassCard>
-                  <h3 className="text-sm font-medium text-red-400 flex items-center gap-2 mb-3">
+                  <h3 className="text-sm font-medium text-brand-red flex items-center gap-2 mb-3">
                     <AlertTriangle className="w-4 h-4" />
                     Red Flags ({analysis.red_flags.length})
                   </h3>
                   <div className="space-y-2">
                     {analysis.red_flags.map((f, i) => (
-                      <div key={i} className="text-xs bg-red-500/5 border border-red-500/10 rounded px-3 py-2">
-                        <span className="text-red-300 font-medium">&ldquo;{f.match}&rdquo;</span>
-                        <p className="text-neutral-400 mt-0.5">{f.interpretation}</p>
+                      <div key={i} className="text-xs bg-brand-red/5 border border-brand-red/10 rounded px-3 py-2">
+                        <span className="text-brand-red font-medium">&ldquo;{f.match}&rdquo;</span>
+                        <p className="text-textMuted mt-0.5">{f.interpretation}</p>
                       </div>
                     ))}
                     {analysis.red_flags.length === 0 && (
-                      <p className="text-xs text-neutral-600 italic">No red flags detected</p>
+                      <p className="text-xs text-textMuted italic">No red flags detected</p>
                     )}
                   </div>
                 </GlassCard>
 
                 <GlassCard>
-                  <h3 className="text-sm font-medium text-green-400 flex items-center gap-2 mb-3">
+                  <h3 className="text-sm font-medium text-brand-green flex items-center gap-2 mb-3">
                     <CheckCircle className="w-4 h-4" />
                     Green Flags ({analysis.green_flags.length})
                   </h3>
                   <div className="space-y-2">
                     {analysis.green_flags.map((f, i) => (
-                      <div key={i} className="text-xs bg-green-500/5 border border-green-500/10 rounded px-3 py-2">
-                        <span className="text-green-300 font-medium">&ldquo;{f.match}&rdquo;</span>
-                        <p className="text-neutral-400 mt-0.5">{f.interpretation}</p>
+                      <div key={i} className="text-xs bg-brand-green/5 border border-brand-green/10 rounded px-3 py-2">
+                        <span className="text-brand-green font-medium">&ldquo;{f.match}&rdquo;</span>
+                        <p className="text-textMuted mt-0.5">{f.interpretation}</p>
                       </div>
                     ))}
                     {analysis.green_flags.length === 0 && (
-                      <p className="text-xs text-neutral-600 italic">No green flags detected</p>
+                      <p className="text-xs text-textMuted italic">No green flags detected</p>
                     )}
                   </div>
                 </GlassCard>
@@ -176,26 +176,26 @@ export default function JDAnalyzerPage() {
 
               {/* Skills */}
               <GlassCard>
-                <h3 className="text-sm font-medium text-neutral-300 flex items-center gap-2 mb-3">
-                  <Brain className="w-4 h-4 text-purple-400" />
+                <h3 className="text-sm font-medium text-textSecondary flex items-center gap-2 mb-3">
+                  <Brain className="w-4 h-4 text-brand-purple" />
                   Extracted Skills
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-neutral-500 mb-2">Must-Have</p>
+                    <p className="text-xs text-textMuted mb-2">Must-Have</p>
                     <div className="flex flex-wrap gap-1.5">
                       {analysis.must_have_skills.map((s, i) => (
-                        <span key={i} className="px-2 py-0.5 text-xs rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                        <span key={i} className="px-2 py-0.5 text-xs rounded-full bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20">
                           {s}
                         </span>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-neutral-500 mb-2">Nice-to-Have</p>
+                    <p className="text-xs text-textMuted mb-2">Nice-to-Have</p>
                     <div className="flex flex-wrap gap-1.5">
                       {analysis.nice_to_have_skills.map((s, i) => (
-                        <span key={i} className="px-2 py-0.5 text-xs rounded-full bg-neutral-800 text-neutral-400">
+                        <span key={i} className="px-2 py-0.5 text-xs rounded-full bg-white/[0.04] text-textMuted">
                           {s}
                         </span>
                       ))}
@@ -207,23 +207,23 @@ export default function JDAnalyzerPage() {
               {/* Culture Profile & Interview Format */}
               <div className="grid grid-cols-2 gap-4">
                 <GlassCard>
-                  <h3 className="text-sm font-medium text-neutral-300 mb-3">Culture Profile</h3>
+                  <h3 className="text-sm font-medium text-textSecondary mb-3">Culture Profile</h3>
                   <div className="space-y-2">
                     {Object.entries(analysis.culture_profile).map(([key, val]) => (
                       <div key={key} className="flex justify-between text-xs">
-                        <span className="text-neutral-500 capitalize">{key.replace(/_/g, ' ')}</span>
-                        <span className="text-neutral-300">{val}</span>
+                        <span className="text-textMuted capitalize">{key.replace(/_/g, ' ')}</span>
+                        <span className="text-textSecondary">{val}</span>
                       </div>
                     ))}
                   </div>
                 </GlassCard>
 
                 <GlassCard>
-                  <h3 className="text-sm font-medium text-neutral-300 mb-3">Predicted Interview Format</h3>
+                  <h3 className="text-sm font-medium text-textSecondary mb-3">Predicted Interview Format</h3>
                   <div className="space-y-1.5">
                     {analysis.interview_format_prediction.map((f, i) => (
-                      <div key={i} className="text-xs text-neutral-400 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                      <div key={i} className="text-xs text-textMuted flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-purple" />
                         {f}
                       </div>
                     ))}

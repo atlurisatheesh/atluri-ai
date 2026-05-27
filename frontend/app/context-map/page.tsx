@@ -69,11 +69,11 @@ export default function ContextMapPage() {
     <DashboardLayout>
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-neutral-100 flex items-center gap-3">
-            <Map className="w-6 h-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-textPrimary flex items-center gap-3">
+            <Map className="w-6 h-6 text-brand-cyan" />
             Pre-Interview Context Map
           </h1>
-          <p className="text-neutral-500 mt-1 text-sm">
+          <p className="text-textMuted mt-1 text-sm">
             Generate an intelligence briefing from your resume + job description. Predicted questions, STAR stories, and strategy.
           </p>
         </div>
@@ -81,21 +81,21 @@ export default function ContextMapPage() {
         {/* Input Form */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <GlassCard>
-            <label className="text-xs text-neutral-500 mb-2 block">Resume</label>
+            <label className="text-xs text-textMuted mb-2 block">Resume</label>
             <textarea
               value={resumeText}
               onChange={e => setResumeText(e.target.value)}
               placeholder="Paste your resume text..."
-              className="w-full h-40 bg-transparent text-neutral-200 placeholder-neutral-600 resize-none outline-none text-sm leading-relaxed"
+              className="w-full h-40 bg-transparent text-textPrimary placeholder-textMuted resize-none outline-none text-sm leading-relaxed"
             />
           </GlassCard>
           <GlassCard>
-            <label className="text-xs text-neutral-500 mb-2 block">Job Description</label>
+            <label className="text-xs text-textMuted mb-2 block">Job Description</label>
             <textarea
               value={jdText}
               onChange={e => setJdText(e.target.value)}
               placeholder="Paste the job description..."
-              className="w-full h-40 bg-transparent text-neutral-200 placeholder-neutral-600 resize-none outline-none text-sm leading-relaxed"
+              className="w-full h-40 bg-transparent text-textPrimary placeholder-textMuted resize-none outline-none text-sm leading-relaxed"
             />
           </GlassCard>
         </div>
@@ -103,20 +103,20 @@ export default function ContextMapPage() {
         <GlassCard className="mb-6">
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="text-xs text-neutral-500 mb-1 block">Company</label>
+              <label className="text-xs text-textMuted mb-1 block">Company</label>
               <input type="text" value={company} onChange={e => setCompany(e.target.value)}
                 placeholder="e.g. Google"
-                className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-3 py-2 text-sm text-neutral-200 outline-none placeholder-neutral-600" />
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-textPrimary outline-none placeholder-textMuted" />
             </div>
             <div>
-              <label className="text-xs text-neutral-500 mb-1 block">Role</label>
+              <label className="text-xs text-textMuted mb-1 block">Role</label>
               <input type="text" value={role} onChange={e => setRole(e.target.value)} placeholder="e.g. Senior Software Engineer"
-                className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-3 py-2 text-sm text-neutral-200 outline-none placeholder-neutral-600" />
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-textPrimary outline-none placeholder-textMuted" />
             </div>
             <div>
-              <label className="text-xs text-neutral-500 mb-1 block">Interview Round</label>
+              <label className="text-xs text-textMuted mb-1 block">Interview Round</label>
               <select value={round} onChange={e => setRound(e.target.value)} title="Interview Round"
-                className="w-full bg-neutral-800/50 border border-neutral-700/50 rounded-lg px-3 py-2 text-sm text-neutral-200 outline-none">
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-textPrimary outline-none">
                 <option value="Phone Screen">Phone Screen</option>
                 <option value="Technical">Technical</option>
                 <option value="Behavioral">Behavioral</option>
@@ -138,7 +138,7 @@ export default function ContextMapPage() {
         </GlassCard>
 
         {error && (
-          <div className="text-red-400 text-sm mb-4 px-4 py-2 bg-red-500/10 rounded-lg border border-red-500/20">{error}</div>
+          <div className="text-brand-red text-sm mb-4 px-4 py-2 bg-brand-red/10 rounded-lg border border-brand-red/20">{error}</div>
         )}
 
         <AnimatePresence>
@@ -151,48 +151,48 @@ export default function ContextMapPage() {
             >
               {/* Value Proposition */}
               <GlassCard>
-                <h2 className="text-sm font-medium text-cyan-400 mb-2">Your Value Proposition</h2>
-                <p className="text-neutral-200 text-sm leading-relaxed">{contextMap.value_proposition}</p>
+                <h2 className="text-sm font-medium text-brand-cyan mb-2">Your Value Proposition</h2>
+                <p className="text-textSecondary text-sm leading-relaxed">{contextMap.value_proposition}</p>
               </GlassCard>
 
               {/* Strategy */}
               <GlassCard>
-                <h2 className="text-sm font-medium text-purple-400 mb-2">Interview Strategy</h2>
-                <p className="text-neutral-300 text-sm leading-relaxed">{contextMap.interview_strategy}</p>
+                <h2 className="text-sm font-medium text-brand-purple mb-2">Interview Strategy</h2>
+                <p className="text-textSecondary text-sm leading-relaxed">{contextMap.interview_strategy}</p>
               </GlassCard>
 
               {/* Strengths & Gaps */}
               <div className="grid grid-cols-2 gap-4">
                 <GlassCard>
-                  <h3 className="text-sm font-medium text-green-400 flex items-center gap-2 mb-3">
+                  <h3 className="text-sm font-medium text-brand-green flex items-center gap-2 mb-3">
                     <Star className="w-4 h-4" />
                     Top 5 Strengths
                   </h3>
                   <ul className="space-y-1.5">
                     {contextMap.top_5_strengths.map((s, i) => (
-                      <li key={i} className="text-xs text-neutral-300 flex items-start gap-2">
-                        <span className="text-green-400">{i + 1}.</span> {s}
+                      <li key={i} className="text-xs text-textSecondary flex items-start gap-2">
+                        <span className="text-brand-green">{i + 1}.</span> {s}
                       </li>
                     ))}
                   </ul>
                 </GlassCard>
                 <GlassCard>
-                  <h3 className="text-sm font-medium text-amber-400 flex items-center gap-2 mb-3">
+                  <h3 className="text-sm font-medium text-brand-amber flex items-center gap-2 mb-3">
                     <AlertTriangle className="w-4 h-4" />
                     Top 3 Gaps
                   </h3>
                   <ul className="space-y-1.5">
                     {contextMap.top_3_gaps.map((g, i) => (
-                      <li key={i} className="text-xs text-neutral-300 flex items-start gap-2">
-                        <span className="text-amber-400">{i + 1}.</span> {g}
+                      <li key={i} className="text-xs text-textSecondary flex items-start gap-2">
+                        <span className="text-brand-amber">{i + 1}.</span> {g}
                       </li>
                     ))}
                   </ul>
                   {contextMap.red_flags.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-neutral-800/30">
-                      <p className="text-xs text-red-400/80 mb-1">Red Flags to Address</p>
+                    <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                      <p className="text-xs text-brand-red/80 mb-1">Red Flags to Address</p>
                       {contextMap.red_flags.map((r, i) => (
-                        <p key={i} className="text-xs text-neutral-500">• {r}</p>
+                        <p key={i} className="text-xs text-textMuted">• {r}</p>
                       ))}
                     </div>
                   )}
@@ -201,23 +201,23 @@ export default function ContextMapPage() {
 
               {/* Predicted Questions */}
               <GlassCard>
-                <h3 className="text-sm font-medium text-neutral-300 flex items-center gap-2 mb-4">
-                  <MessageSquare className="w-4 h-4 text-cyan-400" />
+                <h3 className="text-sm font-medium text-textSecondary flex items-center gap-2 mb-4">
+                  <MessageSquare className="w-4 h-4 text-brand-cyan" />
                   Predicted Questions ({contextMap.predicted_questions.length})
                 </h3>
                 <div className="space-y-3">
                   {contextMap.predicted_questions.map((q, i) => (
-                    <div key={i} className="bg-neutral-800/20 rounded-lg px-4 py-3">
+                    <div key={i} className="bg-white/[0.02] rounded-lg px-4 py-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300">{q.category}</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-brand-cyan/10 text-brand-cyan">{q.category}</span>
                         <span className={`text-xs px-1.5 py-0.5 rounded ${
-                          q.difficulty === "hard" ? "bg-red-500/10 text-red-300" :
-                          q.difficulty === "medium" ? "bg-amber-500/10 text-amber-300" :
-                          "bg-green-500/10 text-green-300"
+                          q.difficulty === "hard" ? "bg-brand-red/10 text-brand-red" :
+                          q.difficulty === "medium" ? "bg-brand-amber/10 text-brand-amber" :
+                          "bg-brand-green/10 text-brand-green"
                         }`}>{q.difficulty}</span>
-                        <span className="text-xs text-neutral-500">→ {q.suggested_framework}</span>
+                        <span className="text-xs text-textMuted">→ {q.suggested_framework}</span>
                       </div>
-                      <p className="text-sm text-neutral-200">{q.question}</p>
+                      <p className="text-sm text-textPrimary">{q.question}</p>
                     </div>
                   ))}
                 </div>
@@ -225,25 +225,25 @@ export default function ContextMapPage() {
 
               {/* STAR Stories */}
               <GlassCard>
-                <h3 className="text-sm font-medium text-neutral-300 flex items-center gap-2 mb-4">
-                  <Brain className="w-4 h-4 text-purple-400" />
+                <h3 className="text-sm font-medium text-textSecondary flex items-center gap-2 mb-4">
+                  <Brain className="w-4 h-4 text-brand-purple" />
                   Prepared STAR Stories
                 </h3>
                 <div className="space-y-4">
                   {contextMap.star_stories.map((story, i) => (
-                    <div key={i} className="bg-neutral-800/20 rounded-lg px-4 py-3">
+                    <div key={i} className="bg-white/[0.02] rounded-lg px-4 py-3">
                       <div className="flex flex-wrap gap-1.5 mb-2">
                         {story.applicable_to.map((tag, j) => (
-                          <span key={j} className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-300">
+                          <span key={j} className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-purple/10 text-brand-purple">
                             {tag}
                           </span>
                         ))}
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div><span className="text-neutral-500">S:</span> <span className="text-neutral-300">{story.situation}</span></div>
-                        <div><span className="text-neutral-500">T:</span> <span className="text-neutral-300">{story.task}</span></div>
-                        <div><span className="text-neutral-500">A:</span> <span className="text-neutral-300">{story.action}</span></div>
-                        <div><span className="text-neutral-500">R:</span> <span className="text-neutral-300">{story.result}</span></div>
+                        <div><span className="text-textMuted">S:</span> <span className="text-textSecondary">{story.situation}</span></div>
+                        <div><span className="text-textMuted">T:</span> <span className="text-textSecondary">{story.task}</span></div>
+                        <div><span className="text-textMuted">A:</span> <span className="text-textSecondary">{story.action}</span></div>
+                        <div><span className="text-textMuted">R:</span> <span className="text-textSecondary">{story.result}</span></div>
                       </div>
                     </div>
                   ))}
@@ -253,11 +253,11 @@ export default function ContextMapPage() {
               {/* Company Talking Points */}
               {contextMap.company_talking_points.length > 0 && (
                 <GlassCard>
-                  <h3 className="text-sm font-medium text-neutral-300 mb-3">Company Talking Points</h3>
+                  <h3 className="text-sm font-medium text-textSecondary mb-3">Company Talking Points</h3>
                   <ul className="space-y-1.5">
                     {contextMap.company_talking_points.map((p, i) => (
-                      <li key={i} className="text-xs text-neutral-400 flex items-start gap-2">
-                        <span className="text-cyan-400 mt-0.5">→</span> {p}
+                      <li key={i} className="text-xs text-textMuted flex items-start gap-2">
+                        <span className="text-brand-cyan mt-0.5">→</span> {p}
                       </li>
                     ))}
                   </ul>

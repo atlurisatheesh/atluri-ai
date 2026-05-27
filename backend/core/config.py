@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 
 _BACKEND_ROOT = Path(__file__).resolve().parents[1]
