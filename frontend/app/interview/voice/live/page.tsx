@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest } from "../../../../lib/api";
 import { getAccessTokenOrThrow } from "../../../../lib/auth";
 import AssistPanel, { AssistHint } from "../../../../components/AssistPanel";
+import { BACKEND_WS_ORIGIN } from "../../../../lib/backend";
 
 type ContextSnapshotUi = {
   resume: { loaded: boolean; chars: number };
@@ -18,8 +19,8 @@ export default function LiveVoiceInterview() {
   const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:9010").replace(/\/+$/, "");
 
   // ── WebSocket URL: Vercel does NOT proxy WebSockets ──
-  // Hardcoded production Railway URL (same pattern as overlay/app pages)
-  const PRODUCTION_WS_BACKEND = "wss://atluriin-backend-production-94e7.up.railway.app";
+  // Single source of truth (env-overridable) — see lib/backend.ts
+  const PRODUCTION_WS_BACKEND = BACKEND_WS_ORIGIN;
 
   // useState + useEffect guarantees this runs ONLY in the browser, never during SSR
   const [WS_BASE, setWsBase] = useState(API_BASE.replace(/^http/i, "ws"));

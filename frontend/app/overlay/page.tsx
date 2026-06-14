@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import PhantomOverlay from "@/components/stealth/PhantomOverlay";
 import { usePhantomOverlay } from "@/lib/hooks/usePhantomOverlay";
+import { BACKEND_ORIGIN, SITE_ORIGIN } from "@/lib/backend";
 
 // ── Bridge helper ──
 function getBridge(): any {
@@ -38,8 +39,8 @@ function generateRoomId(): string {
     });
 }
 
-const PRODUCTION_BACKEND_ORIGIN = "https://atluri-ai.vercel.app";
-const PRODUCTION_WS_BACKEND = "https://atluriin-backend-production-94e7.up.railway.app";
+const PRODUCTION_BACKEND_ORIGIN = SITE_ORIGIN;
+const PRODUCTION_WS_BACKEND = BACKEND_ORIGIN;
 
 function normalizeBackendUrl(url: string): string {
     return String(url || "").trim().replace(/\/+$/g, "");

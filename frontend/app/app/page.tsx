@@ -16,9 +16,10 @@ import {
   ChevronDown, ChevronRight, AlertTriangle,
   Cpu, Zap, Clock, Radio,
 } from "lucide-react";
+import { BACKEND_ORIGIN, SITE_ORIGIN } from "@/lib/backend";
 
-const PRODUCTION_BACKEND_ORIGIN = "https://atluri-ai.vercel.app";
-const PRODUCTION_WS_BACKEND = "https://atluriin-backend-production-94e7.up.railway.app";
+const PRODUCTION_BACKEND_ORIGIN = SITE_ORIGIN;
+const PRODUCTION_WS_BACKEND = BACKEND_ORIGIN;
 
 
 function normalizeBackendUrl(url: string): string {
