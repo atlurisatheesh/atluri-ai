@@ -1,54 +1,46 @@
-import re
+"""
+Task classification + model selection for the non-live chat path.
 
-def classify_task(user_message: str) -> str:
-    """
-    Classify user intent to choose best model.
-    Returns: chat | reasoning | interview | summary
-    """
+Live interview answers route separately via LIVE_ANSWER_MODEL (see
+openai_service.stream_answer_live). Here we keep a cheap/fast model for casual
+chat and summaries, and spend on a stronger model for interview / coding /
+reasoning turns where answer quality is what users feel.
+"""
+from core.config import STRONG_MODEL, FAST_MODEL
 
-    text = user_message.lower()
+# ─── Task labels ────────────────────────────────────────────────────────
+TASK_INTERVIEW = "interview"
+TASK_CODING = "coding"
+TASK_REASONING = "reasoning"
+TASK_SUMMARY = "summary"
+TASK_CHAT = "chat"
 
-    interview_keywords = ["interview", "question", "answer", "evaluate", "feedback"]
-    summary_keywords = ["summarize", "summary", "shorten", "brief"]
-    reasoning_keywords = ["why", "how", "explain", "deep", "architecture", "design"]
+_INTERVIEW_KW = ("interview", "hr", "behavioral", "star", "tell me about", "evaluate", "feedback")
+_CODING_KW = ("code", "coding", "algorithm", "leetcode", "terraform", "aws", "kubernetes", "sql", "system design")
+_SUMMARY_KW = ("summarize", "summary", "shorten", "brief", "rewrite", "tldr")
+_REASONING_KW = ("why", "how", "explain", "deep dive", "architecture", "design", "trade-off", "tradeoff")
 
-    if any(k in text for k in interview_keywords):
-        return "interview"
-    if any(k in text for k in summary_keywords):
-        return "summary"
-    if any(k in text for k in reasoning_keywords):
-        return "reasoning"
-
-    return "chat"
-
-
-def select_model(task: str) -> str:
-    """
-    Route to best model based on task
-    """
-
-    if task == "chat":
-        return "gpt-4.1-mini"   # fast + cheap
-    if task == "summary":
-        return "gpt-4.1-mini"   # fast + cheap
-    if task == "interview":
-        return "gpt-4.1"        # best reasoning
-    if task == "reasoning":
-        return "gpt-4.1"        # deep thinking
-
-    return "gpt-4.1-mini"
+# Tasks worth the stronger (more expensive) model.
+_STRONG_TASKS = frozenset({TASK_INTERVIEW, TASK_CODING, TASK_REASONING})
 
 
 def classify_task(text: str) -> str:
-    text = text.lower()
+    """Classify user intent so we can pick the right model.
 
-    if "interview" in text or "hr" in text:
-        return "interview"
+    Returns one of: interview | coding | summary | reasoning | chat.
+    """
+    t = (text or "").lower()
+    if any(k in t for k in _INTERVIEW_KW):
+        return TASK_INTERVIEW
+    if any(k in t for k in _CODING_KW):
+        return TASK_CODING
+    if any(k in t for k in _SUMMARY_KW):
+        return TASK_SUMMARY
+    if any(k in t for k in _REASONING_KW):
+        return TASK_REASONING
+    return TASK_CHAT
 
-    if "code" in text or "terraform" in text or "aws" in text:
-        return "coding"
 
-    if "summarize" in text or "rewrite" in text:
-        return "writing"
-
-    return "general"
+def select_model(task: str) -> str:
+    """Map a task label to an OpenAI model name."""
+    return STRONG_MODEL if task in _STRONG_TASKS else FAST_MODEL

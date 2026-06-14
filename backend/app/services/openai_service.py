@@ -623,9 +623,14 @@ async def stream_answer_live(
     else:
         messages.append({"role": "user", "content": question})
     
-    # Route model via model router (supports multi-provider)
+    # Route model via model router (supports multi-provider).
+    # The live answer is the product's critical path: when the client doesn't
+    # pin a model, default to the premium LIVE_ANSWER_MODEL rather than the cheap
+    # global default, so suggested answers are good enough to read mid-sentence.
     from app.router.model_router import resolve_model, get_fallback_spec, PROVIDER_OPENAI, PROVIDER_ANTHROPIC, PROVIDER_OLLAMA
-    spec = get_fallback_spec(resolve_model(model))
+    from core.config import LIVE_ANSWER_MODEL
+    effective_model = (model or "").strip() or LIVE_ANSWER_MODEL
+    spec = get_fallback_spec(resolve_model(effective_model))
     resolved_model = spec.api_model
 
     # Force GPT-4o for vision (mini doesn't support images)
@@ -633,7 +638,7 @@ async def stream_answer_live(
         resolved_model = "gpt-4o"
         logger.info("stream_answer_live: upgraded to gpt-4o for vision")
 
-    logger.info("stream_answer_live model=%s → provider=%s api_model=%s", model, spec.provider, resolved_model)
+    logger.info("stream_answer_live model=%s (effective=%s) → provider=%s api_model=%s", model, effective_model, spec.provider, resolved_model)
     
     # For non-OpenAI providers, delegate to provider-specific streaming
     if spec.provider == PROVIDER_ANTHROPIC:
