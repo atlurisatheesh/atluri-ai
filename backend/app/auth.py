@@ -1,11 +1,17 @@
 """
-Auth module – local JWT verification (replaces Supabase auth).
+Auth module – canonical JWT verification.
 
-Tokens are HS256 JWTs issued by /api/auth/login and /api/auth/signup.
-The payload contains:
-  - sub: user UUID
-  - email: user email
-  - iat / exp: timestamps
+Identity is owned by Supabase: the web frontend signs in via Supabase and sends
+its access_token (an HS256 JWT carrying aud="authenticated") on every request.
+We verify that token here. For backward compatibility we also accept tokens
+issued by the legacy local /api/auth/login + /api/auth/signup endpoints (same
+HS256 scheme, different secret), so nothing breaks during the migration.
+
+Configure secrets via env:
+  - SUPABASE_JWT_SECRET : your Supabase project's JWT secret (preferred)
+  - JWT_SECRET          : legacy/local secret (fallback)
+
+The payload contains: sub (user id), email, iat/exp.
 """
 
 from fastapi import HTTPException, Request
@@ -15,29 +21,47 @@ import logging
 
 logger = logging.getLogger("app.auth")
 
-JWT_SECRET = os.getenv("JWT_SECRET", "local-dev-jwt-secret-change-in-prod")
+_DEFAULT_LOCAL_SECRET = "local-dev-jwt-secret-change-in-prod"
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "").strip()
+JWT_SECRET = os.getenv("JWT_SECRET", _DEFAULT_LOCAL_SECRET)
 JWT_ALGORITHM = "HS256"
 ENVIRONMENT = os.getenv("ENV", "development").lower()
+# Supabase tokens carry aud="authenticated"; we don't pin audience here.
+_DECODE_OPTIONS = {"verify_aud": False}
 ALLOW_UNVERIFIED_JWT_DEV = str(os.getenv("ALLOW_UNVERIFIED_JWT_DEV", "false")).strip().lower() in {
     "1", "true", "yes", "on",
 }
 
 
+def _candidate_secrets() -> list[str]:
+    """Secrets to try, in priority order: Supabase first, then legacy local."""
+    secrets: list[str] = []
+    if SUPABASE_JWT_SECRET:
+        secrets.append(SUPABASE_JWT_SECRET)
+    if JWT_SECRET and JWT_SECRET not in secrets:
+        secrets.append(JWT_SECRET)
+    return secrets
+
+
+def _has_real_secret() -> bool:
+    """True once any non-placeholder signing secret is configured."""
+    return bool(SUPABASE_JWT_SECRET) or JWT_SECRET != _DEFAULT_LOCAL_SECRET
+
+
 def _decode_token(token: str) -> dict:
-    """Decode and verify a local JWT. Returns the payload dict or raises HTTPException."""
-    # 1) Try verified decode with JWT_SECRET
-    if JWT_SECRET and JWT_SECRET != "local-dev-jwt-secret-change-in-prod" or ENVIRONMENT == "production":
+    """Decode and verify a JWT. Returns the payload dict or raises HTTPException."""
+    # 1) Verified decode — try each configured secret (Supabase, then legacy local).
+    for secret in _candidate_secrets():
         try:
-            return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            return jwt.decode(token, secret, algorithms=[JWT_ALGORITHM], options=_DECODE_OPTIONS)
         except JWTError:
-            raise HTTPException(401, "Invalid or expired token")
+            continue
 
-    # 2) Dev mode: try verified first, fall back to unverified if allowed
-    try:
-        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    except JWTError:
-        pass
+    # 2) If a real secret is configured (or we're in prod), never accept unverified tokens.
+    if ENVIRONMENT == "production" or _has_real_secret():
+        raise HTTPException(401, "Invalid or expired token")
 
+    # 3) Dev-only escape hatch: accept unverified claims when explicitly allowed.
     if ALLOW_UNVERIFIED_JWT_DEV:
         try:
             payload = jwt.get_unverified_claims(token)
