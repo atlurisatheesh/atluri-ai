@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from typing import Optional
@@ -20,6 +21,7 @@ logger = logging.getLogger("redis_pool")
 
 _pool: Optional[object] = None   # redis.asyncio.Redis
 _sync_pool: Optional[object] = None  # redis.Redis
+_pool_lock = asyncio.Lock()
 
 
 def _redis_url() -> str:
@@ -30,31 +32,34 @@ def is_redis_enabled() -> bool:
     return bool(_redis_url())
 
 
-def get_redis():
+async def get_redis():
     """Return an async Redis client backed by a shared connection pool.
     Returns None if REDIS_URL is not set (graceful degradation to local)."""
     global _pool
     if _pool is not None:
         return _pool
-    url = _redis_url()
-    if not url:
-        return None
-    try:
-        import redis.asyncio as aioredis
-        max_conn = max(10, int(os.getenv("REDIS_MAX_CONNECTIONS", "50")))
-        socket_timeout = max(0.5, float(os.getenv("REDIS_SOCKET_TIMEOUT", "2")))
-        _pool = aioredis.from_url(
-            url,
-            decode_responses=True,
-            max_connections=max_conn,
-            socket_timeout=socket_timeout,
-            socket_connect_timeout=socket_timeout,
-        )
-        logger.info("Redis async pool created: %s (max_conn=%d)", url.split("@")[-1], max_conn)
+    async with _pool_lock:
+        # Re-check inside the lock — another coroutine may have initialised it
+        if _pool is not None:
+            return _pool
+        url = _redis_url()
+        if not url:
+            return None
+        try:
+            import redis.asyncio as aioredis
+            max_conn = max(10, int(os.getenv("REDIS_MAX_CONNECTIONS", "50")))
+            socket_timeout = max(0.5, float(os.getenv("REDIS_SOCKET_TIMEOUT", "2")))
+            _pool = aioredis.from_url(
+                url,
+                decode_responses=True,
+                max_connections=max_conn,
+                socket_timeout=socket_timeout,
+                socket_connect_timeout=socket_timeout,
+            )
+            logger.info("Redis async pool created: %s (max_conn=%d)", url.split("@")[-1], max_conn)
+        except Exception as exc:
+            logger.warning("Redis async pool creation failed: %s", exc)
         return _pool
-    except Exception as exc:
-        logger.warning("Redis async pool creation failed: %s", exc)
-        return None
 
 
 def get_redis_sync():

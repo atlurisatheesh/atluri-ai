@@ -332,15 +332,51 @@
     for (const p of personas) {
       const row = document.createElement("div");
       row.style.cssText = "display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);";
-      row.innerHTML = `
-        <span style="font-size:18px;">${p.icon}</span>
-        <div style="flex:1;">
-          <div style="font-size:12px;font-weight:600;">${p.name} ${p.id === activeId ? '<span style="color:#3cffaa;font-size:10px;">● ACTIVE</span>' : ''}</div>
-          <div style="font-size:10px;opacity:0.6;">${p.systemPrompt.slice(0, 60)}...</div>
-        </div>
-        <button class="secondary persona-activate-btn" data-id="${p.id}" style="padding:3px 8px;font-size:10px;">${p.id === activeId ? 'Active' : 'Use'}</button>
-        ${p.id !== "default" ? `<button class="secondary persona-delete-btn" data-id="${p.id}" style="padding:3px 8px;font-size:10px;color:#ff5069;">✕</button>` : ''}
-      `;
+
+      // Build all child nodes via DOM APIs — never via innerHTML with user data
+      const iconEl = document.createElement("span");
+      iconEl.style.fontSize = "18px";
+      iconEl.textContent = p.icon;  // textContent is XSS-safe
+
+      const infoEl = document.createElement("div");
+      infoEl.style.flex = "1";
+
+      const nameEl = document.createElement("div");
+      nameEl.style.cssText = "font-size:12px;font-weight:600;";
+      nameEl.textContent = p.name;  // XSS-safe
+      if (p.id === activeId) {
+        const badge = document.createElement("span");
+        badge.style.cssText = "color:#3cffaa;font-size:10px;";
+        badge.textContent = " ● ACTIVE";
+        nameEl.appendChild(badge);
+      }
+
+      const promptEl = document.createElement("div");
+      promptEl.style.cssText = "font-size:10px;opacity:0.6;";
+      promptEl.textContent = p.systemPrompt.slice(0, 60) + "...";  // XSS-safe
+
+      infoEl.appendChild(nameEl);
+      infoEl.appendChild(promptEl);
+
+      const activateBtn = document.createElement("button");
+      activateBtn.className = "secondary persona-activate-btn";
+      activateBtn.dataset.id = p.id;
+      activateBtn.style.cssText = "padding:3px 8px;font-size:10px;";
+      activateBtn.textContent = p.id === activeId ? "Active" : "Use";
+
+      row.appendChild(iconEl);
+      row.appendChild(infoEl);
+      row.appendChild(activateBtn);
+
+      if (p.id !== "default") {
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "secondary persona-delete-btn";
+        deleteBtn.dataset.id = p.id;
+        deleteBtn.style.cssText = "padding:3px 8px;font-size:10px;color:#ff5069;";
+        deleteBtn.textContent = "✕";
+        row.appendChild(deleteBtn);
+      }
+
       personaListEl.appendChild(row);
     }
 

@@ -57,20 +57,18 @@ const DEFAULT_CONFIG: AntiDetectionConfig = {
 
 export class AntiDetectionEngine {
   private config: AntiDetectionConfig;
-  private applied = false;
+  private appliedWindows = new WeakSet<BrowserWindow>();
 
   constructor(config: Partial<AntiDetectionConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
   /**
-   * Applies all anti-detection countermeasures to the app BrowserWindow.
-   * This is injected into the INTERVIEW PLATFORM's context, not the overlay.
-   * Call this on the appWindow that loads the frontend (which contains the
-   * interview in a browser context).
+   * Applies all anti-detection countermeasures to the given BrowserWindow.
+   * Safe to call on multiple windows — tracks per-window rather than a global flag.
    */
   async applyToWindow(win: BrowserWindow): Promise<void> {
-    if (this.applied) return;
+    if (this.appliedWindows.has(win)) return;
 
     const scripts: string[] = [];
 
@@ -110,7 +108,7 @@ export class AntiDetectionEngine {
 
     try {
       await win.webContents.executeJavaScript(combinedScript);
-      this.applied = true;
+      this.appliedWindows.add(win);
       console.log("[anti-detection] All countermeasures applied");
     } catch (e) {
       console.log("[anti-detection] Error applying countermeasures:", String((e as Error)?.message || e));
@@ -368,12 +366,13 @@ export class AntiDetectionEngine {
   // PUBLIC API
   // ═══════════════════════════════════════════════
 
-  isApplied(): boolean { return this.applied; }
+  isApplied(win: BrowserWindow): boolean { return this.appliedWindows.has(win); }
 
   getConfig(): AntiDetectionConfig { return { ...this.config }; }
 
   updateConfig(partial: Partial<AntiDetectionConfig>): void {
     this.config = { ...this.config, ...partial };
-    this.applied = false; // Need to re-apply
+    // Clear the set so all windows get the updated countermeasures on next call
+    this.appliedWindows = new WeakSet<BrowserWindow>();
   }
 }

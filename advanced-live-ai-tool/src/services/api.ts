@@ -6,22 +6,19 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 // ─── Auth Token Management ──────────────────────────────────
-let accessToken: string | null = localStorage.getItem('ig_token')
-
+// Always read from localStorage so logout in one tab is visible to all tabs.
 export function setToken(token: string) {
-    accessToken = token
     localStorage.setItem('ig_token', token)
 }
 
 export function clearToken() {
-    accessToken = null
     localStorage.removeItem('ig_token')
     localStorage.removeItem('ig_refresh')
     localStorage.removeItem('ig_user')
 }
 
 export function getToken() {
-    return accessToken
+    return localStorage.getItem('ig_token')
 }
 
 // ─── Base Fetch Helper ──────────────────────────────────────
@@ -33,6 +30,7 @@ async function apiFetch<T = any>(
         'Content-Type': 'application/json',
         ...(options.headers as Record<string, string>),
     }
+    const accessToken = getToken()
     if (accessToken) {
         headers['Authorization'] = `Bearer ${accessToken}`
     }
@@ -149,6 +147,10 @@ export const documentsAPI = {
             headers,
             body: formData,
         })
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }))
+            throw new Error(err.detail || `HTTP ${res.status}`)
+        }
         return res.json()
     },
 

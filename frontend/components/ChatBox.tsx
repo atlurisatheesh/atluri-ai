@@ -85,9 +85,8 @@ export default function ChatBox() {
         const chunk = decoder.decode(value, { stream: true });
 
         setMessages((m) => {
-          const updated = [...m];
-          updated[updated.length - 1].text += chunk;
-          return updated;
+          const last = m[m.length - 1];
+          return [...m.slice(0, -1), { ...last, text: last.text + chunk }];
         });
       }
       setStatus({ type: "success", message: "Reply received." });

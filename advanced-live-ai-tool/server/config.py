@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "InterviewGenius AI"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-change-in-production-e7f8a9b0c1d2")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     ALLOWED_ORIGINS: list[str] = ["http://localhost:1993", "https://interviewgenius.ai"]
 
     # Database
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
     # JWT Auth
-    JWT_SECRET: str = os.getenv("JWT_SECRET", "jwt-secret-key-change-in-prod")
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "")
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRY_MINUTES: int = 60 * 24  # 24 hours
     JWT_REFRESH_EXPIRY_DAYS: int = 30
@@ -70,3 +70,9 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+if not settings.SECRET_KEY or not settings.JWT_SECRET:
+    raise RuntimeError(
+        "SECRET_KEY and JWT_SECRET must be set via environment variables. "
+        "Do not use hardcoded defaults in production."
+    )

@@ -136,8 +136,8 @@ export function useInterview({ sessionId, token, onError }: UseInterviewOptions)
       wsRef.current = null;
     }
 
-    const wsUrl = `${WS_BASE_URL}/ws/voice?token=${token}&room_id=${sessionId}&participant=candidate`;
-    
+    const wsUrl = `${WS_BASE_URL}/ws/voice`;
+
     try {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -145,6 +145,9 @@ export function useInterview({ sessionId, token, onError }: UseInterviewOptions)
       ws.onopen = () => {
         console.log('[Interview] WebSocket connected');
         reconnectAttemptRef.current = 0;
+        // Send auth handshake as the first message — keeps the token out of
+        // server logs and proxy access logs that record the request URL.
+        ws.send(JSON.stringify({ type: 'auth', token, room_id: sessionId, participant: 'candidate' }));
         setState(prev => ({ ...prev, connectionStatus: 'connected', error: null }));
         startHeartbeat();
       };

@@ -1,12 +1,13 @@
 """Billing & Credits routes — Stripe integration."""
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
 from models import User, CreditTransaction
 from auth_utils import get_current_user
+from config import settings
 
 router = APIRouter()
 
@@ -20,6 +21,7 @@ CREDIT_PACKS = {
 
 class PurchaseRequest(BaseModel):
     pack_name: str
+    stripe_payment_intent_id: str  # must be provided and verified
 
 
 @router.get("/credits")
@@ -38,24 +40,51 @@ async def purchase_credits(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Purchase credit pack (demo — would integrate Stripe)."""
+    """Purchase credit pack — verifies Stripe payment intent before crediting."""
     pack = CREDIT_PACKS.get(req.pack_name)
     if not pack:
         raise HTTPException(status_code=400, detail="Invalid pack")
 
-    user.credits += pack["credits"]
-    db.add(user)
+    # Verify payment with Stripe before granting credits
+    if not settings.STRIPE_SECRET_KEY:
+        raise HTTPException(status_code=503, detail="Payment processing not configured")
+
+    try:
+        import stripe
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        intent = stripe.PaymentIntent.retrieve(req.stripe_payment_intent_id)
+        expected_amount = pack["price_inr"] * 100  # paise
+        if intent.status != "succeeded" or intent.currency not in ("inr",) or intent.amount < expected_amount:
+            raise HTTPException(status_code=402, detail="Payment not verified")
+        # Prevent double-crediting: check if this intent was already used
+        existing = await db.execute(
+            select(CreditTransaction).where(CreditTransaction.description == f"stripe:{req.stripe_payment_intent_id}")
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=409, detail="Payment already applied")
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=402, detail=f"Payment verification failed: {e.user_message}")
+
+    # Atomic credit increment at DB level to prevent race conditions
+    await db.execute(
+        update(User).where(User.id == user.id).values(credits=User.credits + pack["credits"])
+    )
+    await db.flush()
+
+    # Re-read the updated balance
+    result = await db.execute(select(User.credits).where(User.id == user.id))
+    new_balance = result.scalar_one()
 
     tx = CreditTransaction(
         user_id=user.id,
         amount=pack["credits"],
-        balance_after=user.credits,
-        description=f"{req.pack_name.title()} Credit Pack",
+        balance_after=new_balance,
+        description=f"stripe:{req.stripe_payment_intent_id}",
         transaction_type="purchase",
     )
     db.add(tx)
 
-    return {"credits": user.credits, "purchased": pack["credits"]}
+    return {"credits": new_balance, "purchased": pack["credits"]}
 
 
 @router.get("/transactions")

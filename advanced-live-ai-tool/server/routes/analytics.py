@@ -73,6 +73,7 @@ async def get_session_history(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    limit = max(1, min(limit, 200))  # cap between 1 and 200
     result = await db.execute(
         select(InterviewSession)
         .where(InterviewSession.user_id == user.id)

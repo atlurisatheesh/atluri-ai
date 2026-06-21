@@ -1,4 +1,5 @@
 """Authentication routes: register, login, OAuth, refresh, profile."""
+import re
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
@@ -9,6 +10,8 @@ from models import User
 from auth_utils import hash_password, verify_password, create_access_token, create_refresh_token, get_current_user
 
 router = APIRouter()
+
+_ALLOWED_URL_SCHEMES = re.compile(r'^https?://', re.IGNORECASE)
 
 
 class RegisterRequest(BaseModel):
@@ -39,22 +42,23 @@ class UserProfileResponse(BaseModel):
 
 @router.post("/register", response_model=AuthResponse)
 async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    # Check existing
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Email already registered")
+        # Return the same 401 as a bad login to prevent user enumeration
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     user = User(
         email=req.email,
         full_name=req.full_name,
         hashed_password=hash_password(req.password),
-        credits=100,  # free trial bonus
+        credits=100,
     )
     db.add(user)
     await db.flush()
 
     access_token = create_access_token({"sub": user.id})
     refresh_token = create_refresh_token({"sub": user.id})
+    await db.commit()
 
     return AuthResponse(
         access_token=access_token,
@@ -100,8 +104,10 @@ async def update_profile(
     db: AsyncSession = Depends(get_db),
 ):
     if full_name:
-        user.full_name = full_name
-    if avatar_url:
-        user.avatar_url = avatar_url
+        user.full_name = full_name[:200]
+    if avatar_url is not None:
+        if not _ALLOWED_URL_SCHEMES.match(avatar_url):
+            raise HTTPException(status_code=400, detail="avatar_url must start with http:// or https://")
+        user.avatar_url = avatar_url[:2048]
     db.add(user)
     return {"message": "Profile updated"}

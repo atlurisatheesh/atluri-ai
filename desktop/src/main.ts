@@ -4,7 +4,7 @@ import { startWindowsLoopback, type LoopbackStartParams } from "./loopback/win_l
 import Store from "electron-store";
 import { createServer, IncomingMessage } from "http";
 import { WebSocketServer, WebSocket as WsSocket } from "ws";
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { StealthEngine, type ThreatLevel, type ProctoringDetection, type StealthHealthReport } from "./stealth_engine";
 import { AntiDetectionEngine } from "./anti_detection";
 import { autoUpdater } from "electron-updater";
@@ -70,7 +70,7 @@ interface StoreSchema {
 
 const store = new Store<StoreSchema>({
   name: "atluriin-settings",
-  encryptionKey: "atluriin-practice-v1-enc-key",
+  encryptionKey: process.env.STORE_ENCRYPTION_KEY || (() => { throw new Error("STORE_ENCRYPTION_KEY env var must be set"); })(),
   defaults: {
     apiKeys: { openai: "", claude: "" },
     resume: "",
@@ -904,10 +904,19 @@ ipcMain.handle("ollama:check", async () => {
 });
 
 ipcMain.handle("ollama:pull", async (_event, model: string) => {
+  // Validate model name to prevent argument injection
+  if (!/^[a-zA-Z0-9_:.\-]+$/.test(String(model))) {
+    return { ok: false, error: "Invalid model name" };
+  }
   return new Promise<{ ok: boolean; error?: string }>((resolve) => {
-    exec(`ollama pull ${model}`, { timeout: 300000 }, (err) => {
-      resolve(err ? { ok: false, error: String(err.message) } : { ok: true });
+    // Use spawn with an args array — no shell interpolation
+    const proc = spawn("ollama", ["pull", String(model)], { timeout: 300000 });
+    let stderr = "";
+    proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
+    proc.on("close", (code) => {
+      resolve(code === 0 ? { ok: true } : { ok: false, error: stderr || `exit ${code}` });
     });
+    proc.on("error", (err) => resolve({ ok: false, error: err.message }));
   });
 });
 
@@ -952,52 +961,50 @@ ipcMain.handle("ollama:generate", async (_event, payload: { model: string; promp
 // Simulates typing with human-speed delays using OS-native input
 // ═══════════════════════════════════════════════════════════
 ipcMain.handle("ghost:typeText", async (_event, payload: { text: string; wpm?: number }) => {
-  const text = String(payload.text || "");
+  const text = String(payload.text || "").slice(0, 10000); // hard cap
   const wpm = Math.max(20, Math.min(200, payload.wpm || 85));
-  const charDelayMs = Math.round(60000 / (wpm * 5)); // avg 5 chars per word
+  const charDelayMs = Math.round(60000 / (wpm * 5));
+  const timeoutMs = text.length * (charDelayMs + 100) + 5000;
 
   if (process.platform === "win32") {
-    // Windows: Use PowerShell SendKeys with human-speed delays
-    const escaped = text.replace(/'/g, "''").replace(/[+^%~(){}[\]]/g, "{$&}");
-    const psScript = `
-      Add-Type -AssemblyName System.Windows.Forms
-      $text = '${escaped}'
-      foreach ($char in $text.ToCharArray()) {
-        [System.Windows.Forms.SendKeys]::SendWait($char.ToString())
-        Start-Sleep -Milliseconds ${charDelayMs}
-        # Add random jitter (±30ms) for human-like feel
-        Start-Sleep -Milliseconds (Get-Random -Minimum 0 -Maximum 60)
-      }
-    `;
+    // Pass the script text via stdin to avoid any shell interpolation of user content.
+    // -EncodedCommand accepts Base64-encoded UTF-16LE — no quoting issues.
+    const sendKeysScript = [
+      "Add-Type -AssemblyName System.Windows.Forms",
+      `$text = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('${Buffer.from(text).toString("base64")}'))`,
+      "foreach ($char in $text.ToCharArray()) {",
+      "  [System.Windows.Forms.SendKeys]::SendWait($char.ToString())",
+      `  Start-Sleep -Milliseconds ${charDelayMs}`,
+      "  Start-Sleep -Milliseconds (Get-Random -Minimum 0 -Maximum 60)",
+      "}",
+    ].join("\n");
+    const encoded = Buffer.from(sendKeysScript, "utf16le").toString("base64");
     return new Promise<{ ok: boolean; error?: string }>((resolve) => {
-      exec(`powershell -NoProfile -Command "${psScript.replace(/"/g, '\\"')}"`, { timeout: text.length * (charDelayMs + 100) + 5000 }, (err) => {
-        resolve(err ? { ok: false, error: String(err.message) } : { ok: true });
-      });
+      const proc = spawn("powershell", ["-NoProfile", "-EncodedCommand", encoded], { timeout: timeoutMs });
+      let stderr = "";
+      proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
+      proc.on("close", (code) => resolve(code === 0 ? { ok: true } : { ok: false, error: stderr || `exit ${code}` }));
+      proc.on("error", (err) => resolve({ ok: false, error: err.message }));
     });
   } else if (process.platform === "darwin") {
-    // macOS: Use AppleScript
-    const escaped = text.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-    const script = `
-      tell application "System Events"
-        set theText to "${escaped}"
-        repeat with i from 1 to count of characters of theText
-          keystroke (character i of theText)
-          delay ${(charDelayMs / 1000).toFixed(3)}
-        end repeat
-      end tell
-    `;
+    // Pass text as a positional arg to osascript script file to avoid shell injection.
+    // keystroke command receives the text from argv, never interpolated into the script.
+    const script = `on run argv\ntell application "System Events"\nset theText to item 1 of argv\nrepeat with i from 1 to count of characters of theText\nkeystroke (character i of theText)\ndelay ${(charDelayMs / 1000).toFixed(3)}\nend repeat\nend tell\nend run`;
     return new Promise<{ ok: boolean; error?: string }>((resolve) => {
-      exec(`osascript -e '${script.replace(/'/g, "'\"'\"'")}'`, { timeout: text.length * (charDelayMs + 100) + 5000 }, (err) => {
-        resolve(err ? { ok: false, error: String(err.message) } : { ok: true });
-      });
+      const proc = spawn("osascript", ["-e", script, text], { timeout: timeoutMs });
+      let stderr = "";
+      proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
+      proc.on("close", (code) => resolve(code === 0 ? { ok: true } : { ok: false, error: stderr || `exit ${code}` }));
+      proc.on("error", (err) => resolve({ ok: false, error: err.message }));
     });
   } else {
-    // Linux: Use xdotool
-    const escaped = text.replace(/'/g, "'\"'\"'");
+    // Linux: xdotool accepts text as a plain argument — no shell involved with spawn
     return new Promise<{ ok: boolean; error?: string }>((resolve) => {
-      exec(`xdotool type --delay ${charDelayMs} '${escaped}'`, { timeout: text.length * (charDelayMs + 100) + 5000 }, (err) => {
-        resolve(err ? { ok: false, error: String(err.message) } : { ok: true });
-      });
+      const proc = spawn("xdotool", ["type", "--delay", String(charDelayMs), "--", text], { timeout: timeoutMs });
+      let stderr = "";
+      proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
+      proc.on("close", (code) => resolve(code === 0 ? { ok: true } : { ok: false, error: stderr || `exit ${code}` }));
+      proc.on("error", (err) => resolve({ ok: false, error: err.message }));
     });
   }
 });

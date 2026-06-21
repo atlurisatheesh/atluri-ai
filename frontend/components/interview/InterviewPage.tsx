@@ -14,6 +14,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import IntelligencePanel from './IntelligencePanel';
 import PhantomOverlay from '@/components/stealth/PhantomOverlay';
 import { usePhantomOverlay } from '@/lib/hooks/usePhantomOverlay';
+import { useInterview } from './useInterview';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPE DEFINITIONS
@@ -39,6 +40,7 @@ type ConnectionStatus = 'connected' | 'reconnecting' | 'disconnected';
 
 interface InterviewPageProps {
   sessionId: string;
+  token: string;
   onEnd?: () => void;
 }
 
@@ -46,43 +48,28 @@ interface InterviewPageProps {
 // MAIN PAGE COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 
-export function InterviewPage({ sessionId, onEnd }: InterviewPageProps) {
-  // State
-  const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
-  const [currentSuggestion, setCurrentSuggestion] = useState<Suggestion | null>(null);
-  const [previousSuggestions, setPreviousSuggestions] = useState<Suggestion[]>([]);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
+export function InterviewPage({ sessionId, token, onEnd }: InterviewPageProps) {
   const [micLevel, setMicLevel] = useState(0);
-  const [isThinking, setIsThinking] = useState(false);
-  const [latencyMs, setLatencyMs] = useState<number | null>(null);
-  
-  // Intelligence state (populated via WebSocket messages)
-  const [questionIntelligence, setQuestionIntelligence] = useState<any>(null);
-  const [keyPhrase, setKeyPhrase] = useState<any>(null);
-  const [followUpPredictions, setFollowUpPredictions] = useState<any[]>([]);
-  const [speechCoaching, setSpeechCoaching] = useState<any>(null);
-  const [recoveryAssist, setRecoveryAssist] = useState<any>(null);
+
+  // ── Live WebSocket connection via useInterview ──
+  const {
+    transcript,
+    currentSuggestion,
+    previousSuggestions,
+    connectionStatus,
+    isThinking,
+    latencyMs,
+    questionIntelligence,
+    keyPhrase,
+    followUpPredictions,
+    speechCoaching,
+    recoveryAssist,
+  } = useInterview({ sessionId, token });
 
   // ── PhantomVeil Stealth Overlay ──
   const phantom = usePhantomOverlay();
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [micOn, setMicOn] = useState(true);
-
-  // Feed WebSocket messages to the overlay hook (called from your WS handler)
-  const handleWSForOverlay = useCallback((type: string, data: any) => {
-    phantom.handleWSMessage(type, data);
-    // Also update InterviewPage's own state for the main UI
-    if (type === 'partial_transcript' && data?.text) {
-      const entry: TranscriptEntry = {
-        id: `t-${Date.now()}`,
-        speaker: data.speaker || 'interviewer',
-        text: data.text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isFinal: data.is_final ?? false,
-      };
-      setTranscript((prev) => [...prev, entry]);
-    }
-  }, [phantom]);
 
   return (
     <div className="h-screen w-screen bg-neutral-950 text-neutral-100 flex flex-col overflow-hidden select-none">

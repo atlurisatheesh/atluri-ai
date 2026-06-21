@@ -1,9 +1,11 @@
 /**
  * Deepgram real-time transcription client for the frontend.
- * Streams audio from the browser microphone to Deepgram WebSocket.
+ * Audio is proxied through the backend WebSocket so the Deepgram API key
+ * is never sent to or stored on the client.
  */
 
-const DEEPGRAM_KEY = import.meta.env.VITE_DEEPGRAM_API_KEY || ''
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const WS_BASE = API_BASE.replace(/^http/, 'ws').replace('/api', '')
 
 export interface TranscriptResult {
     text: string
@@ -20,17 +22,14 @@ export class DeepgramStream {
     public onError: ((error: string) => void) | null = null
     public isActive = false
 
-    async start() {
-        if (!DEEPGRAM_KEY) {
-            this.onError?.('Deepgram API key not configured')
-            return
-        }
-
+    async start(authToken?: string) {
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({ audio: true })
 
-            const wsUrl = `wss://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&language=en&punctuate=true&diarize=true&interim_results=true`
-            this.socket = new WebSocket(wsUrl, ['token', DEEPGRAM_KEY])
+            // Connect to our backend proxy — the backend holds the Deepgram key server-side
+            const tokenParam = authToken ? `?token=${encodeURIComponent(authToken)}` : ''
+            const wsUrl = `${WS_BASE}/ws/transcribe${tokenParam}`
+            this.socket = new WebSocket(wsUrl)
 
             this.socket.onopen = () => {
                 this.isActive = true

@@ -4,20 +4,11 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
 
-const E2E_BYPASS_KEY = "atluriin.e2e.bypass";
-
 function shouldBypassAuth(): boolean {
-  if (process.env.NEXT_PUBLIC_E2E_BYPASS_AUTH === "true") {
-    return true;
-  }
-  if (typeof window === "undefined") {
-    return false;
-  }
-  try {
-    return window.localStorage.getItem(E2E_BYPASS_KEY) === "1";
-  } catch {
-    return false;
-  }
+  // Only allow bypass when explicitly set in a test/CI environment.
+  // The localStorage bypass has been removed — any user could set it in DevTools.
+  return process.env.NEXT_PUBLIC_E2E_BYPASS_AUTH === "true" &&
+    process.env.NODE_ENV !== "production";
 }
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {

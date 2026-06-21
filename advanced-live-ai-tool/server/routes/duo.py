@@ -1,20 +1,24 @@
 """MentorLink™ — Real-time human-assisted interview support via WebRTC."""
+import secrets
+import string
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-import random
-import string
 
-from database import get_db
-from models import User, MentorSession
 from auth_utils import get_current_user
+from database import get_db
+from models import MentorSession, User
 
 router = APIRouter()
 
+_CODE_ALPHABET = string.ascii_uppercase + string.digits
+
 
 def generate_session_code() -> str:
-    return "".join(random.choices(string.digits, k=6))
+    # 8 chars from 36-char alphabet → ~1.8 trillion combinations
+    return "".join(secrets.choice(_CODE_ALPHABET) for _ in range(8))
 
 
 class CreateMentorSessionRequest(BaseModel):
@@ -75,7 +79,7 @@ async def send_hint(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Send a stealth hint to the candidate."""
+    """Send a stealth hint to the candidate. Only the designated helper may send hints."""
     result = await db.execute(
         select(MentorSession).where(
             MentorSession.session_code == req.session_code,
@@ -85,6 +89,9 @@ async def send_hint(
     session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Active session not found")
+
+    if session.helper_id != user.id:
+        raise HTTPException(status_code=403, detail="Only the session helper may send hints")
 
     hints = session.hints_sent or []
     hints.append({"text": req.hint, "from": user.id})
@@ -107,6 +114,9 @@ async def end_mentor_session(
     session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+
+    if user.id not in (session.candidate_id, session.helper_id):
+        raise HTTPException(status_code=403, detail="Not authorized to end this session")
 
     session.status = "ended"
     session.ended_at = datetime.utcnow()

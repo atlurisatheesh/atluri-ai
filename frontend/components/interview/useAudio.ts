@@ -51,16 +51,17 @@ export function useAudio({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const smoothedLevelRef = useRef(0);
+  const requestInFlightRef = useRef(false);
 
   // ─────────────────────────────────────────────────────────────────────────
   // REQUEST PERMISSION
   // ─────────────────────────────────────────────────────────────────────────
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    if (status === 'active') {
-      return true;
-    }
+    if (status === 'active') return true;
+    if (requestInFlightRef.current) return false;
 
+    requestInFlightRef.current = true;
     setStatus('requesting');
 
     try {
@@ -91,18 +92,20 @@ export function useAudio({
       startLevelMonitoring();
 
       setStatus('active');
+      requestInFlightRef.current = false;
       return true;
 
     } catch (error: any) {
       console.error('[Audio] Permission error:', error);
-      
+      requestInFlightRef.current = false;
+
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         setStatus('denied');
       } else {
         setStatus('error');
         onError?.(error.message || 'Microphone error');
       }
-      
+
       return false;
     }
   }, [status, onError]);

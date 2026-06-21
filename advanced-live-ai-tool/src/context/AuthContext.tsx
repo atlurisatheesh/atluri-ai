@@ -27,18 +27,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        // Try to restore session from localStorage
-        const stored = localStorage.getItem('ig_user')
         const token = localStorage.getItem('ig_token')
-        if (stored && token) {
-            try {
-                setUser(JSON.parse(stored))
-                setToken(token)
-            } catch {
-                clearToken()
-            }
+        if (!token) {
+            setIsLoading(false)
+            return
         }
-        setIsLoading(false)
+        // Validate the token against the server rather than trusting the
+        // locally cached user object — catches revoked or expired tokens.
+        authAPI.getProfile()
+            .then((profile) => {
+                setUser(profile)
+                localStorage.setItem('ig_user', JSON.stringify(profile))
+            })
+            .catch(() => {
+                clearToken()
+            })
+            .finally(() => setIsLoading(false))
     }, [])
 
     const login = async (email: string, password: string) => {

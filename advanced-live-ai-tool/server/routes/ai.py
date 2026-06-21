@@ -1,15 +1,18 @@
 """NeuralWhisper™ AI Engine routes: transcription, AI response generation, coding analysis."""
+import base64
+import binascii
+import time
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
-import base64
-import time
 
-from database import get_db
-from models import User, AIResponse, InterviewSession
 from auth_utils import get_current_user
 from config import settings
+from database import get_db
+from models import AIResponse, InterviewSession, User
 
 router = APIRouter()
 
@@ -65,7 +68,13 @@ async def transcribe_audio(
 
     # If audio_base64 was sent, decode and transcribe
     if req.audio_base64:
-        audio_bytes = base64.b64decode(req.audio_base64)
+        MAX_AUDIO_BYTES = 10 * 1024 * 1024  # 10 MB decoded limit
+        if len(req.audio_base64) > (MAX_AUDIO_BYTES * 4 // 3 + 4):
+            raise HTTPException(status_code=413, detail="Audio payload too large")
+        try:
+            audio_bytes = base64.b64decode(req.audio_base64, validate=True)
+        except (binascii.Error, ValueError):
+            raise HTTPException(status_code=400, detail="Invalid base64 audio data")
 
         # Try Deepgram first (faster, better speaker diarization)
         if settings.DEEPGRAM_API_KEY:
@@ -107,8 +116,24 @@ async def generate_ai_response(
     """Genius Response Engine™ — Generate structured interview answer using GPT-4o."""
     start = time.time()
 
-    # Check credits
-    if user.credits < settings.CREDIT_COST_AI_RESPONSE:
+    # Verify session belongs to the authenticated user
+    if req.session_id:
+        session_result = await db.execute(
+            select(InterviewSession).where(
+                InterviewSession.id == req.session_id,
+                InterviewSession.user_id == user.id,
+            )
+        )
+        if session_result.scalar_one_or_none() is None:
+            raise HTTPException(status_code=403, detail="Session not found")
+
+    # Atomically deduct credits — prevents race conditions on concurrent requests
+    result = await db.execute(
+        update(User)
+        .where(User.id == user.id, User.credits >= settings.CREDIT_COST_AI_RESPONSE)
+        .values(credits=User.credits - settings.CREDIT_COST_AI_RESPONSE)
+    )
+    if result.rowcount == 0:
         raise HTTPException(status_code=402, detail="Insufficient credits")
 
     # Use real OpenAI if configured
@@ -142,10 +167,6 @@ async def generate_ai_response(
             confidence=0.75,
             latency_ms=int((time.time() - start) * 1000),
         )
-
-    # Deduct credits
-    user.credits -= settings.CREDIT_COST_AI_RESPONSE
-    db.add(user)
 
     # Save response
     ai_resp = AIResponse(

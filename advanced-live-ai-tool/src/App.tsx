@@ -1,5 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth, AuthProvider } from './context/AuthContext'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -16,6 +16,13 @@ import SettingsPage from './pages/SettingsPage'
 import StealthPage from './pages/StealthPage'
 import DocumentsPage from './pages/DocumentsPage'
 
+function RequireAuth({ children }: { children: React.ReactNode }) {
+    const { isAuthenticated, isLoading } = useAuth()
+    if (isLoading) return null
+    if (!isAuthenticated) return <Navigate to="/login" replace />
+    return <>{children}</>
+}
+
 function App() {
     return (
         <AuthProvider>
@@ -24,18 +31,18 @@ function App() {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/copilot" element={<CopilotPage />} />
-                    <Route path="/coding" element={<CodingPage />} />
-                    <Route path="/mock" element={<MockPage />} />
-                    <Route path="/duo" element={<DuoPage />} />
-                    <Route path="/resume" element={<ResumePage />} />
-                    <Route path="/analytics" element={<AnalyticsPage />} />
-                    <Route path="/questions" element={<QuestionBankPage />} />
-                    <Route path="/billing" element={<BillingPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/stealth" element={<StealthPage />} />
-                    <Route path="/documents" element={<DocumentsPage />} />
+                    <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+                    <Route path="/copilot" element={<RequireAuth><CopilotPage /></RequireAuth>} />
+                    <Route path="/coding" element={<RequireAuth><CodingPage /></RequireAuth>} />
+                    <Route path="/mock" element={<RequireAuth><MockPage /></RequireAuth>} />
+                    <Route path="/duo" element={<RequireAuth><DuoPage /></RequireAuth>} />
+                    <Route path="/resume" element={<RequireAuth><ResumePage /></RequireAuth>} />
+                    <Route path="/analytics" element={<RequireAuth><AnalyticsPage /></RequireAuth>} />
+                    <Route path="/questions" element={<RequireAuth><QuestionBankPage /></RequireAuth>} />
+                    <Route path="/billing" element={<RequireAuth><BillingPage /></RequireAuth>} />
+                    <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+                    <Route path="/stealth" element={<RequireAuth><StealthPage /></RequireAuth>} />
+                    <Route path="/documents" element={<RequireAuth><DocumentsPage /></RequireAuth>} />
                 </Routes>
             </Router>
         </AuthProvider>

@@ -1,6 +1,6 @@
 """DocuMind™ — Document upload, processing, and context retrieval."""
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
@@ -9,6 +9,12 @@ from auth_utils import get_current_user
 from config import settings
 
 router = APIRouter()
+
+_ALLOWED_DOC_TYPES = {"resume", "job_description", "cover_letter", "portfolio", "other"}
+_MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+
+# MIME types that are safe to decode as text
+_TEXT_MIMETYPES = {"text/plain", "text/markdown", "application/json"}
 
 
 @router.post("/upload")
@@ -19,32 +25,51 @@ async def upload_document(
     db: AsyncSession = Depends(get_db),
 ):
     """Upload and process a document for RAG context."""
-    # Check credits
+    if doc_type not in _ALLOWED_DOC_TYPES:
+        raise HTTPException(status_code=400, detail=f"doc_type must be one of: {', '.join(_ALLOWED_DOC_TYPES)}")
+
     if user.credits < settings.CREDIT_COST_DOC_UPLOAD:
         raise HTTPException(status_code=402, detail="Insufficient credits")
 
-    # Check file size (10MB max)
-    content = await file.read()
-    if len(content) > 10 * 1024 * 1024:
+    # Read with a hard size limit — do not buffer the entire file before checking
+    content = await file.read(_MAX_UPLOAD_BYTES + 1)
+    if len(content) > _MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="File too large (max 10MB)")
 
-    # Extract text (simplified — would use pdfplumber for PDF)
-    text_content = content.decode("utf-8", errors="ignore")
+    # Only decode as text if it is actually a text MIME type; otherwise mark for extraction
+    content_type = (file.content_type or "").split(";")[0].strip().lower()
+    if content_type in _TEXT_MIMETYPES:
+        try:
+            text_content = content.decode("utf-8")
+        except UnicodeDecodeError:
+            text_content = content.decode("utf-8", errors="replace")
+        embedding_status = "ready"
+    else:
+        # Binary file (PDF, DOCX, etc.) — store placeholder; a background worker
+        # should extract text via pdfplumber/python-docx and update this record.
+        text_content = f"[Binary document: {file.filename}. Text extraction pending.]"
+        embedding_status = "processing"
 
     doc = Document(
         user_id=user.id,
         filename=file.filename or "untitled",
         doc_type=doc_type,
-        content_text=text_content[:50000],  # limit stored text
+        content_text=text_content[:50000],
         file_size=len(content),
-        embedding_status="ready",  # would be "processing" in production
+        embedding_status=embedding_status,
         is_active=True,
     )
     db.add(doc)
 
-    # Deduct credits
-    user.credits -= settings.CREDIT_COST_DOC_UPLOAD
-    db.add(user)
+    # Atomic credit deduction
+    result = await db.execute(
+        update(User)
+        .where(User.id == user.id, User.credits >= settings.CREDIT_COST_DOC_UPLOAD)
+        .values(credits=User.credits - settings.CREDIT_COST_DOC_UPLOAD)
+    )
+    if result.rowcount == 0:
+        raise HTTPException(status_code=402, detail="Insufficient credits")
+
     await db.flush()
 
     return {"id": doc.id, "filename": doc.filename, "status": doc.embedding_status}
