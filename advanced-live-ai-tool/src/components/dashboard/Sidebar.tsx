@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
     Home, Zap, Code2, Theater, Users, EyeOff, FileText,
     BookOpen, FolderOpen, BarChart3, History, Settings,
-    CreditCard, HelpCircle, ChevronLeft, ChevronRight
+    CreditCard, HelpCircle, ChevronLeft, ChevronRight, Bot
 } from 'lucide-react'
 
 const navItems = [
     { icon: <Home className="w-5 h-5" />, label: 'Overview', path: '/dashboard' },
+    { icon: <Bot className="w-5 h-5" />, label: 'Jarvis', path: '/jarvis', highlight: true },
     { icon: <Zap className="w-5 h-5" />, label: 'NeuralWhisper™', path: '/copilot', highlight: true },
     { icon: <Code2 className="w-5 h-5" />, label: 'CodeForge™', path: '/coding' },
     { icon: <Theater className="w-5 h-5" />, label: 'SimuDrill™', path: '/mock' },

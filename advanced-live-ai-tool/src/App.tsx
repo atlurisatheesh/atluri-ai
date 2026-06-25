@@ -15,6 +15,7 @@ import BillingPage from './pages/BillingPage'
 import SettingsPage from './pages/SettingsPage'
 import StealthPage from './pages/StealthPage'
 import DocumentsPage from './pages/DocumentsPage'
+import JarvisPage from './pages/JarvisPage'
 
 function App() {
     return (
@@ -36,6 +37,7 @@ function App() {
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/stealth" element={<StealthPage />} />
                     <Route path="/documents" element={<DocumentsPage />} />
+                    <Route path="/jarvis" element={<JarvisPage />} />
                 </Routes>
             </Router>
         </AuthProvider>

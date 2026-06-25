@@ -67,6 +67,7 @@ from app.api.learning_routes import router as learning_router
 from app.api.desktop_downloads import router as desktop_downloads_router
 from app.api.memory_routes import router as memory_router
 from app.api.voice_profiler_routes import router as voice_profiler_router
+from app.api.jarvis_routes import router as jarvis_router
 from app.db.database import init_db
 from app.company_modes import list_company_modes
 from app.scenarios import list_scenarios, list_scenario_categories, get_scenario
@@ -951,4 +952,5 @@ app.include_router(learning_router)
 app.include_router(desktop_downloads_router)
 app.include_router(memory_router)
 app.include_router(voice_profiler_router)
+app.include_router(jarvis_router)
 register_me_endpoint(app, get_user_id_async)
